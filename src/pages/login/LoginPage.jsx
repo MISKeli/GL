@@ -2,15 +2,14 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Checkbox,
-  Container,
-  FormControlLabel,
   IconButton,
   InputAdornment,
   Stack,
   TextField,
   Typography,
   Grid,
+  Container,
+  CircularProgress,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
@@ -36,8 +35,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
@@ -51,68 +51,59 @@ const LoginPage = () => {
   } = useForm({
     defaultValues: { username: "", password: "" },
     resolver: yupResolver(loginSchema),
-    code: "onChange",
+    mode: "onChange",
   });
 
   const [login] = usePostLoginMutation();
-
   const isAuthenticated = useSelector((state) => state.auth.token);
 
-  const loginHandler = (data) => {
-    login(data)
-      .unwrap()
-      .then((res) => {
-        console.log(res);
-        sessionStorage.setItem("token", encrypt(res.value?.token));
-        dispatch(loginSlice({ token: res?.value?.token, user: res?.value }));
-        sessionStorage.setItem("user", JSON.stringify(res.value));
-
-        sessionStorage.setItem("uToken", encrypt(data?.username));
-        sessionStorage.setItem("pToken", encrypt(data?.password));
-        setShowPasswordDialog(true);
-        toast.success("Login Successfully");
-
-        navigate("/");
-      })
-      .catch((error) => {
-        console.log({ error });
-        toast.error(error?.data.error.message);
-      });
+  const loginHandler = async (data) => {
+    setLoading(true);
+    try {
+      const res = await login(data).unwrap();
+      sessionStorage.setItem("token", encrypt(res.value?.token));
+      dispatch(loginSlice({ token: res?.value?.token, user: res?.value }));
+      sessionStorage.setItem("user", JSON.stringify(res.value));
+      sessionStorage.setItem("uToken", encrypt(data?.username));
+      sessionStorage.setItem("pToken", encrypt(data?.password));
+      setShowPasswordDialog(true);
+      toast.success("Login Successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error(error?.data.error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
   useEffect(() => {
     if (isAuthenticated) {
-      return navigate("/");
+      navigate("/");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   return (
     <Box className="login-page">
       <Box className="login-page__container">
         <Grid container spacing={2}>
-          <Grid item xs={6} className="login-page__container--logo">
+          <Grid item xs={12} md={6} className="login-page__container--logo">
             <img src={logo} alt="Logo" />
-            <Typography component={"h1"} variant="h4">
+            <Typography component="h1" variant="h4">
               GENERAL LEDGER
             </Typography>
           </Grid>
-          <Grid
-            item
-            xs={12}
-            md={6}
-            className="login-page__container--textfield"
-          >
+          <Grid item xs={12} md={6} className="login-page__container--textfield">
             <Container>
               <Box className="login-page__container--form">
                 <Typography component="h1" variant="h5">
                   Login
                 </Typography>
-
                 <form
                   onSubmit={handleSubmit(loginHandler)}
                   id="form-submit"
                   autoComplete="off"
                 >
-                  <Stack spacing={2} sx={{ mr: 3 }}>
+                  <Stack spacing={2} sx={{ width: '100%' }}>
                     <Controller
                       name="username"
                       control={control}
@@ -131,7 +122,6 @@ const LoginPage = () => {
                           label="Username"
                           fullWidth
                           margin="dense"
-                          // size="small"
                           helperText={errors?.username?.message}
                           error={!!errors?.username?.message}
                         />
@@ -143,7 +133,6 @@ const LoginPage = () => {
                       control={control}
                       render={({ field }) => (
                         <TextField
-                          sx={{ minWidth: 370, maxWidth: 370 }}
                           {...field}
                           InputProps={{
                             startAdornment: (
@@ -177,7 +166,6 @@ const LoginPage = () => {
                           type={showPassword ? "text" : "password"}
                           fullWidth
                           margin="dense"
-                          //size="small"
                           helperText={errors?.password?.message}
                           error={!!errors?.password?.message}
                         />
@@ -188,10 +176,10 @@ const LoginPage = () => {
                       type="submit"
                       variant="contained"
                       fullWidth
-                      sx={{ mt: 2, minWidth: "170px" }}
-                      disabled={!isValid}
+                      sx={{ mt: 2 }}
+                      disabled={!isValid || loading}
                     >
-                      Sign in
+                      {loading ? <CircularProgress size={24} /> : "Sign in"}
                     </Button>
                   </Stack>
                 </form>
@@ -206,9 +194,9 @@ const LoginPage = () => {
               <Box className="login-page__footer">
                 <img src={MISLOGO} alt="Side Logo" />
                 <Typography variant="caption">
-                  Powered By MIS All right reserved
+                  Powered By MIS All rights reserved
                 </Typography>
-                <Typography variant="caption">Copyrights © 2024</Typography>
+                <Typography variant="caption">Copyright © 2024</Typography>
               </Box>
             </Container>
           </Grid>

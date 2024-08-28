@@ -107,11 +107,16 @@
 
   &__sub-item {
     padding: 0.5rem 5rem;
-    transition: color 0.2s ease-in-out;
+    transition: 0.2s ease-in-out;
+    transform: translateX(14%);
+    width: calc(100% - 40px);
+    z-index: -1;
+    
 
     &.active {
-
-      color: $primary-dark;
+      background-color: $info-main;
+      color: $primary-contrast-text;
+      border-radius: 10px;
       font-weight: bold;
     }
 
