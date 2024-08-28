@@ -1,0 +1,29 @@
+
+@import "__variables";
+
+@mixin xs {
+  @media (min-width: map-get($size, "xs")) {
+    @content;
+  }
+}
+
+@mixin sm {
+  @media (min-width: map-get($size, "sm")) {
+    @content;
+  }
+}
+@mixin md {
+  @media (min-width: map-get($size, "md")) {
+    @content;
+  }
+}
+@mixin lg {
+  @media (min-width: map-get($size, "lg")) {
+    @content;
+  }
+}
+@mixin xl {
+  @media (min-width: map-get($size, "xl")) {
+    @content;
+  }
+}

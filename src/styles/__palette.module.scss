@@ -1,0 +1,99 @@
+$primary-main: #3d61ad;
+$primary-light: #4c6ea5;
+$primary-dark: #2f3f5c;
+$primary-contrast-text: #ffffff;
+
+$secondary-main: #ed252a;
+$secondary-light: #ff3737;
+$secondary-dark: #c21616;
+$secondary-contrast-text: #ffffff;
+
+$info-main: #3dabe1;
+$info-light: #64c5e6;
+$info-dark: #2196f3;
+$info-contrast-text: #ffffff;
+
+$warning-main: #ffc107;
+$warning-light: #ffd07b;
+$warning-dark: #ffa07a;
+$warning-contrast-text: #000000;
+
+$error-main: #e74c3c;
+$error-light: #ff7f7f;
+$error-dark: #c0392b;
+$error-contrast-text: #ffffff;
+
+$success-main: #2ecc71;
+$success-light: #34c759;
+$success-dark: #1e8655;
+$success-contrast-text: #ffffff;
+
+$tertiary-main: #9c27b0;
+$tertiary-light: #ba68c8;
+$tertiary-dark: #7b1fa2;
+$tertiary-contrast-text: #ffffff;
+
+$background-default: #f1f3f9;
+$background-paper: #ffffff;
+$background-header: #f0f0f0;
+
+$text-primary: #414042;
+$text-secondary: #666666;
+$text-disabled: #999999;
+$text-hint: #aaaaaa;
+
+$caution-main: #ff9800;
+$caution-light: #ffc947;
+$caution-dark: #c66900;
+$caution-contrast-text: #000000;
+
+:export {
+  primary-main: $primary-main;
+  primary-light: $primary-light;
+  primary-dark: $primary-dark;
+  primary-contrast-text: $primary-contrast-text;
+
+  secondary-main: $secondary-main;
+  secondary-light: $secondary-light;
+  secondary-dark: $secondary-dark;
+  secondary-contrast-text: $secondary-contrast-text;
+
+  info-main: $info-main;
+  info-light: $info-light;
+  info-dark: $info-dark;
+  info-contrast-text: $info-contrast-text;
+
+  warning-main: $warning-main;
+  warning-light: $warning-light;
+  warning-dark: $warning-dark;
+  warning-contrast-text: $warning-contrast-text;
+
+  error-main: $error-main;
+  error-light: $error-light;
+  error-dark: $error-dark;
+  error-contrast-text: $error-contrast-text;
+
+  success-main: $success-main;
+  success-light: $success-light;
+  success-dark: $success-dark;
+  success-contrast-text: $success-contrast-text;
+
+  tertiary-main: $tertiary-main;
+  tertiary-light: $tertiary-light;
+  tertiary-dark: $tertiary-dark;
+  tertiary-contrast-text: $tertiary-contrast-text;
+
+  background-default: $background-default;
+  background-paper: $background-paper;
+  background-header: $background-header;
+
+  text-primary: $text-primary;
+  text-secondary: $text-secondary;
+  text-disabled: $text-disabled;
+  text-hint: $text-hint;
+
+  caution-main: $caution-main;
+  caution-light: $caution-light;
+  caution-dark: $caution-dark;
+  caution-contrast-text: $caution-contrast-text;
+}

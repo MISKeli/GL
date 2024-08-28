@@ -1,0 +1,31 @@
+@import "/src/styles/_palette.module";
+
+.navbar {
+  display: flex;
+  justify-content: flex-end;
+  //background-color: $text-hint;
+
+  &__container {
+    display: flex;
+    align-items: center;
+    &--user {
+      color: $text-primary;
+      font-weight: 900;
+    }
+  }
+
+  &__menu {
+    //Profile Settings
+    &--title {
+      padding-left: 1rem;
+      
+    }
+    &__item {
+
+      &--logout {
+       color: $secondary-light;
+       
+      }
+    }
+  }
+}

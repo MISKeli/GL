@@ -1,0 +1,47 @@
+@import "__palette.module"; // Import any required palette or base styles
+
+// BEM class for AddUser component
+.add-user {
+  // Main container for the dialog
+  &__dialog {
+    // Ensuring the dialog takes full width
+    width: 100%;
+    max-width: 600px; // Optional: Set a max-width for the dialog
+    margin: auto; // Center the dialog horizontally
+  }
+
+  // Header section of the dialog
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: $primary-dark; // Set header background color
+    color: white; // Set header text color to white
+
+    .MuiIconButton-root {
+      color: white; // Set close button color to white
+    }
+  }
+
+  // Content section of the dialog
+  &__content {
+    //padding: 16px; // Add padding around the form
+
+    .MuiTextField-root {
+//      margin-bottom: 10px; // Add spacing between fields
+    }
+  }
+
+  // Actions section of the dialog
+  &__actions {
+    background-color: $primary-dark;
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end; // Align actions to the right
+
+    .MuiButton-root {
+      margin-left: 8px; // Add spacing between buttons
+    }
+  }
+}

@@ -1,0 +1,100 @@
+@import "__palette.module";
+@import "__mixins";
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to right, #b5babe, #002b5c);
+  padding: 1rem;
+
+  &__container {
+    display: flex;
+    border-radius: 15px;
+    width: 75%;
+    height: 60%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    flex-direction: row;
+    overflow: hidden;
+
+    @include md {
+      width: 1000px;
+    }
+
+    &--textfield {
+      background-size: cover;
+      height: 100%;
+      background-color: #002b5c;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    &--form {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+      color: aliceblue;
+
+      form {
+        margin-top: 20px;
+      }
+    }
+
+    &--logo {
+      background-color: #b5babe;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      img {
+        max-width: 30%;
+        max-height: 30%;
+        height: auto; // Maintain aspect ratio
+        width: auto; // Maintain aspect ratio
+      }
+      @include md {
+        display: flex;
+      }
+      display: none;
+    }
+
+    .MuiTextField-root {
+      //width: 300px; // Adjust width for smaller TextField
+      .MuiInputBase-input {
+        color: $primary-contrast-text;
+      }
+      .MuiFormLabel-root {
+        color: $primary-contrast-text;
+      }
+      .MuiInputLabel-root.MuiInputLabel-shrink {
+        color: $primary-contrast-text; // Set color for shrunk label (when TextField is focused or has a value)
+      }
+      .MuiOutlinedInput-notchedOutline {
+        border-color: $text-hint; // Color of the border when the TextField is not focused
+      }
+    }
+  }
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: none;
+    padding-bottom: 0%;
+    color: $primary-contrast-text;
+    overflow: hidden;
+
+    img {
+      width: 45px;
+    }
+  }
+}
