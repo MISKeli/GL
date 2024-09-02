@@ -23,7 +23,7 @@ const roleApi = indexApi
       updateRole: builder.mutation({
         query: ({ id, ...body }) => ({
           url: `/role/${id}`,
-          method: "PATCH",
+          method: "PUT",
           body: body,
         }),
         invalidatesTags: (_, error) => (error ? [] : ["role"]),
@@ -31,4 +31,8 @@ const roleApi = indexApi
     }),
   });
 
-export const {useGetAllUserRolesQuery,useAddRoleMutation,useUpdateRoleMutation} = roleApi;
+export const {
+  useGetAllUserRolesQuery,
+  useAddRoleMutation,
+  useUpdateRoleMutation,
+} = roleApi;

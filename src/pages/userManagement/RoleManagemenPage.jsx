@@ -1,12 +1,22 @@
 import {
+  Badge,
   Box,
   Button,
+  Divider,
+  IconButton,
+  InputBase,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Paper,
+  styled,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
 } from "@mui/material";
@@ -15,16 +25,48 @@ import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import useDebounce from "../../components/useDebounce";
 import { useGetAllUserRolesQuery } from "../../features/api/roleApi";
-import { MoreVertOutlined } from "@mui/icons-material";
+import {
+  AccountTreeOutlined,
+  ArchiveOutlined,
+  ArchiveRounded,
+  EditRounded,
+  LockReset,
+  MoreVertOutlined,
+  RestoreFromTrashOutlined,
+  Search,
+} from "@mui/icons-material";
+import AddRole from "./AddRole";
+import { useDispatch, useSelector } from "react-redux";
+import { setPokedData } from "../../features/slice/authSlice";
+
+// Styled component for the animated search bar
+const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
+  display: "flex",
+  alignItems: "center",
+  width: expanded ? "300px" : "50px", // Change width based on state
+  transition: "width 0.3s ease-in-out", // Animate width change
+  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none", // Show border when expanded
+  borderRadius: "10px", // Optional: round the corners
+  padding: "2px 4px",
+  position: "relative",
+  margin: " 5px 5px",
+}));
 
 const RoleManagemenPage = () => {
   const [open, setOpen] = useState(false);
+  const [viewOnly, setViewOnly] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeRow, setActiveRow] = useState(null);
   const [status, setStatus] = useState("active");
+  const [expanded, setExpanded] = useState(false); // State for search bar expansion
+  const [userPermission, setUserPermission] = useState(null);
+
+  const dispatch = useDispatch();
+  const pokedData = useSelector((state) => state.auth.pokedData);
 
   const debounceValue = useDebounce(search);
   const TableColumn = [
@@ -44,26 +86,175 @@ const RoleManagemenPage = () => {
     { refetchOnFocus: true }
   );
 
-  console.log("apple", roleData);
+  //console.log("apple", roleData);
+
+  //Pagination
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  const handleChangeRowsPerPage = (event) => {
+    setPageSize(parseInt(event.target.value, 10));
+    setPage(0); // Reset to the first page when rows per page changes
+  };
+
   //Opening Dialog
   const setOpenTrue = () => setOpen(true);
-  const closePopUp = () => setOpen(false);
+  //const closePopUp = () => setOpen(false);
 
+  //Status
+  const handleToggleStatus = () => {
+    setStatus(status === "active" ? "inactive" : "active");
+  };
+
+  //Opening Menu
+  const handlePopOverOpen = (event, userRole) => {
+    console.log("NEIL", userRole);
+    setAnchorEl(event.currentTarget);
+    dispatch(setPokedData(userRole));
+  };
+  const handlePopOverClose = () => {
+    setAnchorEl(null);
+  };
+  console.log("POKED", pokedData);
+  // Update
+  const openDialogForUpdate = (data) => {
+    //console.log("object", data);
+    setOpen(true);
+    setIsUpdate(true);
+    setViewOnly(false);
+    setUserPermission(data);
+  };
+
+  const openPopUp = () => {
+    setOpen(true);
+    setViewOnly(false);
+  };
+  // Ensure to clear pokedData when closing the popup or when opening for a new role
+  const closePopUp = () => {
+    setOpen(false);
+    setAnchorEl(null);
+    //clearPokedData();
+  };
+
+  // Call this function to clear the data in Redux store
+  // const clearPokedData = () => {
+  //   dispatch(setPokedData(null));
+  // };
+
+  const handlePokedData = (data) => {
+    dispatch(setPokedData(data));
+  };
+
+  const MenuData = () => {
+    return (
+      <Menu
+        open={Boolean(anchorEl)}
+        onClose={handlePopOverClose}
+        anchorEl={anchorEl}
+      >
+        {pokedData?.isActive ? (
+          <>
+            <MenuItem
+              onClick={() => {
+                handlePopOverClose();
+                openDialogForUpdate(pokedData);
+              }}
+            >
+              <ListItemIcon>
+                <EditRounded />
+              </ListItemIcon>
+              <ListItemText primary="Edit" />
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handlePopOverClose();
+              }}
+            >
+              <ListItemIcon>
+                <ArchiveRounded />
+              </ListItemIcon>
+              <ListItemText primary="Archive" />
+            </MenuItem>
+          </>
+        ) : (
+          <MenuItem
+            onClick={() => {
+              handlePopOverClose();
+              //handleArchive();
+            }}
+          >
+            <ListItemIcon>
+              <RestoreFromTrashOutlined />
+            </ListItemIcon>
+            <ListItemText primary="Restore" />
+          </MenuItem>
+        )}
+      </Menu>
+    );
+  };
+  // console.log("userPer", userPermission);
   return (
     <>
       <Box className="masterlist">
+        <AddRole
+          open={open}
+          closeHandler={closePopUp}
+          data={pokedData}
+          isViewOnly={viewOnly}
+          setViewOnly={setViewOnly}
+          isUpdate={isUpdate}
+          setIsUpdate={setIsUpdate}
+        />
+        {/* {console.log("POKED",pokedData)} */}
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
               {info.role_title}
             </Typography>
-            <Button variant="contained" onClick={setOpenTrue}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                openPopUp();
+                dispatch(setPokedData(null));
+              }}
+            >
               {info.role_add_button}
             </Button>
           </Box>
         </Box>
         <Box className="masterlist__header__con2">
-          <Box className="masterlist__header__con2--archieved"></Box>
+          <Box className="masterlist__header__con2--archieved">
+            <IconButton onClick={handleToggleStatus}>
+              {status === "inactive" ? (
+                <ArchiveOutlined color="error" />
+              ) : (
+                <ArchiveRounded color="primary" />
+              )}
+            </IconButton>
+          </Box>
+          <AnimatedBox
+            className="masterlist__header__con2--search"
+            expanded={expanded}
+            component="form"
+            onClick={() => setExpanded(true)}
+          >
+            <InputBase
+              sx={{ ml: 0.5, flex: 1 }}
+              placeholder="Search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
+            />
+            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+            <IconButton
+              color="primary"
+              type="button"
+              sx={{ p: "10px" }}
+              aria-label="search"
+            >
+              <Search />
+            </IconButton>
+          </AnimatedBox>
         </Box>
         {/* empty */}
         <Box className="masterlist__content">
@@ -82,25 +273,60 @@ const RoleManagemenPage = () => {
                 </TableHead>
                 <TableBody>
                   {roleData?.value.userRoles.map((userRole, index) => (
+                    //  console.log("UserRole data in TableBody:", userRole), // Add this line
+
                     <TableRow
                       key={index}
                       className={activeRow === userRole.id ? "active" : ""}
                     >
                       <TableCell>{userRole.roleName}</TableCell>
-                      <TableCell>{userRole.permissions}</TableCell>
+                      <TableCell
+                        onClick={() => {
+                          openPopUp();
+                          setViewOnly(true);
+                          handlePokedData(userRole);
+                        }}
+                      >
+                        <Badge
+                          badgeContent={userRole?.permissions?.length}
+                          color="error"
+                          overlap="circular"
+                          sx={{
+                            "& .MuiBadge-dot": { backgroundColor: "#3259c4" },
+                          }}
+                        >
+                          <IconButton>
+                            <AccountTreeOutlined />
+                          </IconButton>
+                        </Badge>
+                      </TableCell>
                       <TableCell>{userRole.addedBy}</TableCell>
                       <TableCell>{userRole.modifiedBy}</TableCell>
-                      <TableCell><MoreVertOutlined
+                      <TableCell>
+                        <MoreVertOutlined
                           onClick={(event) => {
-                            handlePopOverOpen(event);
+                            handlePopOverOpen(event, userRole);
                           }}
-                        /></TableCell>
+                        />
+                        <MenuData />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              component="div"
+              className="pagination"
+              count={roleData?.value.totalCount || 0}
+              page={page}
+              rowsPerPage={pageSize}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
           </Box>
+          <Box className="masterlist__footer"></Box>
         </Box>
       </Box>
     </>

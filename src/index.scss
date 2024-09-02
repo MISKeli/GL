@@ -5,3 +5,16 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+::-webkit-scrollbar-track {
+  background: #aaaaaa; // text-disable
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2f3f5c; // primary-dark
+  border-radius: 10px;
+}

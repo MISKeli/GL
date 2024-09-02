@@ -1,0 +1,44 @@
+@import "__palette.module";
+.role {
+  &__dialog {
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: $primary-dark; // Set header background color
+    color: $primary-contrast-text;
+
+    .MuiIconButton-root {
+      color: $primary-contrast-text; // Set close button color to white
+    }
+  }
+  &__content{
+   // margin: 1rem;
+
+
+  }
+
+  &__actions {
+    background-color: $primary-dark;
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end; // Align actions to the right
+
+    .MuiButton-root {
+      margin-left: 8px; // Add spacing between buttons
+    }
+  }
+
+  //FORM ROLE
+  .css-1idn90j-MuiGrid-root{
+    display: flex;
+    flex-direction: column;
+
+  }
+}

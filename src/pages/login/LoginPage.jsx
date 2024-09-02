@@ -68,6 +68,7 @@ const LoginPage = () => {
       sessionStorage.setItem("pToken", encrypt(data?.password));
       setShowPasswordDialog(true);
       toast.success("Login Successfully");
+      console.log("res",res)
       navigate("/");
     } catch (error) {
       toast.error(error?.data.error.message);
@@ -75,7 +76,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
-
+ 
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");

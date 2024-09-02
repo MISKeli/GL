@@ -7,6 +7,10 @@ import UserManagementPage from "../pages/userManagement/UserManagementPage";
 import AccessPermission from "../components/AccessPermission";
 import UserAccountPage from "../pages/userManagement/UserAccountPage";
 import RoleManagementPage from "../pages/userManagement/RoleManagemenPage";
+import ReportPage from "../pages/reports/ReportPage";
+import ArcanaPage from "../pages/reports/ArcanaPage";
+import UMPage from "../pages/reports/UMPage";
+import YmirPage from "../pages/reports/YmirPage";
 
 export const router = createBrowserRouter([
   {
@@ -31,7 +35,7 @@ export const router = createBrowserRouter([
               {
                 path: "users_account",
                 element: (
-                  <AccessPermission permission={"User"}>
+                  <AccessPermission permission={"User Account"}>
                     <UserAccountPage />
                   </AccessPermission>
                 ),
@@ -39,10 +43,28 @@ export const router = createBrowserRouter([
               {
                 path: "role_management",
                 element: (
-                  <AccessPermission permission={"User"}>
+                  <AccessPermission permission={"Role Management"}>
                     <RoleManagementPage />
                   </AccessPermission>
                 ),
+              },
+            ],
+          },
+          {
+            path: "reports",
+            element: <ReportPage />,
+            children: [
+              {
+                path: "arcana",
+                element: <ArcanaPage />,
+              },
+              {
+                path: "um",
+                element: <UMPage />,
+              },
+              {
+                path: "ymir",
+                element: <YmirPage />,
               },
             ],
           },

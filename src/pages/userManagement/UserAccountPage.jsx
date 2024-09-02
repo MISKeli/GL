@@ -1,4 +1,5 @@
 import {
+  ArchiveOutlined,
   ArchiveRounded,
   EditRounded,
   LockReset,
@@ -12,6 +13,7 @@ import {
   Chip,
   colors,
   Divider,
+  Icon,
   IconButton,
   InputBase,
   ListItemIcon,
@@ -19,6 +21,7 @@ import {
   Menu,
   MenuItem,
   Paper,
+  styled,
   Table,
   TableBody,
   TableCell,
@@ -34,6 +37,19 @@ import "../../styles/Masterlist.scss";
 import AddUser from "../userManagement/AddUser";
 import { useGetAllUserQuery } from "../../features/api/userApi";
 import useDebounce from "../../components/useDebounce";
+
+// Styled component for the animated search bar
+const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
+  display: "flex",
+  alignItems: "center",
+  width: expanded ? "300px" : "50px", // Change width based on state
+  transition: "width 0.3s ease-in-out", // Animate width change
+  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none", // Show border when expanded
+  borderRadius: "10px", // Optional: round the corners
+  padding: "2px 4px",
+  position: "relative",
+  margin: " 5px 5px"
+}));
 
 const UserAccountPage = () => {
   const TableColumn = [
@@ -55,6 +71,7 @@ const UserAccountPage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeRow, setActiveRow] = useState(null);
   const [status, setStatus] = useState("active");
+  const [expanded, setExpanded] = useState(false); // State for search bar expansion
 
   const debounceValue = useDebounce(search);
 
@@ -81,15 +98,14 @@ const UserAccountPage = () => {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+  const handleChangeRowsPerPage = (event) => {
+    setPageSize(parseInt(event.target.value, 10));
+    setPage(0); // Reset to the first page when rows per page changes
+  };
 
   //Status
   const handleToggleStatus = () => {
     setStatus(status === "active" ? "inactive" : "active");
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPageSize(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page when rows per page changes
   };
 
   //Opening Dialog
@@ -112,36 +128,27 @@ const UserAccountPage = () => {
         </Box>
         <Box className="masterlist__header__con2">
           <Box className="masterlist__header__con2--archieved">
-            <Checkbox
-              checked={status === "inactive"}
-              onChange={handleToggleStatus}
-              color="error"
-            />
-            <Typography
-              variant="button"
-              color={status === "active" ? "primary" : "error"}
-            >
-              Archived
-            </Typography>
+            <IconButton onClick={handleToggleStatus}>
+              {status === "active" ? (
+                <ArchiveOutlined color="primary" />
+              ) : (
+                <ArchiveRounded color="error" />
+              )}
+            </IconButton>
           </Box>
-          <Box
+          <AnimatedBox
             className="masterlist__header__con2--search"
+            expanded={expanded}
             component="form"
-            sx={{
-              p: "2px 4px",
-              display: "flex",
-              alignItems: "center",
-              width: "250px",
-            }}
+            onClick={() => setExpanded(true)}
           >
             <InputBase
               sx={{ ml: 0.5, flex: 1 }}
-              placeholder="Search "
-              onChange={(e) => {
-                setSearch(e.target.value);
-              }}
+              placeholder="Search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
             />
-
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton
               color="primary"
@@ -151,7 +158,7 @@ const UserAccountPage = () => {
             >
               <Search />
             </IconButton>
-          </Box>
+          </AnimatedBox>
         </Box>
         <Box className="masterlist__content">
           <Box className="masterlist__content__table">
