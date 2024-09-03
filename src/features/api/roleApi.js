@@ -28,6 +28,14 @@ const roleApi = indexApi
         }),
         invalidatesTags: (_, error) => (error ? [] : ["role"]),
       }),
+      getAllUserRoleAsync: builder.query({
+        query: (params) => ({
+          url: `/role`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["role"],
+      }),
     }),
   });
 
@@ -35,4 +43,6 @@ export const {
   useGetAllUserRolesQuery,
   useAddRoleMutation,
   useUpdateRoleMutation,
+  useLazyGetAllUserRoleAsyncQuery,
+  useGetAllUserRoleAsyncQuery
 } = roleApi;

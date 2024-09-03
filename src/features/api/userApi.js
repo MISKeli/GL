@@ -6,13 +6,13 @@ const userApi = indexApi
     endpoints: (builder) => ({
       addUser: builder.mutation({
         query: (body) => ({
-          url: `/users`,
+          url: `/user`,
           method: "POST",
           body: body,
         }),
         invalidatesTags: ["users"],
       }),
-      getAllUser:builder.query({
+      getAllUser: builder.query({
         query: (params) => ({
           url: `/user/page`,
           method: "GET",
@@ -31,4 +31,5 @@ const userApi = indexApi
     }),
   });
 
-export const { useAddUserMutation,useGetAllUserQuery,useUpdateUserMutation } = userApi;
+export const { useAddUserMutation, useGetAllUserQuery, useUpdateUserMutation } =
+  userApi;

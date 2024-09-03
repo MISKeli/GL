@@ -115,9 +115,9 @@
 
     &.active {
       background-color: $info-main;
-      color: $primary-contrast-text;
+      color: $warning-contrast-text;
       border-radius: 10px;
-      font-weight: bold;
+      font-weight: 400;
     }
 
     &:hover:not(.active) {

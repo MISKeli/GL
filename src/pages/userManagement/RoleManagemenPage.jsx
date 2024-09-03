@@ -145,54 +145,7 @@ const RoleManagemenPage = () => {
     dispatch(setPokedData(data));
   };
 
-  const MenuData = () => {
-    return (
-      <Menu
-        open={Boolean(anchorEl)}
-        onClose={handlePopOverClose}
-        anchorEl={anchorEl}
-      >
-        {pokedData?.isActive ? (
-          <>
-            <MenuItem
-              onClick={() => {
-                handlePopOverClose();
-                openDialogForUpdate(pokedData);
-              }}
-            >
-              <ListItemIcon>
-                <EditRounded />
-              </ListItemIcon>
-              <ListItemText primary="Edit" />
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handlePopOverClose();
-              }}
-            >
-              <ListItemIcon>
-                <ArchiveRounded />
-              </ListItemIcon>
-              <ListItemText primary="Archive" />
-            </MenuItem>
-          </>
-        ) : (
-          <MenuItem
-            onClick={() => {
-              handlePopOverClose();
-              //handleArchive();
-            }}
-          >
-            <ListItemIcon>
-              <RestoreFromTrashOutlined />
-            </ListItemIcon>
-            <ListItemText primary="Restore" />
-          </MenuItem>
-        )}
-      </Menu>
-    );
-  };
-  // console.log("userPer", userPermission);
+  
   return (
     <>
       <Box className="masterlist">
@@ -308,7 +261,7 @@ const RoleManagemenPage = () => {
                             handlePopOverOpen(event, userRole);
                           }}
                         />
-                        <MenuData />
+                        {/* <MenuData /> */}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -327,6 +280,49 @@ const RoleManagemenPage = () => {
             />
           </Box>
           <Box className="masterlist__footer"></Box>
+          <Menu
+            open={Boolean(anchorEl)}
+            onClose={handlePopOverClose}
+            anchorEl={anchorEl}
+          >
+            {pokedData?.isActive ? (
+              <>
+                <MenuItem
+                  onClick={() => {
+                    handlePopOverClose();
+                    openDialogForUpdate(pokedData);
+                  }}
+                >
+                  <ListItemIcon>
+                    <EditRounded />
+                  </ListItemIcon>
+                  <ListItemText primary="Edit" />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handlePopOverClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <ArchiveRounded />
+                  </ListItemIcon>
+                  <ListItemText primary="Archive" />
+                </MenuItem>
+              </>
+            ) : (
+              <MenuItem
+                onClick={() => {
+                  handlePopOverClose();
+                  //handleArchive();
+                }}
+              >
+                <ListItemIcon>
+                  <RestoreFromTrashOutlined />
+                </ListItemIcon>
+                <ListItemText primary="Restore" />
+              </MenuItem>
+            )}
+          </Menu>
         </Box>
       </Box>
     </>

@@ -48,7 +48,7 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   borderRadius: "10px", // Optional: round the corners
   padding: "2px 4px",
   position: "relative",
-  margin: " 5px 5px"
+  margin: " 5px 5px",
 }));
 
 const UserAccountPage = () => {
@@ -57,6 +57,7 @@ const UserAccountPage = () => {
     { id: "idPrefix", name: "Prefix ID" },
     { id: "idNumber", name: "ID No" },
     { id: "firstName", name: "First Name" },
+    { id: "middleName", name: "Middle Name" },
     { id: "lastName", name: "Last Name" },
     { id: "sex", name: "Sex" },
     { id: "username", name: "Username" },
@@ -181,11 +182,11 @@ const UserAccountPage = () => {
                       key={index}
                       className={activeRow === userAcc.id ? "active" : ""}
                     >
-                      <TableCell>{userAcc.roleId}</TableCell>
+                      <TableCell>{userAcc.userRoleId}</TableCell>
                       <TableCell>{userAcc.idPrefix}</TableCell>
                       <TableCell>{userAcc.idNumber}</TableCell>
                       <TableCell>{userAcc.firstName}</TableCell>
-
+                      <TableCell>{userAcc.middleName}</TableCell>
                       <TableCell>{userAcc.lastName}</TableCell>
                       <TableCell>{userAcc.sex}</TableCell>
                       <TableCell>{userAcc.username}</TableCell>
