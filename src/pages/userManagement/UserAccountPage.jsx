@@ -37,6 +37,11 @@ import "../../styles/Masterlist.scss";
 import AddUser from "../userManagement/AddUser";
 import { useGetAllUserQuery } from "../../features/api/userApi";
 import useDebounce from "../../components/useDebounce";
+import { useResetPasswordMutation } from "../../features/api/passwordApi";
+import ConfirmedDialog from "../../components/ConfirmedDialog";
+import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setPokedData } from "../../features/slice/authSlice";
 
 // Styled component for the animated search bar
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
@@ -53,7 +58,6 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
 
 const UserAccountPage = () => {
   const TableColumn = [
-    { id: "userRoleId", name: "Role Id" },
     { id: "idPrefix", name: "Prefix ID" },
     { id: "idNumber", name: "ID No" },
     { id: "firstName", name: "First Name" },
@@ -61,10 +65,14 @@ const UserAccountPage = () => {
     { id: "lastName", name: "Last Name" },
     { id: "sex", name: "Sex" },
     { id: "username", name: "Username" },
+    { id: "userRole", name: "Role" },
     { id: "status", name: "Status" },
     { id: "action", name: "Action" },
   ];
+  const dispatch = useDispatch();
+  const pokedData = useSelector((state) => state.auth.pokedData);
 
+  console.log("pokedData from Redux:", pokedData);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -73,7 +81,7 @@ const UserAccountPage = () => {
   const [activeRow, setActiveRow] = useState(null);
   const [status, setStatus] = useState("active");
   const [expanded, setExpanded] = useState(false); // State for search bar expansion
-
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
   const debounceValue = useDebounce(search);
 
   const { data: userData, isLoading: isUserLoading } = useGetAllUserQuery(
@@ -88,8 +96,10 @@ const UserAccountPage = () => {
   //console.log("apple", userData);
 
   //Opening Menu
-  const handlePopOverOpen = (event) => {
+  const handlePopOverOpen = (event, userAcc) => {
+    console.log("MOON", userAcc);
     setAnchorEl(event.currentTarget);
+    dispatch(setPokedData(userAcc));
   };
   const handlePopOverClose = () => {
     setAnchorEl(null);
@@ -112,6 +122,36 @@ const UserAccountPage = () => {
   //Opening Dialog
   const setOpenTrue = () => setOpen(true);
   const closePopUp = () => setOpen(false);
+
+  //password
+  const [isReset, setIsReset] = useState(false);
+  const [resetPassword] = useResetPasswordMutation();
+
+  const handleResetPassword = () => {
+    console.log("Reset Password button clicked"); // Debugging line
+    setAnchorEl(null);
+    setIsReset(true);
+    setOpenPasswordDialog(true);
+  };
+  console.log("pokedget", pokedData);
+  const handleReset = () => {
+    if (!pokedData?.id) {
+      toast.error("User data is missing.");
+      return;
+    }
+
+    resetPassword(pokedData.id)
+      .unwrap()
+      .then((res) => {
+        console.log("Password Res", res);
+        toast.success("Reset Password Successfully"); // Updated message
+        setOpenPasswordDialog(false);
+      })
+      .catch((error) => {
+        console.log("Password Err", error);
+        toast.error(error?.message);
+      });
+  };
 
   return (
     <>
@@ -182,7 +222,6 @@ const UserAccountPage = () => {
                       key={index}
                       className={activeRow === userAcc.id ? "active" : ""}
                     >
-                      <TableCell>{userAcc.userRoleId}</TableCell>
                       <TableCell>{userAcc.idPrefix}</TableCell>
                       <TableCell>{userAcc.idNumber}</TableCell>
                       <TableCell>{userAcc.firstName}</TableCell>
@@ -190,6 +229,7 @@ const UserAccountPage = () => {
                       <TableCell>{userAcc.lastName}</TableCell>
                       <TableCell>{userAcc.sex}</TableCell>
                       <TableCell>{userAcc.username}</TableCell>
+                      <TableCell>{userAcc.userRole}</TableCell>
                       <TableCell>
                         <Chip
                           variant="outlined"
@@ -201,7 +241,7 @@ const UserAccountPage = () => {
                       <TableCell>
                         <MoreVertOutlined
                           onClick={(event) => {
-                            handlePopOverOpen(event);
+                            handlePopOverOpen(event, userAcc);
                           }}
                         />
                       </TableCell>
@@ -227,38 +267,63 @@ const UserAccountPage = () => {
             onClose={handlePopOverClose}
             anchorEl={anchorEl}
           >
-            <MenuItem
-              onClick={() => {
-                handlePopOverClose();
-              }}
-            >
-              <ListItemIcon>
-                <EditRounded />
-              </ListItemIcon>
-              <ListItemText primary="Edit" />
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handlePopOverClose();
-              }}
-            >
-              <ListItemIcon>
-                <ArchiveRounded />
-              </ListItemIcon>
-              <ListItemText primary="Archive" />
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handlePopOverClose();
-              }}
-            >
-              <ListItemIcon>
-                <LockReset />
-              </ListItemIcon>
-              <ListItemText primary="Reset Password" />
-            </MenuItem>
+            {pokedData?.isActive ? (
+              <div>
+                <MenuItem
+                  onClick={() => {
+                    handlePopOverClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <EditRounded />
+                  </ListItemIcon>
+                  <ListItemText primary="Edit" />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handlePopOverClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <ArchiveRounded />
+                  </ListItemIcon>
+                  <ListItemText primary="Archive" />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleResetPassword(pokedData);
+                    handlePopOverClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <LockReset />
+                  </ListItemIcon>
+                  <ListItemText primary="Reset Password" />
+                </MenuItem>
+              </div>
+            ) : (
+              <MenuItem
+                onClick={() => {
+                  handlePopOverClose();
+                }}
+              >
+                <ListItemIcon>
+                  <ArchiveRounded />
+                </ListItemIcon>
+                <ListItemText primary="Archive" />
+              </MenuItem>
+            )}
           </Menu>
         </Box>
+        <ConfirmedDialog
+          open={openPasswordDialog}
+          onClose={() => setOpenPasswordDialog(false)}
+          onYes={handleReset}
+          title={"Reset Password"}
+          description={`Are you sure you want to reset this ${
+            pokedData?.firstName || "this user's "
+          }'s password?`}
+        />
       </Box>
     </>
   );

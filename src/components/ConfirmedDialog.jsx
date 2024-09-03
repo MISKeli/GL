@@ -11,6 +11,7 @@ import {
 import React from "react";
 import "../styles/ConfirmedDialog.scss";
 import { Close } from "@mui/icons-material";
+import password from "../assets/images/password.png";
 
 const ConfirmedDialog = ({ open, onClose, title, description, onYes }) => {
   return (
@@ -25,10 +26,15 @@ const ConfirmedDialog = ({ open, onClose, title, description, onYes }) => {
           </Stack>
         </DialogTitle>
         <DialogContent className="dialog__content">
-          <Typography variant="captiom">{description}</Typography>
+          <img
+            src={password}
+            className="dialog__content--img"
+            alt="reset Password"
+          />
+          <Typography>{description}</Typography>
         </DialogContent>
         <DialogActions className="dialog__action">
-          <Button onClick={onClose} color="primary">
+          <Button onClick={onClose} color="info">
             No
           </Button>
           <Button onClick={onYes} variant="contained" color="error">

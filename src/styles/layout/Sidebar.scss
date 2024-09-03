@@ -90,6 +90,7 @@
     }
 
     &--name {
+      
       white-space: nowrap;
       transition: opacity 0.4s ease;
       opacity: 1;
@@ -97,7 +98,7 @@
 
     &.active {
       color: $primary-contrast-text;
-      font-weight: bold;
+      font-weight: 500;
     }
 
     &:hover:not(.active) {

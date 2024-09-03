@@ -2,14 +2,16 @@
 
 .dialog {
   width: 100%;
+  height: auto;
   max-width: 600px;
   margin: auto;
+  font-family: "Lato", sans-serif;
 
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
+    //padding: 16px;
     background-color: $primary-dark; // Set header background color
     color: $primary-contrast-text;
 
@@ -17,8 +19,19 @@
       color: $primary-contrast-text; // Set close button color to white
     }
   }
+  &__content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+    
+    &--img{
+      width: 80px;
+      height: auto;
+    }
+  }
 
-  &__actions {
+  &__action {
     background-color: $primary-dark;
     padding: 10px;
     display: flex;

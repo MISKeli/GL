@@ -1,8 +1,11 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React from "react";
+import React, { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { userSchema } from "../../schemas/validation";
-import { useAddUserMutation } from "../../features/api/userApi";
+import {
+  useAddUserMutation,
+  useUpdateUserMutation,
+} from "../../features/api/userApi";
 import {
   Autocomplete,
   Button,
@@ -23,7 +26,7 @@ import { useLazyGetCedarDataQuery } from "../../features/api/cedarApi";
 import { useSelector } from "react-redux";
 import { useLazyGetAllUserRoleAsyncQuery } from "../../features/api/roleApi";
 
-const AddUser = ({ open, closeHandler }) => {
+const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   const {
     handleSubmit,
     reset,
@@ -47,6 +50,7 @@ const AddUser = ({ open, closeHandler }) => {
   });
 
   const [addUser] = useAddUserMutation();
+  const [updateUser] = useUpdateUserMutation();
 
   const [triggerFetchRole, { data: roleData, isLoading: isRoleLoading }] =
     useLazyGetAllUserRoleAsyncQuery();
@@ -99,6 +103,12 @@ const AddUser = ({ open, closeHandler }) => {
     closeHandler();
   };
 
+  useEffect(() => {
+    if (open == true && pokedData) {
+      handleFormValue();
+    }
+  }, [open]);
+
   const submitHandler = (userData) => {
     const body = {
       idPrefix: userData.idPrefix,
@@ -111,20 +121,42 @@ const AddUser = ({ open, closeHandler }) => {
       username: userData.username,
       password: userData.username,
     };
-    addUser(body)
-      .unwrap()
-      .then((res) => {
-        console.log({ res });
-        const userAccResMessage = "User Created Successfully";
-        toast.success(userAccResMessage);
-        reset();
-        handleClose();
-      })
-      .catch((error) => {
-        console.log({ error });
-        const userAccErrMessage = error?.data?.error.message;
-        toast.error(userAccErrMessage);
-      });
+
+    const updateBody = {
+      userRoleId: userData.userRoleId.id,
+      username: userData.username,
+    };
+    if (isUpdate) {
+      updateUser({ id: pokedData.id, ...updateBody })
+        .unwrap()
+        .then((res) => {
+          console.log({ res });
+          const userAccResMessage = "User Updated Successfully";
+          toast.success(userAccResMessage);
+          reset();
+          handleClose();
+        })
+        .catch((error) => {
+          console.log({ error });
+          const userAccErrMessage = error?.data?.error.message;
+          toast.error(userAccErrMessage);
+        });
+    } else {
+      addUser(body)
+        .unwrap()
+        .then((res) => {
+          console.log({ res });
+          const userAccResMessage = "User Created Successfully";
+          toast.success(userAccResMessage);
+          reset();
+          handleClose();
+        })
+        .catch((error) => {
+          console.log({ error });
+          const userAccErrMessage = error?.data?.error.message;
+          toast.error(userAccErrMessage);
+        });
+    }
   };
 
   return (
@@ -135,7 +167,9 @@ const AddUser = ({ open, closeHandler }) => {
       className="add-user__dialog"
     >
       <DialogTitle className="add-user__header">
-        {info.users_dialog_add_title}
+        {isUpdate
+          ? info.users_dialog_update_title
+          : info.users_dialog_add_title}
         <Stack>
           <IconButton onClick={handleClose}>
             <Close />
@@ -146,38 +180,56 @@ const AddUser = ({ open, closeHandler }) => {
         <form id="submit-form" onSubmit={handleSubmit(submitHandler)}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <Controller
-                name="cedarData"
-                control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    {...field}
-                    loading={isCedarLoading}
-                    options={cedarData || []}
-                    onChange={(e, data) => {
-                      handleChangeRegistrationData(data);
-                    }}
-                    getOptionLabel={(option) =>
-                      option.general_info.full_id_number_full_name
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Employee ID"
-                        variant="outlined"
-                        fullWidth
-                        onClick={() =>
-                          triggerFetchCedar({ preferCacheValue: true })
-                        }
-                        margin="dense"
-                        size="small"
-                        error={!!errors.idNumber}
-                        helperText={errors.idNumber?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
+              {isUpdate ? (
+                <Controller
+                  name="cedarData"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Employee ID"
+                      disabled
+                      fullWidth
+                      variant="outlined"
+                      margin="dense"
+                      size="small"
+                    />
+                  )}
+                />
+              ) : (
+                <Controller
+                  name="cedarData"
+                  control={control}
+                  render={({ field }) => (
+                    <Autocomplete
+                      {...field}
+                      loading={isCedarLoading}
+                      options={cedarData || []}
+                      onChange={(e, data) => {
+                        handleChangeRegistrationData(data);
+                      }}
+                      getOptionLabel={(option) =>
+                        option.general_info.full_id_number_full_name
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Employee ID"
+                          variant="outlined"
+                          fullWidth
+                          onClick={() =>
+                            triggerFetchCedar({ preferCacheValue: true })
+                          }
+                          margin="dense"
+                          size="small"
+                          error={!!errors.idNumber}
+                          helperText={errors.idNumber?.message}
+                        />
+                      )}
+                    />
+                  )}
+                />
+              )}
             </Grid>
             <Grid item xs={6}>
               <Controller
@@ -350,7 +402,7 @@ const AddUser = ({ open, closeHandler }) => {
           form="submit-form"
           disabled={!isValid}
         >
-          Create
+          {isUpdate ? "Save" : "Create"}
         </Button>
       </DialogActions>
     </Dialog>

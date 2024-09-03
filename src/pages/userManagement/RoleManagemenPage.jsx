@@ -136,10 +136,7 @@ const RoleManagemenPage = () => {
     //clearPokedData();
   };
 
-  // Call this function to clear the data in Redux store
-  // const clearPokedData = () => {
-  //   dispatch(setPokedData(null));
-  // };
+ 
 
   const handlePokedData = (data) => {
     dispatch(setPokedData(data));
@@ -261,7 +258,6 @@ const RoleManagemenPage = () => {
                             handlePopOverOpen(event, userRole);
                           }}
                         />
-                        {/* <MenuData /> */}
                       </TableCell>
                     </TableRow>
                   ))}
