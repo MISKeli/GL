@@ -23,7 +23,7 @@ const userApi = indexApi
       updateUser: builder.mutation({
         query: ({ id, ...body }) => ({
           url: `/user/${id}`,
-          method: "PATCH",
+          method: "PUT",
           body: body,
         }),
         invalidatesTags: (_, error) => (error ? [] : ["users"]),

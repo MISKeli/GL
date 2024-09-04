@@ -13,6 +13,7 @@ const authSlice = createSlice({
     isAuthenticated: !!decryptedToken,
     token: decryptedToken,
     user: initialUser,
+    
   },
   reducers: {
     loginSlice: (state, action) => {

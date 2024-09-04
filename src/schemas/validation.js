@@ -16,7 +16,10 @@ export const userSchema = yup.object().shape({
 });
 export const roleSchema = yup.object().shape({
   roleName: yup.string().required("Id Role Name is required."),
-  permission: yup.array().of(yup.string().required()).min(1, "At least one permission is required")
+  permissions: yup
+    .array()
+    .of(yup.string().required())
+    .min(1, "At least one permission is required"),
 });
 export const changePasswordSchema = yup.object().shape({
   oldPassword: yup.string().required("Old Password is required."),

@@ -46,7 +46,7 @@ const AddRole = ({
   isViewOnly,
   setIsUpdate,
 }) => {
-  const permission = getPermissionsFromSchema();
+  const permissions = getPermissionsFromSchema();
   const [selectedMainCategories, setSelectedMainCategories] = useState([]);
 
   const {
@@ -62,7 +62,7 @@ const AddRole = ({
     mode: "onChange",
     defaultValues: {
       roleName: "",
-      permission: [],
+      permissions: [],
     },
   });
   const [addRole] = useAddRoleMutation();
@@ -72,9 +72,9 @@ const AddRole = ({
   useEffect(() => {
     if (open && data) {
       setValue("roleName", data.roleName || "[]");
-      setValue("permission", data.permissions || []);
+      setValue("permissions", data.permissions || []);
       setSelectedMainCategories(
-        permission
+        permissions
           .filter((module) => data?.permissions?.includes(module.name))
           .map((module) => module.name)
       );
@@ -110,7 +110,7 @@ const AddRole = ({
 
     if (checked) {
       setSelectedMainCategories([...selectedMainCategories, category]);
-      setValue("permission", [...watch("permission"), category], {
+      setValue("permissions", [...watch("permissions"), category], {
         shouldValidate: true,
       });
     } else {
@@ -118,8 +118,8 @@ const AddRole = ({
         selectedMainCategories.filter((item) => item !== category)
       );
       setValue(
-        "permission",
-        watch("permission").filter((perm) => perm !== category),
+        "permissions",
+        watch("permissions").filter((perm) => perm !== category),
         { shouldValidate: true }
       );
     }
@@ -130,13 +130,13 @@ const AddRole = ({
     const value = e.target.value;
 
     if (checked) {
-      setValue("permission", [...watch("permission"), value], {
+      setValue("permissions", [...watch("permissions"), value], {
         shouldValidate: true,
       });
     } else {
       setValue(
-        "permission",
-        watch("permission").filter((perm) => perm !== value),
+        "permissions",
+        watch("permissions").filter((perm) => perm !== value),
         { shouldValidate: true }
       );
     }
@@ -146,7 +146,7 @@ const AddRole = ({
     // console.log({ roleData });
     const body = {
       roleName: roleData.roleName,
-      permission: roleData.permission.map((item) => item),
+      permissions: roleData.permissions.map((item) => item),
     };
 
     if (isUpdate) {
@@ -243,11 +243,11 @@ const AddRole = ({
                 </FormLabel>
                 <FormGroup>
                   <Stack direction="row" flexWrap="wrap">
-                    {permission.map((module) => (
+                    {permissions.map((module) => (
                       <Controller
                         key={module.name}
                         control={control}
-                        name="permission"
+                        name="permissions"
                         render={({ field: { value, onChange } }) => (
                           <FormControlLabel
                             sx={{
@@ -274,7 +274,7 @@ const AddRole = ({
               </FormControl>
 
               {/* Subcategories */}
-              {permission
+              {permissions
                 .filter((module) => module.subCategory.length > 0)
                 .filter((module) =>
                   selectedMainCategories.includes(module.name)
@@ -305,7 +305,7 @@ const AddRole = ({
                           <Controller
                             key={subIdx}
                             control={control}
-                            name="permission"
+                            name="permissions"
                             render={({ field: { value, onChange } }) => (
                               <FormControlLabel
                                 sx={{

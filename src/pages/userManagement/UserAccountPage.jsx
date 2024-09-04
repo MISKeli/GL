@@ -95,14 +95,28 @@ const UserAccountPage = () => {
   );
   //console.log("apple", userData);
 
+  const openPopUp = () => {
+    setOpen(true);
+  };
+
+  const closePopUp = () => {
+    setOpen(false);
+    setAnchorEl(null);
+    setIsUpdate(false);
+    dispatch(setPokedData(null));
+    //clearPokedData();
+  };
+
   //Opening Menu
   const handlePopOverOpen = (event, userAcc) => {
     console.log("MOON", userAcc);
     setAnchorEl(event.currentTarget);
     dispatch(setPokedData(userAcc));
+    setIsUpdate(true);
   };
   const handlePopOverClose = () => {
     setAnchorEl(null);
+    setIsUpdate(false);
   };
 
   //Pagination
@@ -120,26 +134,23 @@ const UserAccountPage = () => {
   };
 
   //Opening Dialog
-  const setOpenTrue = () => setOpen(true);
-  const closePopUp = () => setOpen(false);
+  // const setOpenTrue = () => setOpen(true);
+  // const closePopUp = () => setOpen(false);
 
-  //password
+  //password reset
   const [isReset, setIsReset] = useState(false);
   const [resetPassword] = useResetPasswordMutation();
 
   const handleResetPassword = () => {
-    console.log("Reset Password button clicked"); // Debugging line
     setAnchorEl(null);
     setIsReset(true);
     setOpenPasswordDialog(true);
   };
-  console.log("pokedget", pokedData);
   const handleReset = () => {
     if (!pokedData?.id) {
       toast.error("User data is missing.");
       return;
     }
-
     resetPassword(pokedData.id)
       .unwrap()
       .then((res) => {
@@ -153,16 +164,29 @@ const UserAccountPage = () => {
       });
   };
 
+  //UPDATE
+  const [isUpdate, setIsUpdate] = useState(false);
+  const openDialogForUpdate = () => {
+    setOpen(true);
+    setIsUpdate(true);
+  };
+
   return (
     <>
       <Box className="masterlist">
-        <AddUser open={open} closeHandler={closePopUp} />
+        <AddUser open={open} closeHandler={closePopUp} isUpdate={isUpdate} />
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
               {info.users_title}
             </Typography>
-            <Button variant="contained" onClick={setOpenTrue}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                openPopUp();
+                dispatch(setPokedData(null));
+              }}
+            >
               {info.users_add_button}
             </Button>
           </Box>
@@ -272,6 +296,7 @@ const UserAccountPage = () => {
                 <MenuItem
                   onClick={() => {
                     handlePopOverClose();
+                    openDialogForUpdate(pokedData);
                   }}
                 >
                   <ListItemIcon>

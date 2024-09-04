@@ -71,7 +71,7 @@ const RoleManagemenPage = () => {
   const debounceValue = useDebounce(search);
   const TableColumn = [
     { id: "roleName", name: "Role Name" },
-    { id: "permission", name: "Permission" },
+    { id: "permissions", name: "Permissions" },
     { id: "addedBy", name: "Added By" },
     { id: "modifiedBy", name: "modified By" },
     { id: "action", name: "Action" },

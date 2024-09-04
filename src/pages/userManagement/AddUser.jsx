@@ -20,16 +20,18 @@ import {
 } from "@mui/material";
 import "../../styles/AddUser.scss";
 import { info } from "../../schemas/info";
-import { Close } from "@mui/icons-material";
+import { Close, Watch } from "@mui/icons-material";
 import { toast } from "sonner";
 import { useLazyGetCedarDataQuery } from "../../features/api/cedarApi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLazyGetAllUserRoleAsyncQuery } from "../../features/api/roleApi";
+import { setPokedData } from "../../features/slice/authSlice";
 
 const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   const {
     handleSubmit,
     reset,
+    watch,
     control,
     setValue,
     formState: { errors, isValid },
@@ -48,7 +50,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
       password: "",
     },
   });
-
+  const dispatch = useDispatch();
   const [addUser] = useAddUserMutation();
   const [updateUser] = useUpdateUserMutation();
 
@@ -62,7 +64,6 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   const pokedData = useSelector((state) => state.auth.pokedData);
 
   const handleChangeRegistrationData = (value) => {
-    setValue("idPrefix", value?.general_info?.prefix_id || "");
     setValue("idPrefix", value?.general_info?.prefix_id || "");
     setValue("idNumber", value?.general_info?.id_number || "");
     setValue("firstName", value?.general_info?.first_name || "");
@@ -80,14 +81,14 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
         : ""
     );
   };
-
+  console.log(watch("userRoleId"));
   const handleFormValue = () => {
     setValue(
       "cedarData",
       `${pokedData.idPrefix} ${pokedData.idNumber} ${pokedData.lastName} ${pokedData.firstName}` ||
         ""
     );
-    setValue("userRoleId", pokedData?.userRoleId || "");
+    setValue("userRoleId", pokedData?.userRole || "");
     setValue("idPrefix", pokedData?.idPrefix || "");
     setValue("idNumber", pokedData?.idNumber || "");
     setValue("firstName", pokedData?.firstName || "");
@@ -95,12 +96,12 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     setValue("lastName", pokedData?.lastName || "");
     setValue("roleName", pokedData?.roleName || "");
     setValue("sex", pokedData?.sex || "");
-    setValue("userRoleId", pokedData?.role.id || "");
     setValue("username", pokedData?.username || "");
   };
   const handleClose = () => {
     reset();
     closeHandler();
+    dispatch(setPokedData(null));
   };
 
   useEffect(() => {
@@ -108,7 +109,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
       handleFormValue();
     }
   }, [open]);
-
+  console.log({ isUpdate });
   const submitHandler = (userData) => {
     const body = {
       idPrefix: userData.idPrefix,
@@ -123,8 +124,15 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     };
 
     const updateBody = {
+      idPrefix: userData.idPrefix,
+      idNumber: userData.idNumber,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      middleName: userData.middleName,
       userRoleId: userData.userRoleId.id,
+      sex: userData.sex,
       username: userData.username,
+      //password: userData.username,
     };
     if (isUpdate) {
       updateUser({ id: pokedData.id, ...updateBody })
@@ -159,6 +167,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     }
   };
 
+  console.log({ pokedData, roleData });
   return (
     <Dialog
       open={open}
@@ -209,7 +218,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                         handleChangeRegistrationData(data);
                       }}
                       getOptionLabel={(option) =>
-                        option.general_info.full_id_number_full_name
+                        option?.general_info?.full_id_number_full_name || ""
                       }
                       renderInput={(params) => (
                         <TextField
@@ -240,7 +249,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                     {...field}
                     loading={isRoleLoading}
                     options={roleData?.value || []} // Add your options here
-                    getOptionLabel={(option) => option.roleName}
+                    getOptionLabel={(option) => option.roleName || option}
                     onChange={(e, value) => {
                       field.onChange(value);
                     }}
