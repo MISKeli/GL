@@ -24,12 +24,16 @@ import React, { useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import useDebounce from "../../components/useDebounce";
-import { useGetAllUserRolesQuery } from "../../features/api/roleApi";
+import {
+  useGetAllUserRolesQuery,
+  useUpdateUserRoleStatusMutation,
+} from "../../features/api/roleApi";
 import {
   AccountTreeOutlined,
   ArchiveOutlined,
   ArchiveRounded,
   EditRounded,
+  LibraryAddRounded,
   LockReset,
   MoreVertOutlined,
   RestoreFromTrashOutlined,
@@ -38,6 +42,7 @@ import {
 import AddRole from "./AddRole";
 import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
+import { toast } from "sonner";
 
 // Styled component for the animated search bar
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
@@ -136,13 +141,24 @@ const RoleManagemenPage = () => {
     //clearPokedData();
   };
 
- 
-
   const handlePokedData = (data) => {
     dispatch(setPokedData(data));
   };
 
-  
+  //UpdateUserRoleStatus ARCHIEVED/Restored
+  const [UpdateUserRoleStatus] = useUpdateUserRoleStatusMutation();
+
+  const handleUserRoleStatus = () => {
+    UpdateUserRoleStatus(pokedData.id)
+      .unwrap()
+      .then((res) => {
+        toast.success(res?.message);
+      })
+      .catch((error) => {
+        toast.error(error?.message);
+      });
+  };
+
   return (
     <>
       <Box className="masterlist">
@@ -162,6 +178,7 @@ const RoleManagemenPage = () => {
               {info.role_title}
             </Typography>
             <Button
+              startIcon={<LibraryAddRounded />}
               variant="contained"
               onClick={() => {
                 openPopUp();
@@ -297,6 +314,7 @@ const RoleManagemenPage = () => {
                 <MenuItem
                   onClick={() => {
                     handlePopOverClose();
+                    handleUserRoleStatus();
                   }}
                 >
                   <ListItemIcon>
@@ -309,7 +327,7 @@ const RoleManagemenPage = () => {
               <MenuItem
                 onClick={() => {
                   handlePopOverClose();
-                  //handleArchive();
+                  handleUserRoleStatus();
                 }}
               >
                 <ListItemIcon>

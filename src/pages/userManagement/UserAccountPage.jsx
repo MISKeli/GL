@@ -2,8 +2,10 @@ import {
   ArchiveOutlined,
   ArchiveRounded,
   EditRounded,
+  LibraryAddRounded,
   LockReset,
   MoreVertOutlined,
+  RestoreFromTrashOutlined,
   Search,
 } from "@mui/icons-material";
 import {
@@ -35,7 +37,10 @@ import React, { useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import AddUser from "../userManagement/AddUser";
-import { useGetAllUserQuery } from "../../features/api/userApi";
+import {
+  useGetAllUserQuery,
+  useUpdateUserStatusMutation,
+} from "../../features/api/userApi";
 import useDebounce from "../../components/useDebounce";
 import { useResetPasswordMutation } from "../../features/api/passwordApi";
 import ConfirmedDialog from "../../components/ConfirmedDialog";
@@ -171,6 +176,20 @@ const UserAccountPage = () => {
     setIsUpdate(true);
   };
 
+  // UpdateUserStatus ARCHIVED
+  const [updateUserStatus] = useUpdateUserStatusMutation();
+  const handleUserStatus = () => {
+    updateUserStatus(pokedData.id)
+      .unwrap()
+      .then((res) => {
+        console.log(res);
+        toast.success("Archieved Successfully ");
+      })
+      .catch((error) => {
+        toast.error(error?.message);
+      });
+  };
+
   return (
     <>
       <Box className="masterlist">
@@ -181,6 +200,7 @@ const UserAccountPage = () => {
               {info.users_title}
             </Typography>
             <Button
+              startIcon={<LibraryAddRounded />}
               variant="contained"
               onClick={() => {
                 openPopUp();
@@ -307,6 +327,7 @@ const UserAccountPage = () => {
                 <MenuItem
                   onClick={() => {
                     handlePopOverClose();
+                    handleUserStatus();
                   }}
                 >
                   <ListItemIcon>
@@ -330,12 +351,13 @@ const UserAccountPage = () => {
               <MenuItem
                 onClick={() => {
                   handlePopOverClose();
+                  handleUserStatus();
                 }}
               >
                 <ListItemIcon>
-                  <ArchiveRounded />
+                  <RestoreFromTrashOutlined />
                 </ListItemIcon>
-                <ListItemText primary="Archive" />
+                <ListItemText primary="Restore" />
               </MenuItem>
             )}
           </Menu>

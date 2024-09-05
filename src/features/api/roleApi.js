@@ -36,6 +36,13 @@ const roleApi = indexApi
         }),
         providesTags: ["role"],
       }),
+      updateUserRoleStatus: builder.mutation({
+        query: (id) => ({
+          url: `/role/${id}/status`,
+          method: "PATCH",
+        }),
+        invalidatesTags: (_, error) => (error ? [] : ["role"]),
+      }),
     }),
   });
 
@@ -44,5 +51,6 @@ export const {
   useAddRoleMutation,
   useUpdateRoleMutation,
   useLazyGetAllUserRoleAsyncQuery,
-  useGetAllUserRoleAsyncQuery
+  useGetAllUserRoleAsyncQuery,
+  useUpdateUserRoleStatusMutation
 } = roleApi;

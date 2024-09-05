@@ -35,7 +35,7 @@ export const router = createBrowserRouter([
               {
                 path: "users_account",
                 element: (
-                  <AccessPermission permission={"User Account"}>
+                  <AccessPermission permission={"User"}>
                     <UserAccountPage />
                   </AccessPermission>
                 ),
@@ -43,7 +43,7 @@ export const router = createBrowserRouter([
               {
                 path: "role_management",
                 element: (
-                  <AccessPermission permission={"Role Management"}>
+                  <AccessPermission permission={"User"}>
                     <RoleManagementPage />
                   </AccessPermission>
                 ),

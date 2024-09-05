@@ -28,8 +28,15 @@ const userApi = indexApi
         }),
         invalidatesTags: (_, error) => (error ? [] : ["users"]),
       }),
+      updateUserStatus: builder.mutation({
+        query: (id) => ({
+          url: `/user/${id}`,
+          method: "PATCH",
+        }),
+        invalidatesTags: (_, error) => (error ? [] : ["users"]),
+      }),
     }),
   });
 
-export const { useAddUserMutation, useGetAllUserQuery, useUpdateUserMutation } =
+export const { useAddUserMutation, useGetAllUserQuery, useUpdateUserMutation, useUpdateUserStatusMutation } =
   userApi;

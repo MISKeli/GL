@@ -54,7 +54,8 @@ color: aqua;
   }
 
   table {
-    width: 100%;
+    //width: 100%;
+    flex: 1;
     border-collapse: collapse;
     & tbody {
       tr {
