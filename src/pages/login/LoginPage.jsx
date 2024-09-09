@@ -61,27 +61,31 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const res = await login(data).unwrap();
-      sessionStorage.setItem("token", encrypt(res.value?.token));
+      const encryptedToken = encrypt(res.value?.token);
+      sessionStorage.setItem("token", encryptedToken);
       dispatch(loginSlice({ token: res?.value?.token, user: res?.value }));
       sessionStorage.setItem("user", JSON.stringify(res.value));
       sessionStorage.setItem("uToken", encrypt(data?.username));
       sessionStorage.setItem("pToken", encrypt(data?.password));
-      setShowPasswordDialog(true);
-      toast.success("Login Successfully");
-      console.log("res",res)
-      navigate("/");
+
+      if (data.username === data.password) {
+        setShowPasswordDialog(true);
+      } else {
+        navigate("/");
+        toast.success("Login Successfully");
+      }
     } catch (error) {
       toast.error(error?.data.error.message);
     } finally {
       setLoading(false);
     }
   };
- 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
+
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     navigate("/");
+  //   }
+  // }, [isAuthenticated, navigate]);
 
   return (
     <Box className="login-page">
@@ -93,7 +97,12 @@ const LoginPage = () => {
               GENERAL LEDGER
             </Typography>
           </Grid>
-          <Grid item xs={12} md={6} className="login-page__container--textfield">
+          <Grid
+            item
+            xs={12}
+            md={6}
+            className="login-page__container--textfield"
+          >
             <Container>
               <Box className="login-page__container--form">
                 <Typography component="h1" variant="h5">
@@ -104,7 +113,7 @@ const LoginPage = () => {
                   id="form-submit"
                   autoComplete="off"
                 >
-                  <Stack spacing={2} sx={{ width: '100%' }}>
+                  <Stack spacing={2} sx={{ width: "100%" }}>
                     <Controller
                       name="username"
                       control={control}

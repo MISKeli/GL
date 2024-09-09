@@ -25,3 +25,8 @@ export const changePasswordSchema = yup.object().shape({
   oldPassword: yup.string().required("Old Password is required."),
   newPassword: yup.string().required("New Password is required."),
 });
+
+export const reportSchema = yup.object().shape({
+  DateFrom: yup.string().required("Date is required."),
+  DateTo: yup.string().required("Date is required."),
+});

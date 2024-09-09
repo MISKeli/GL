@@ -9,31 +9,9 @@ import { decrypt } from "../utils/encrypt";
 import PasswordDialog from "../components/PasswordDialog";
 
 const MainPage = () => {
-  const [showPasswordDialog, setShowPassword] = useState(false);
-  const handleDialog = () => {
-    setShowPassword(true);
-  };
-
-  const { decryptedData: decryptedUToken } = decrypt(
-    sessionStorage.getItem("uToken")
-  );
-  const { decryptedData: decryptedPToken } = decrypt(
-    sessionStorage.getItem("pToken")
-  );
-  useEffect(() => {
-    if (decryptedUToken === decryptedPToken) {
-      handleDialog();
-    }
-  }, [decryptedUToken, decryptedPToken]);
   return (
     <>
       <Box className="main-page">
-        <PasswordDialog
-          open={showPasswordDialog}
-          onClose={() => {
-            setShowPassword(false);
-          }}
-        />
         <Box className="main-page_sidebar">
           <Sidebar />
         </Box>

@@ -23,7 +23,8 @@
     }
     &__con2 {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
+      align-items: center;
 
       &--search{
 color: aqua;
@@ -55,10 +56,14 @@ color: aqua;
 
   table {
     //width: 100%;
+    
     flex: 1;
     border-collapse: collapse;
     & tbody {
+      
       tr {
+        
+
         // Add a transition for smooth background color change
         transition: background-color 0.3s ease;
 

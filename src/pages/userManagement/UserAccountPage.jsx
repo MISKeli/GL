@@ -186,6 +186,7 @@ const UserAccountPage = () => {
         toast.success("Archieved Successfully ");
       })
       .catch((error) => {
+        console.log({ error });
         toast.error(error?.message);
       });
   };
@@ -214,10 +215,10 @@ const UserAccountPage = () => {
         <Box className="masterlist__header__con2">
           <Box className="masterlist__header__con2--archieved">
             <IconButton onClick={handleToggleStatus}>
-              {status === "active" ? (
-                <ArchiveOutlined color="primary" />
+              {status === "inactive" ? (
+                <ArchiveOutlined color="error" />
               ) : (
-                <ArchiveRounded color="error" />
+                <ArchiveRounded color="primary" />
               )}
             </IconButton>
           </Box>

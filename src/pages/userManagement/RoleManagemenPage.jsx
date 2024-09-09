@@ -43,6 +43,7 @@ import AddRole from "./AddRole";
 import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
 import { toast } from "sonner";
+import noRecordsFound from "../../assets/images/noRecordsFound.png"
 
 // Styled component for the animated search bar
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
@@ -113,14 +114,14 @@ const RoleManagemenPage = () => {
 
   //Opening Menu
   const handlePopOverOpen = (event, userRole) => {
-    console.log("NEIL", userRole);
+    //console.log("NEIL", userRole);
     setAnchorEl(event.currentTarget);
     dispatch(setPokedData(userRole));
   };
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
-  console.log("POKED", pokedData);
+  //console.log("POKED", pokedData);
   // Update
   const openDialogForUpdate = (data) => {
     //console.log("object", data);
@@ -152,7 +153,8 @@ const RoleManagemenPage = () => {
     UpdateUserRoleStatus(pokedData.id)
       .unwrap()
       .then((res) => {
-        toast.success(res?.message);
+        console.log("res", res);
+        toast.success("Role Archieved Successfully");
       })
       .catch((error) => {
         toast.error(error?.message);
@@ -239,45 +241,56 @@ const RoleManagemenPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {roleData?.value.userRoles.map((userRole, index) => (
-                    //  console.log("UserRole data in TableBody:", userRole), // Add this line
-
-                    <TableRow
-                      key={index}
-                      className={activeRow === userRole.id ? "active" : ""}
-                    >
-                      <TableCell>{userRole.roleName}</TableCell>
-                      <TableCell
-                        onClick={() => {
-                          openPopUp();
-                          setViewOnly(true);
-                          handlePokedData(userRole);
-                        }}
+                  {roleData?.value.userRoles.length === 0 ? (
+                    <TableRow>
+                    <TableCell colSpan={TableColumn.length} align="center">
+                      <img
+                        src={noRecordsFound }// Update this path to the location of your image
+                        alt="No Records Found"
+                        style={{ width: '250px', height: 'auto' }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                  ): (
+                    roleData?.value.userRoles.map((userRole, index) => (
+                      <TableRow
+                        key={index}
+                        className={activeRow === userRole.id ? "active" : ""}
                       >
-                        <Badge
-                          badgeContent={userRole?.permissions?.length}
-                          color="error"
-                          overlap="circular"
-                          sx={{
-                            "& .MuiBadge-dot": { backgroundColor: "#3259c4" },
+                        <TableCell>{userRole.roleName}</TableCell>
+                        <TableCell
+                          onClick={() => {
+                            openPopUp();
+                            setViewOnly(true);
+                            handlePokedData(userRole);
                           }}
                         >
-                          <IconButton>
-                            <AccountTreeOutlined />
-                          </IconButton>
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{userRole.addedBy}</TableCell>
-                      <TableCell>{userRole.modifiedBy}</TableCell>
-                      <TableCell>
-                        <MoreVertOutlined
-                          onClick={(event) => {
-                            handlePopOverOpen(event, userRole);
-                          }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          <Badge
+                            badgeContent={userRole?.permissions?.length}
+                            color="error"
+                            overlap="circular"
+                            sx={{
+                              "& .MuiBadge-dot": { backgroundColor: "#3259c4" },
+                            }}
+                          >
+                            <IconButton>
+                              <AccountTreeOutlined />
+                            </IconButton>
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{userRole.addedBy}</TableCell>
+                        <TableCell>{userRole.modifiedBy}</TableCell>
+                        <TableCell>
+                          <MoreVertOutlined
+                            onClick={(event) => {
+                              handlePopOverOpen(event, userRole);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                 
                 </TableBody>
               </Table>
             </TableContainer>
@@ -299,7 +312,7 @@ const RoleManagemenPage = () => {
             anchorEl={anchorEl}
           >
             {pokedData?.isActive ? (
-              <>
+              <div>
                 <MenuItem
                   onClick={() => {
                     handlePopOverClose();
@@ -322,7 +335,7 @@ const RoleManagemenPage = () => {
                   </ListItemIcon>
                   <ListItemText primary="Archive" />
                 </MenuItem>
-              </>
+              </div>
             ) : (
               <MenuItem
                 onClick={() => {

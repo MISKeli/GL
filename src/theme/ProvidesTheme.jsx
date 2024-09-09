@@ -15,10 +15,10 @@ const ProvidesTheme = ({ children }) => {
       h5: {
         fontWeight: 600,
       },
-      button:{
+      button: {
         fontSize: 12,
-        fontWeight: 300
-      }
+        fontWeight: 300,
+      },
     },
     components: {
       MuiTableHead: {
@@ -37,22 +37,24 @@ const ProvidesTheme = ({ children }) => {
           root: {
             // backgroundColor: paletteSchema.primary.dark,
             color: paletteSchema.warning.contrastText,
+
             "& .MuiTablePagination-select": {
-              backgroundColor: paletteSchema.primary.contrastText,
-              color: paletteSchema.primary.dark,
+              backgroundColor: paletteSchema.primary.main,
+              color: paletteSchema.primary.contrastText,
             },
             "& .MuiTablePagination-selectIcon": {
-              color: paletteSchema.primary.dark,
+              color: paletteSchema.primary.contrastText,
             },
             "& .MuiTablePagination-actions button": {
-              color: paletteSchema.warning.contrastText,
+              color: paletteSchema.warning.dark,
             },
           },
           select: {
-            color: paletteSchema.primary.dark,
+            color: paletteSchema.primary.contrastText,
+            borderRadius: 10,
           },
           selectIcon: {
-            color: paletteSchema.warning.contrastText,
+            color: paletteSchema.primary.contrastText,
           },
           actions: {
             "& .MuiIconButton-root": {
@@ -122,17 +124,16 @@ const ProvidesTheme = ({ children }) => {
         },
       },
     },
-    MuiDialog:{
-      styleOverrides:{
-        root:{
-          "&.MuiDialogTitle-root":{
+    MuiDialog: {
+      styleOverrides: {
+        root: {
+          "&.MuiDialogTitle-root": {
             backgroundColor: red,
             color: paletteSchema.primary.dark,
-          
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   });
 
   return <ThemeProvider theme={theme}>{children}</ThemeProvider>;

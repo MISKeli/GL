@@ -1,4 +1,3 @@
-
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import "../../styles/layout/SideBar.scss";
 import { Link, useLocation } from "react-router-dom";
@@ -23,6 +22,7 @@ const Sidebar = () => {
   const sidebarRef = useRef();
   const indicatorRef = useRef();
   const location = useLocation();
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   // Helper function to calculate the height of sidebar items
   const updateStepHeight = () => {
@@ -31,7 +31,9 @@ const Sidebar = () => {
       if (sidebarItems.length > 0) {
         const firstItemHeight = sidebarItems[0].clientHeight;
         setStepHeight(firstItemHeight);
-        indicatorRef.current.style.height = `${firstItemHeight}px`;
+        if (indicatorRef.current) {
+          indicatorRef.current.style.height = `${firstItemHeight}px`;
+        }
       }
     }
   };
@@ -43,25 +45,28 @@ const Sidebar = () => {
       window.removeEventListener("resize", updateStepHeight);
     };
   }, []);
-
+  const AccessPermission = user.permission || [];
+  const navsModule = moduleSchema
+    ?.filter((module) => module.subCategory || module.name)
+    ?.filter((item) => {
+      console.log(item);
+      return AccessPermission.includes(item.name);
+    });
+  console.log({ navsModule });
   useEffect(() => {
     const curPath = location.pathname.split("/")[1];
-    const activeItem = moduleSchema.findIndex(
-      (item) => item.section === curPath
-    );
+    const activeItem = navsModule.findIndex((item) => item.section === curPath);
     setActiveIndex(curPath?.length === 0 ? 0 : activeItem);
 
     const subPath = location.pathname.split("/")[2];
-    const activeSubItem = moduleSchema[activeItem]?.subCategory?.findIndex(
+    const activeSubItem = navsModule[activeItem]?.subCategory?.findIndex(
       (sub) => sub.section === subPath
     );
     setActiveSubIndex(subPath ? activeSubItem : null);
   }, [location]);
-
-  const navsModule = moduleSchema?.filter(
-    (module) => module.subCategory || module.name
-  );
-
+  console.log({ AccessPermission, navsModule });
+  // console.log("moduleSchema:", moduleSchema);
+  // console.log("AccessPermission:", AccessPermission);
   return (
     <Box className="side" data-active={isDrawerOpen}>
       <Box className="side__container side__container--header">
@@ -90,51 +95,70 @@ const Sidebar = () => {
           />
           {navsModule.map((item, index) => (
             <Fragment key={index}>
-              <Link
-                to={item.to}
-                className="side__link"
-                aria-current={activeIndex === index ? "page" : undefined}
-                onClick={() => {
-                  if (item.subCategory) setIsDrawerOpen(true);
-                }}
-              >
-                <Box
-                  className={`side__item ${
-                    activeIndex === index ? "active" : ""
-                  }`}
-                >
-                  <Tooltip
-                    title={isDrawerOpen ? "" : item.name}
-                    placement="right"
-                    arrow
-                    TransitionComponent={Zoom}
-                    disableHoverListener={isDrawerOpen}
+              {AccessPermission.includes(item.name) && (
+                <Fragment>
+                  <Link
+                    to={item.to || ""}
+                    className="side__link"
+                    aria-current={activeIndex === index ? "page" : undefined}
+                    onClick={() => {
+                      if (item.subCategory) setIsDrawerOpen(true);
+                    }}
                   >
-                    <Box className="side__sub-item--icon">
-                      {activeIndex === index ? <item.iconOn /> : <item.icon />}
-                    </Box>
-                  </Tooltip>
-                  <Box className="side__item--name">{item.name}</Box>
-                </Box>
-              </Link>
-              {item.subCategory && (
-                <Collapse in={activeIndex === index && isDrawerOpen}>
-                  {item.subCategory.map((subItem, subIndex) => (
-                    <Fragment key={subIndex}>
-                      <Link to={subItem.to} className="side__link">
-                        <Box
-                          className={`side__sub-item ${
-                            activeSubIndex === subIndex ? "active" : ""
-                          }`}
-                        >
-                          <Box className="side__sub-item--name">
-                            {subItem.name}
-                          </Box>
+                    <Box
+                      className={`side__item ${
+                        activeIndex === index ? "active" : ""
+                      }`}
+                    >
+                      <Tooltip
+                        title={isDrawerOpen ? "" : item.name}
+                        placement="right"
+                        arrow
+                        TransitionComponent={Zoom}
+                        disableHoverListener={isDrawerOpen}
+                      >
+                        <Box className="side__sub-item--icon">
+                          {activeIndex === index ? (
+                            <item.iconOn />
+                          ) : (
+                            <item.icon />
+                          )}
                         </Box>
-                      </Link>
-                    </Fragment>
-                  ))}
-                </Collapse>
+                      </Tooltip>
+                      <Box className="side__item--name">{item.name}</Box>
+                    </Box>
+                  </Link>
+                  {item.subCategory && (
+                    <Collapse in={activeIndex === index && isDrawerOpen}>
+                      {item.subCategory.map(
+                        (subItem, subIndex) =>
+                          AccessPermission.includes(subItem.name) && (
+                            <Fragment key={subIndex}>
+                              <Link
+                                to={subItem.to || "#"}
+                                className="side__link"
+                              >
+                                <Box
+                                  className={`side__sub-item ${
+                                    activeSubIndex === subIndex ? "active" : ""
+                                  }`}
+                                >
+                                  {activeSubIndex === subIndex ? (
+                                    <subItem.iconOn />
+                                  ) : (
+                                    <subItem.icon />
+                                  )}
+                                  <Box className="side__sub-item--name">
+                                    {subItem.name}
+                                  </Box>
+                                </Box>
+                              </Link>
+                            </Fragment>
+                          )
+                      )}
+                    </Collapse>
+                  )}
+                </Fragment>
               )}
             </Fragment>
           ))}

@@ -86,8 +86,6 @@ const AddRole = ({
   // console.log("Selected categories:", selectedMainCategories);
   // console.log("Form permissions:", watch("permission"));
 
-  console.log("DEED", data);
-
   // console.log(
   //   "SUN",
   //   permission.filter((module) => module.name)
@@ -338,15 +336,17 @@ const AddRole = ({
           Cancel
         </Button>
 
-        <Button
-          color="primary"
-          variant="contained"
-          type="submit"
-          form="submit-form"
-          disabled={!isValid}
-        >
-          {isUpdate ? "Save" : "Create"}
-        </Button>
+        {!isViewOnly && (
+          <Button
+            color="primary"
+            variant="contained"
+            type="submit"
+            form="submit-form"
+            disabled={!isValid}
+          >
+            {isUpdate ? "Save" : "Create"}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
