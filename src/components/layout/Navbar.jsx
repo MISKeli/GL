@@ -92,9 +92,10 @@ const Navbar = () => {
         anchorEl={anchorEl}
       >
         <Box className="navbar__menu--title">
-          <Typography fontWeight={600}>
+          <Typography fontWeight={500} >
             {user.firstName}, {user.lastName}
           </Typography>
+          
           <Typography variant="button">{user.roleName}</Typography>
         </Box>
         <Divider sx={{ m: 0.5, height: 1 }} orientation="horizontal" />

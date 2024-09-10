@@ -25,8 +25,9 @@ const ProvidesTheme = ({ children }) => {
         styleOverrides: {
           root: {
             "& .MuiTableCell-root": {
-              backgroundColor: paletteSchema.primary.dark,
-              fontSize: 15,
+              backgroundColor: paletteSchema.primary.main,
+              fontSize: 13,
+              fontWeight: 600,
               color: paletteSchema.primary.contrastText,
             },
           },
@@ -36,22 +37,26 @@ const ProvidesTheme = ({ children }) => {
         styleOverrides: {
           root: {
             // backgroundColor: paletteSchema.primary.dark,
-            color: paletteSchema.warning.contrastText,
+            color: paletteSchema.primary.dark,
 
             "& .MuiTablePagination-select": {
               backgroundColor: paletteSchema.primary.main,
               color: paletteSchema.primary.contrastText,
+              borderRadius: 10,
             },
             "& .MuiTablePagination-selectIcon": {
               color: paletteSchema.primary.contrastText,
             },
             "& .MuiTablePagination-actions button": {
               color: paletteSchema.warning.dark,
+              fontWeight: 400,
             },
           },
           select: {
+            backgroundColor: paletteSchema.primary.main,
             color: paletteSchema.primary.contrastText,
             borderRadius: 10,
+            fontWeight: 400,
           },
           selectIcon: {
             color: paletteSchema.primary.contrastText,

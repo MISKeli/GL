@@ -43,7 +43,7 @@ import AddRole from "./AddRole";
 import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
 import { toast } from "sonner";
-import noRecordsFound from "../../assets/images/noRecordsFound.png"
+import noRecordsFound from "../../assets/images/noRecordsFound.png";
 
 // Styled component for the animated search bar
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
@@ -76,11 +76,11 @@ const RoleManagemenPage = () => {
 
   const debounceValue = useDebounce(search);
   const TableColumn = [
-    { id: "roleName", name: "Role Name" },
-    { id: "permissions", name: "Permissions" },
-    { id: "addedBy", name: "Added By" },
-    { id: "modifiedBy", name: "modified By" },
-    { id: "action", name: "Action" },
+    { id: "roleName", name: "ROLE" },
+    { id: "permissions", name: "PERMISSIONS" },
+    { id: "addedBy", name: "ADDED BY" },
+    { id: "modifiedBy", name: "MODIFIED BY" },
+    { id: "action", name: "ACTIONS" },
   ];
   const { data: roleData, isLoading: isRoleLoading } = useGetAllUserRolesQuery(
     {
@@ -154,13 +154,16 @@ const RoleManagemenPage = () => {
       .unwrap()
       .then((res) => {
         console.log("res", res);
-        toast.success("Role Archieved Successfully");
+        if (pokedData.isActive === true) {
+          toast.success("Role Archived Successfully");
+        } else {
+          toast.success("Role Restored Successfully");
+        }
       })
       .catch((error) => {
-        toast.error(error?.message);
+        toast.error(error?.message || "An error occurred");
       });
   };
-
   return (
     <>
       <Box className="masterlist">
@@ -241,20 +244,22 @@ const RoleManagemenPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {roleData?.value.userRoles.length === 0 ? (
+                  {roleData?.value?.userRoles.length === 0 ? (
                     <TableRow>
-                    <TableCell colSpan={TableColumn.length} align="center">
-                      <img
-                        src={noRecordsFound }// Update this path to the location of your image
-                        alt="No Records Found"
-                        style={{ width: '250px', height: 'auto' }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                  ): (
-                    roleData?.value.userRoles.map((userRole, index) => (
+                      <TableCell colSpan={TableColumn.length} align="center">
+                        <Box className="masterlist__content__no-records__image">
+                          <img
+                            src={noRecordsFound}
+                            alt="No Records Found"
+                            style={{ width: "550px", height: "auto" }}
+                          />
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    roleData?.value.userRoles.map((userRole) => (
                       <TableRow
-                        key={index}
+                        key={userRole.id}
                         className={activeRow === userRole.id ? "active" : ""}
                       >
                         <TableCell>{userRole.roleName}</TableCell>
@@ -290,7 +295,6 @@ const RoleManagemenPage = () => {
                       </TableRow>
                     ))
                   )}
-                 
                 </TableBody>
               </Table>
             </TableContainer>

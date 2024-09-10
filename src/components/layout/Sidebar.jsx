@@ -49,10 +49,10 @@ const Sidebar = () => {
   const navsModule = moduleSchema
     ?.filter((module) => module.subCategory || module.name)
     ?.filter((item) => {
-      console.log(item);
+      //console.log(item);
       return AccessPermission.includes(item.name);
     });
-  console.log({ navsModule });
+  //console.log({ navsModule });
   useEffect(() => {
     const curPath = location.pathname.split("/")[1];
     const activeItem = navsModule.findIndex((item) => item.section === curPath);
@@ -64,7 +64,7 @@ const Sidebar = () => {
     );
     setActiveSubIndex(subPath ? activeSubItem : null);
   }, [location]);
-  console.log({ AccessPermission, navsModule });
+  //console.log({ AccessPermission, navsModule });
   // console.log("moduleSchema:", moduleSchema);
   // console.log("AccessPermission:", AccessPermission);
   return (

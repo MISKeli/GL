@@ -1,4 +1,5 @@
 @import "__palette.module";
+
 .masterlist {
   height: 100%;
   width: 100%;
@@ -14,62 +15,78 @@
     align-items: center;
 
     &__con1 {
-      //position: relative;
       display: flex;
       justify-content: space-between;
       flex: 1;
       align-items: center;
-      //column-gap: 1rem;
     }
+
     &__con2 {
       display: flex;
       justify-content: flex-end;
       align-items: center;
 
-      &--search{
-color: aqua;
+      &--search {
+        color: aqua;
       }
     }
 
     &--title {
-      color: $primary-dark;
+      color: $primary-main;
     }
   }
 
   &__content {
-    
     overflow: hidden;
     flex: 1;
     display: flex;
+    flex-direction: column; // Ensure that the content stacks vertically
+
     &__table {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      flex: 1;
+      overflow-x: auto;
+
+      // Ensure table takes up remaining space
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; // Handle overflow for large content
+
       .pagination {
         height: auto;
         overflow: hidden;
       }
     }
+
+    &__table--norecords {
+      flex: 1; // Allow this element to take up remaining space
+      display: flex; // Use flexbox for centering
+      justify-content: center; // Center horizontally
+      align-items: center; // Center vertically
+      text-align: center; // Center text inside
+
+      img {
+        max-width: 100%; // Responsive width
+        height: auto; // Maintain aspect ratio
+      }
+    }
   }
+
   &__footer {
+    // Footer styles here
   }
 
   table {
-    //width: 100%;
-    
-    flex: 1;
+    width: 100%; // Ensure table takes full width
     border-collapse: collapse;
-    & tbody {
-      
-      tr {
-        
 
-        // Add a transition for smooth background color change
+    & tbody {
+      tr {
         transition: background-color 0.3s ease;
 
         &:hover,
         &.active {
-          // Change the background color on hover or when the row is active
           background-color: #d7ddff; // Adjust this color as needed
         }
       }

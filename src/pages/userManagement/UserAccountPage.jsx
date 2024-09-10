@@ -11,11 +11,8 @@ import {
 import {
   Box,
   Button,
-  Checkbox,
   Chip,
-  colors,
   Divider,
-  Icon,
   IconButton,
   InputBase,
   ListItemIcon,
@@ -63,16 +60,13 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
 
 const UserAccountPage = () => {
   const TableColumn = [
-    { id: "idPrefix", name: "Prefix ID" },
-    { id: "idNumber", name: "ID No" },
-    { id: "firstName", name: "First Name" },
-    { id: "middleName", name: "Middle Name" },
-    { id: "lastName", name: "Last Name" },
-    { id: "sex", name: "Sex" },
-    { id: "username", name: "Username" },
-    { id: "userRole", name: "Role" },
-    { id: "status", name: "Status" },
-    { id: "action", name: "Action" },
+    { id: ["idPrefix", "idNumber"], name: "ID" },
+    { id: ["firstName", "middleName", "lastName"], name: "NAME" },
+    { id: "sex", name: "SEX" },
+    { id: "username", name: "USERNAME" },
+    { id: "userRole", name: "ROLE" },
+    { id: "status", name: "STATUS" },
+    { id: "action", name: "ACTIONS" },
   ];
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
@@ -183,7 +177,11 @@ const UserAccountPage = () => {
       .unwrap()
       .then((res) => {
         console.log(res);
-        toast.success("Archieved Successfully ");
+        if (pokedData.isActive === true) {
+          toast.success("User Archieved Successfully ");
+        } else {
+          toast.success("User Restored Successfully ");
+        }
       })
       .catch((error) => {
         console.log({ error });
@@ -267,11 +265,15 @@ const UserAccountPage = () => {
                       key={index}
                       className={activeRow === userAcc.id ? "active" : ""}
                     >
-                      <TableCell>{userAcc.idPrefix}</TableCell>
-                      <TableCell>{userAcc.idNumber}</TableCell>
-                      <TableCell>{userAcc.firstName}</TableCell>
-                      <TableCell>{userAcc.middleName}</TableCell>
-                      <TableCell>{userAcc.lastName}</TableCell>
+                      <TableCell>
+                        {userAcc.idPrefix}
+                        {"-"}
+                        {userAcc.idNumber}
+                      </TableCell>
+                      <TableCell>
+                        {userAcc.firstName} {userAcc.middleName}{" "}
+                        {userAcc.lastName}
+                      </TableCell>
                       <TableCell>{userAcc.sex}</TableCell>
                       <TableCell>{userAcc.username}</TableCell>
                       <TableCell>{userAcc.userRole}</TableCell>

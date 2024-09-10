@@ -16,9 +16,11 @@
 
   &__menu {
     //Profile Settings
-    &--title {
-      padding-left: 1rem;
-    }
+     &--title {
+       padding: 5px;
+   
+
+     }
     &__item {
       &--logout {
         color: $secondary-light;
