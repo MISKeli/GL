@@ -1,5 +1,4 @@
 @import "__palette.module";
-
 .masterlist {
   height: 100%;
   width: 100%;
@@ -67,7 +66,7 @@
       text-align: center; // Center text inside
 
       img {
-        max-width: 100%; // Responsive width
+        max-width: 70%; // Responsive width
         height: auto; // Maintain aspect ratio
       }
     }

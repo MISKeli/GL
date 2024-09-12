@@ -1,8 +1,19 @@
-import { Box, Button, Divider, IconButton, InputBase, styled, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  InputBase,
+  styled,
+  Typography,
+} from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import React, { useState } from "react";
 import { info } from "../../schemas/info";
 import { OutboxRounded, SearchRounded } from "@mui/icons-material";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Controller } from "react-hook-form";
+import Date from "./Date";
 
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
@@ -20,6 +31,7 @@ const ReportPage = () => {
   const [expanded, setExpanded] = useState(false);
   return (
     <>
+     
       <Box className="masterlist">
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
@@ -39,7 +51,9 @@ const ReportPage = () => {
           </Box>
         </Box>
         <Box className="masterlist__header__con2">
-          <Box className="masterlist__header__con2--date-picker"></Box>
+          <Box className="masterlist__header__con2--date-picker">
+          <Date />
+          </Box>
           <AnimatedBox
             className="masterlist__header__con2--search"
             expanded={expanded}

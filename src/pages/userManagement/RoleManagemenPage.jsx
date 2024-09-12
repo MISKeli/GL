@@ -55,7 +55,7 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   borderRadius: "10px", // Optional: round the corners
   padding: "2px 4px",
   position: "relative",
-  margin: " 5px 5px",
+  margin: "5px 5px",
 }));
 
 const RoleManagemenPage = () => {
@@ -73,7 +73,7 @@ const RoleManagemenPage = () => {
 
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
-
+  console.log("pokeddata", pokedData);
   const debounceValue = useDebounce(search);
   const TableColumn = [
     { id: "roleName", name: "ROLE" },
@@ -82,6 +82,7 @@ const RoleManagemenPage = () => {
     { id: "modifiedBy", name: "MODIFIED BY" },
     { id: "action", name: "ACTIONS" },
   ];
+
   const { data: roleData, isLoading: isRoleLoading } = useGetAllUserRolesQuery(
     {
       Search: debounceValue,
@@ -92,9 +93,7 @@ const RoleManagemenPage = () => {
     { refetchOnFocus: true }
   );
 
-  //console.log("apple", roleData);
-
-  //Pagination
+  // Pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -103,28 +102,25 @@ const RoleManagemenPage = () => {
     setPage(0); // Reset to the first page when rows per page changes
   };
 
-  //Opening Dialog
+  // Opening Dialog
   const setOpenTrue = () => setOpen(true);
-  //const closePopUp = () => setOpen(false);
 
-  //Status
+  // Status Toggle
   const handleToggleStatus = () => {
     setStatus(status === "active" ? "inactive" : "active");
   };
 
-  //Opening Menu
+  // Opening Menu
   const handlePopOverOpen = (event, userRole) => {
-    //console.log("NEIL", userRole);
     setAnchorEl(event.currentTarget);
     dispatch(setPokedData(userRole));
   };
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
-  //console.log("POKED", pokedData);
-  // Update
+
+  // Update Dialog
   const openDialogForUpdate = (data) => {
-    //console.log("object", data);
     setOpen(true);
     setIsUpdate(true);
     setViewOnly(false);
@@ -135,35 +131,35 @@ const RoleManagemenPage = () => {
     setOpen(true);
     setViewOnly(false);
   };
-  // Ensure to clear pokedData when closing the popup or when opening for a new role
+
   const closePopUp = () => {
     setOpen(false);
     setAnchorEl(null);
-    //clearPokedData();
   };
 
   const handlePokedData = (data) => {
     dispatch(setPokedData(data));
   };
 
-  //UpdateUserRoleStatus ARCHIEVED/Restored
+  // Update User Role Status
   const [UpdateUserRoleStatus] = useUpdateUserRoleStatusMutation();
 
   const handleUserRoleStatus = () => {
     UpdateUserRoleStatus(pokedData.id)
       .unwrap()
       .then((res) => {
-        console.log("res", res);
-        if (pokedData.isActive === true) {
+        if (pokedData.isActive) {
           toast.success("Role Archived Successfully");
         } else {
           toast.success("Role Restored Successfully");
         }
       })
       .catch((error) => {
-        toast.error(error?.message || "An error occurred");
+        console.log({ error });
+        toast.error(error?.data?.error?.message);
       });
   };
+
   return (
     <>
       <Box className="masterlist">
@@ -176,7 +172,6 @@ const RoleManagemenPage = () => {
           isUpdate={isUpdate}
           setIsUpdate={setIsUpdate}
         />
-        {/* {console.log("POKED",pokedData)} */}
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
@@ -228,36 +223,29 @@ const RoleManagemenPage = () => {
             </IconButton>
           </AnimatedBox>
         </Box>
-        {/* empty */}
         <Box className="masterlist__content">
-          <Box className="masterlist__content__table">
-            <TableContainer
-              component={Paper}
-              sx={{ overflow: "auto", height: "100%" }}
-            >
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {TableColumn.map((roleTable) => (
-                      <TableCell key={roleTable}>{roleTable.name}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {roleData?.value?.userRoles.length === 0 ? (
+          {roleData?.value?.userRoles.length === 0 ? (
+            <Box className="masterlist__content__table--norecords">
+              <img src={noRecordsFound} alt="No Records Found" />
+            </Box>
+          ) : (
+            <Box className="masterlist__content__table">
+              <TableContainer
+                component={Paper}
+                sx={{ overflow: "auto", height: "100%" }}
+              >
+                <Table stickyHeader>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={TableColumn.length} align="center">
-                        <Box className="masterlist__content__no-records__image">
-                          <img
-                            src={noRecordsFound}
-                            alt="No Records Found"
-                            style={{ width: "550px", height: "auto" }}
-                          />
-                        </Box>
-                      </TableCell>
+                      {TableColumn.map((roleTable) => (
+                        <TableCell key={roleTable.id}>
+                          {roleTable.name}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  ) : (
-                    roleData?.value.userRoles.map((userRole) => (
+                  </TableHead>
+                  <TableBody>
+                    {roleData?.value.userRoles.map((userRole) => (
                       <TableRow
                         key={userRole.id}
                         className={activeRow === userRole.id ? "active" : ""}
@@ -289,73 +277,53 @@ const RoleManagemenPage = () => {
                           <MoreVertOutlined
                             onClick={(event) => {
                               handlePopOverOpen(event, userRole);
+                              setActiveRow(userRole.id);
                             }}
                           />
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              component="div"
-              className="pagination"
-              count={roleData?.value.totalCount || 0}
-              page={page}
-              rowsPerPage={pageSize}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 25]}
-            />
-          </Box>
-          <Box className="masterlist__footer"></Box>
-          <Menu
-            open={Boolean(anchorEl)}
-            onClose={handlePopOverClose}
-            anchorEl={anchorEl}
-          >
-            {pokedData?.isActive ? (
-              <div>
-                <MenuItem
-                  onClick={() => {
-                    handlePopOverClose();
-                    openDialogForUpdate(pokedData);
-                  }}
-                >
-                  <ListItemIcon>
-                    <EditRounded />
-                  </ListItemIcon>
-                  <ListItemText primary="Edit" />
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handlePopOverClose();
-                    handleUserRoleStatus();
-                  }}
-                >
-                  <ListItemIcon>
-                    <ArchiveRounded />
-                  </ListItemIcon>
-                  <ListItemText primary="Archive" />
-                </MenuItem>
-              </div>
-            ) : (
-              <MenuItem
-                onClick={() => {
-                  handlePopOverClose();
-                  handleUserRoleStatus();
-                }}
-              >
-                <ListItemIcon>
-                  <RestoreFromTrashOutlined />
-                </ListItemIcon>
-                <ListItemText primary="Restore" />
-              </MenuItem>
-            )}
-          </Menu>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                component="div"
+                className="pagination"
+                count={roleData?.value.totalCount || 0}
+                page={page}
+                rowsPerPage={pageSize}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+              />
+            </Box>
+          )}
         </Box>
       </Box>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handlePopOverClose}
+      >
+        <MenuItem onClick={() => openDialogForUpdate(pokedData)}>
+          <ListItemIcon>
+            <EditRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Edit" />
+        </MenuItem>
+        <MenuItem onClick={handleUserRoleStatus}>
+          <ListItemIcon>
+            {pokedData?.isActive ? (
+              <ArchiveOutlined fontSize="small" />
+            ) : (
+              <RestoreFromTrashOutlined fontSize="small" />
+            )}
+          </ListItemIcon>
+          <ListItemText>
+            {pokedData?.isActive ? "Archive" : "Restore"}
+          </ListItemText>
+        </MenuItem>
+      </Menu>
     </>
   );
 };

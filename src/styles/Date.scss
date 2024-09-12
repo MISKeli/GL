@@ -1,0 +1,23 @@
+.date-picker {
+    
+    border-radius: 25%;
+  &__input {
+    border-radius: 25%;
+    
+
+  }
+
+  &__input--from {
+    border-radius: 25%;
+    // Additional styles for the "DateFrom" DatePicker
+  }
+
+  &__input--to {
+    // Additional styles for the "DateTo" DatePicker
+  }
+
+  &__text-field {
+    border-radius: 25%;
+    // Styles for the text field inside the DatePicker
+  }
+}

@@ -14,7 +14,7 @@ function App() {
     <>
       <Provider store={store}>
         <ProvidesTheme>
-          <Toaster position="bottom-right" richColors />
+          <Toaster position="bottom-right" richColors closeButton />
           <RouterProvider router={router} />
         </ProvidesTheme>
       </Provider>

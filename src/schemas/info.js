@@ -8,6 +8,10 @@ export const info = {
   role_add_button: "Add Role",
   role_dialog_add_title: "Add Role",
   role_dialog_update_title: "Update Role",
+  role_dialog_permission_title: "Permission",
+  role_add_message_response:"Role Created Successfully",
+  role_update_message_response: "Role Updated Successfully",
+
 
   password_title: "Change Password",
 
