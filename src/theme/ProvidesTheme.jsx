@@ -36,6 +36,7 @@ const ProvidesTheme = ({ children }) => {
       MuiTablePagination: {
         styleOverrides: {
           root: {
+            overflow: "hidden",
             // backgroundColor: paletteSchema.primary.dark,
             color: paletteSchema.primary.dark,
 
@@ -48,7 +49,7 @@ const ProvidesTheme = ({ children }) => {
               color: paletteSchema.primary.contrastText,
             },
             "& .MuiTablePagination-actions button": {
-              color: paletteSchema.warning.dark,
+              color: paletteSchema.warning.main,
               fontWeight: 400,
             },
           },

@@ -147,7 +147,7 @@ const AddRole = ({
   // Submit form handler
   const submitHandler = (roleData) => {
     const body = {
-      roleName: roleData.roleName,
+      roleName: roleData.roleName.toUpperCase(),
       permissions: roleData.permissions,
     };
 
@@ -171,7 +171,7 @@ const AddRole = ({
   };
 
   return (
-    <Dialog open={open} fullWidth onClose={handleClose} className="role">
+    <Dialog open={open} fullWidth className="role">
       <DialogTitle className="role__header">
         {isUpdate
           ? info.role_dialog_update_title
@@ -232,7 +232,7 @@ const AddRole = ({
                         name="permissions"
                         render={() => (
                           <FormControlLabel
-                            sx={{ flex: 1, flexBasis: "35%" }}
+                            sx={{ flex: 1, flexBasis: "40%" }}
                             control={
                               <Checkbox
                                 value={module.name}

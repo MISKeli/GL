@@ -4,11 +4,12 @@ import { Controller, useForm } from "react-hook-form";
 import { reportSchema } from "../../schemas/validation";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import moment from "moment";
-import { Grid } from "@mui/material";
+import { Grid, TextField } from "@mui/material";
 import "../../styles/Date.scss";
-import { useGetAllGLReportAsyncQuery } from "../../features/api/reportApi";
+import { useGetAllGLReportAsyncQuery, useLazyGetAllGLReportAsyncQuery } from "../../features/api/reportApi";
 import { toast } from "sonner";
+import dayjs from "dayjs"; // Use dayjs instead of moment
+import moment from "moment";
 
 const Date = ({ data }) => {
   const {
@@ -22,81 +23,82 @@ const Date = ({ data }) => {
     defaultValues: { DateFrom: null, DateTo: null },
   });
 
-  const { data: GLReport, isLoading: isGLReportLoading } =
-    useGetAllGLReportAsyncQuery();
-  const submitHandler = (GLReport) => {
+  const [triggerFetchGLReport, { data: GLReport, isLoading: isGLReportLoading }] =
+    useLazyGetAllGLReportAsyncQuery();
+
+  console.log("Fetched GLReport Data:", GLReport); // Debugging output
+  const submitHandler = (formData) => {
+    console.log({formData})
     const body = {
-      DateFrom: GLReport.DateFrom,
-      DateTo: GLReport.DateTo,
+      DateFrom: moment(formData.DateFrom).format("YYYY-MM-DD"),
+      DateTo: moment(formData.DateTo).format("YYYY-MM-DD"),
     };
-    GLReport(body)
-      .unwrap()
-      .then((res) => {
-        console.log(res);
-        toast.success(res);
-      })
-      .catch((error) => {
-        console.log(error);
-        toast.error(error);
-      });
+
+    // Handle API call or further processing
+    console.log("Submitting Form:", body);
+    triggerFetchGLReport(body)
+;
   };
-  console.log({ GLReport });
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Grid container spacing={1}>
-        <Grid item xs={5}>
-          <Controller
-            name={"DateFrom"}
-            control={control}
-            render={({ field: { onChange, value, ...rest } }) => (
-              <DatePicker
-                disablePast
-                {...rest}
-                format="DD/MM/YYYY"
-                value={value ? moment(value) : null}
-                onChange={(event) => {
-                  onChange(event);
-                }}
-                className="date-picker__input date-picker__input--from"
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    helperText: errors.date && errors.date?.message,
-                    error: !!errors.date,
-                    className: "date-picker__text-field",
-                  },
-                }}
-              />
-            )}
-          />
+      <form onSubmit={handleSubmit(submitHandler)}>
+        <Grid container spacing={1}>
+          <Grid item xs={5}>
+            <Controller
+              name="DateFrom"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
+                  label="Date From"
+                  value={value ? dayjs(value) : null} // Use dayjs instead of moment
+                  onChange={(newValue) => {
+                    console.log("DateFrom selected:", newValue); // Debugging output
+                    onChange(newValue ? newValue.toDate() : null); // Convert dayjs to JavaScript Date object
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      helperText={
+                        errors.DateFrom ? errors.DateFrom.message : ""
+                      }
+                      error={!!errors.DateFrom}
+                      className="date-picker__text-field"
+                    />
+                  )}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={5}>
+            <Controller
+              name="DateTo"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
+                  label="Date To"
+                  value={value ? dayjs(value) : null} // Use dayjs instead of moment
+                  onChange={(newValue) => {
+                    console.log("DateTo selected:", newValue); // Debugging output
+                    onChange(newValue ? newValue.toDate() : null); // Convert dayjs to JavaScript Date object
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      helperText={errors.DateTo ? errors.DateTo.message : ""}
+                      error={!!errors.DateTo}
+                      className="date-picker__text-field"
+                    />
+                  )}
+                />
+              )}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={5}>
-          <Controller
-            name={"DateTo"}
-            control={control}
-            render={({ field: { onChange, value, ...rest } }) => (
-              <DatePicker
-                disablePast
-                {...rest}
-                format="DD/MM/YYYY"
-                value={value ? moment(value) : null}
-                onChange={(event) => {
-                  onChange(event);
-                }}
-                className="date-picker__input date-picker__input--to"
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    helperText: errors.date && errors.date?.message,
-                    error: !!errors.date,
-                    className: "date-picker__text-field",
-                  },
-                }}
-              />
-            )}
-          />
-        </Grid>
-      </Grid>
+        <button type="submit">Submit</button>
+      </form>
     </LocalizationProvider>
   );
 };

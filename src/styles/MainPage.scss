@@ -3,7 +3,7 @@
   width: 100vw;
   height: 100vh;
   //background-color: #eef3fc ;
-  background-color: #f2f2f2 ;
+  background-color: #f2f2f2;
 
   &__content {
     flex: 1;
@@ -11,6 +11,7 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
+    overflow: hidden; // this fixed my problem
   }
   &__content-outlet {
     height: 100%;

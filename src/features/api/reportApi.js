@@ -15,4 +15,4 @@ const reportApi = indexApi
     }),
   });
 
-export const { useGetAllGLReportAsyncQuery } = reportApi;
+export const { useGetAllGLReportAsyncQuery, useLazyGetAllGLReportAsyncQuery } = reportApi;

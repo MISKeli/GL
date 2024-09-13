@@ -4,7 +4,7 @@ export const info = {
   users_dialog_add_title: "Add Account",
   users_dialog_update_title: "Update Acount",
 
-  role_title: "Role management",
+  role_title: "Role Management",
   role_add_button: "Add Role",
   role_dialog_add_title: "Add Role",
   role_dialog_update_title: "Update Role",

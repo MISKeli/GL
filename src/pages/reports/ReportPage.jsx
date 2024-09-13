@@ -4,7 +4,13 @@ import {
   Divider,
   IconButton,
   InputBase,
+  Paper,
   styled,
+  Table,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -14,6 +20,7 @@ import { OutboxRounded, SearchRounded } from "@mui/icons-material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Controller } from "react-hook-form";
 import Date from "./Date";
+import dayjs from "dayjs";
 
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
@@ -29,9 +36,38 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
 const ReportPage = () => {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(false);
+
+  const GLColumn = [
+    { id: "accountTitle", name: "ACCOUNT" },
+    { id: "accountTitleCode", name: "CODE" },
+    { id: "amount", name: "AMOUNT" },
+    { id: "category", name: "CATEGORY" },
+    { id: "companyCode", name: "CODE" },
+    { id: "companyName", name: "COMPANY" },
+    { id: "dateAdded", name: "DATE ADDED" },
+    { id: "departmentCode", name: "CODE" },
+    { id: "departmentName", name: "DEPARTMENT" },
+    { id: "details", name: "DETAILS" },
+    { id: "employeeName", name: "NAME" },
+    { id: "encoded", name: "ENCODED" },
+    { id: "id", name: "ID" },
+    { id: "itemCode", name: "CODE" },
+    { id: "itemDescription", name: "DESCRIPTION" },
+    { id: "locationCode", name: "LOCATION" },
+    { id: "mirId", name: "MIR ID" },
+    { id: "quantity", name: "QUANTITY" },
+    { id: "reason", name: "REASON" },
+    { id: "reference", name: "REFERENCE" },
+    { id: "source", name: "SOURCE" },
+    { id: "status", name: "STATUS" },
+    { id: "transactDate", name: "TRANSACT DATE" },
+    { id: "transactionType", name: "TRANSACTION TYPE" },
+    { id: "unitPrice", name: "UNIT PRICE" },
+    { id: "uom", name: "UOM" },
+    { id: "warehouseId", name: "WAREHOUSE ID" },
+  ];
   return (
     <>
-     
       <Box className="masterlist">
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
@@ -52,7 +88,7 @@ const ReportPage = () => {
         </Box>
         <Box className="masterlist__header__con2">
           <Box className="masterlist__header__con2--date-picker">
-          <Date />
+            <Date />
           </Box>
           <AnimatedBox
             className="masterlist__header__con2--search"
@@ -78,7 +114,26 @@ const ReportPage = () => {
             </IconButton>
           </AnimatedBox>
         </Box>
-        <Box className="masterlist__content"></Box>
+        <Box className="masterlist__content">
+          <Box className="masterlist__content__table">
+            <TableContainer
+              component={Paper}
+              sx={{ overflow: "auto", height: "100%" }}
+            >
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {GLColumn.map((genledTable) => (
+                      <TableCell key={genledTable.id}>
+                        {genledTable.name}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+              </Table>
+            </TableContainer>
+          </Box>
+        </Box>
         <Box className="masterlist__footer"></Box>
       </Box>
     </>

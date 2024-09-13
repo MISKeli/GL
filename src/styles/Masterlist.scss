@@ -1,4 +1,5 @@
 @import "__palette.module";
+
 .masterlist {
   height: 100%;
   width: 100%;
@@ -37,58 +38,56 @@
 
   &__content {
     overflow: hidden;
+
     flex: 1;
     display: flex;
-    flex-direction: column; // Ensure that the content stacks vertically
+    flex-direction: column;
 
     &__table {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow-x: auto;
+      overflow-y: hidden; // Prevent vertical scrollbar
 
-      // Ensure table takes up remaining space
-      display: flex;
-      flex-direction: column;
-      overflow: hidden; // Handle overflow for large content
+      & tbody {
+        & tr {
+          
+          transition: background-color 0.3s ease;
 
-      .pagination {
-        height: auto;
-        overflow: hidden;
+          &:hover,
+          &.active {
+            background-color: #d7ddff;
+          }
+        }
       }
     }
 
     &__table--norecords {
-      flex: 1; // Allow this element to take up remaining space
-      display: flex; // Use flexbox for centering
-      justify-content: center; // Center horizontally
-      align-items: center; // Center vertically
-      text-align: center; // Center text inside
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
 
       img {
-        max-width: 70%; // Responsive width
-        height: auto; // Maintain aspect ratio
+        width: 100vh;
+        height: auto;
       }
+    }
+
+    &--pagination {
+      height: auto;
+      overflow: hidden; // Prevent scrollbar by hiding overflow
+      display: flex; // Flexbox for layout control
+      justify-content: flex-end; // Center pagination
+      align-items: center; // Align pagination vertically
+      padding: 10px 0; // Add padding for spacing
     }
   }
 
   &__footer {
     // Footer styles here
-  }
-
-  table {
-    width: 100%; // Ensure table takes full width
-    border-collapse: collapse;
-
-    & tbody {
-      tr {
-        transition: background-color 0.3s ease;
-
-        &:hover,
-        &.active {
-          background-color: #d7ddff; // Adjust this color as needed
-        }
-      }
-    }
   }
 }

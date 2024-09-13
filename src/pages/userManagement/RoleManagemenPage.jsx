@@ -224,80 +224,77 @@ const RoleManagemenPage = () => {
           </AnimatedBox>
         </Box>
         <Box className="masterlist__content">
-          {roleData?.value?.userRoles.length === 0 ? (
-            <Box className="masterlist__content__table--norecords">
-              <img src={noRecordsFound} alt="No Records Found" />
-            </Box>
-          ) : (
-            <Box className="masterlist__content__table">
-              <TableContainer
-                component={Paper}
-                sx={{ overflow: "auto", height: "100%" }}
-              >
-                <Table stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      {TableColumn.map((roleTable) => (
-                        <TableCell key={roleTable.id}>
-                          {roleTable.name}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {roleData?.value.userRoles.map((userRole) => (
-                      <TableRow
-                        key={userRole.id}
-                        className={activeRow === userRole.id ? "active" : ""}
+          <Box className="masterlist__content__table">
+            <TableContainer
+              component={Paper}
+              sx={{ overflow: "auto", height: "100%" }}
+            >
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {TableColumn.map((roleTable) => (
+                      <TableCell key={roleTable.id}>{roleTable.name}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {roleData?.value.userRoles.map((userRole) => (
+                    <TableRow
+                      key={userRole.id}
+                      className={activeRow === userRole.id ? "active" : ""}
+                    >
+                      <TableCell>{userRole.roleName}</TableCell>
+                      <TableCell
+                        onClick={() => {
+                          openPopUp();
+                          setViewOnly(true);
+                          handlePokedData(userRole);
+                        }}
                       >
-                        <TableCell>{userRole.roleName}</TableCell>
-                        <TableCell
-                          onClick={() => {
-                            openPopUp();
-                            setViewOnly(true);
-                            handlePokedData(userRole);
+                        <Badge
+                          badgeContent={userRole?.permissions?.length}
+                          color="error"
+                          overlap="circular"
+                          sx={{
+                            "& .MuiBadge-dot": { backgroundColor: "#3259c4" },
                           }}
                         >
-                          <Badge
-                            badgeContent={userRole?.permissions?.length}
-                            color="error"
-                            overlap="circular"
-                            sx={{
-                              "& .MuiBadge-dot": { backgroundColor: "#3259c4" },
-                            }}
-                          >
-                            <IconButton>
-                              <AccountTreeOutlined />
-                            </IconButton>
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{userRole.addedBy}</TableCell>
-                        <TableCell>{userRole.modifiedBy}</TableCell>
-                        <TableCell>
-                          <MoreVertOutlined
-                            onClick={(event) => {
-                              handlePopOverOpen(event, userRole);
-                              setActiveRow(userRole.id);
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                component="div"
-                className="pagination"
-                count={roleData?.value.totalCount || 0}
-                page={page}
-                rowsPerPage={pageSize}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25]}
-              />
-            </Box>
-          )}
+                          <IconButton>
+                            <AccountTreeOutlined />
+                          </IconButton>
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{userRole.addedBy}</TableCell>
+                      <TableCell>{userRole.modifiedBy}</TableCell>
+                      <TableCell>
+                        <MoreVertOutlined
+                          onClick={(event) => {
+                            handlePopOverOpen(event, userRole);
+                            setActiveRow(userRole.id);
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {roleData?.value?.userRoles.length === 0 ? (
+                <Box className="masterlist__content__table--norecords">
+                  <img src={noRecordsFound} alt="No Records Found" />
+                </Box>
+              ) : null}
+            </TableContainer>
+            <TablePagination
+              component="div"
+              className="masterlist__content--pagination"
+              count={roleData?.value.totalCount || 0}
+              page={page}
+              rowsPerPage={pageSize}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
+          </Box>
         </Box>
       </Box>
       <Menu
