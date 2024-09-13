@@ -46,16 +46,27 @@ import { toast } from "sonner";
 import noRecordsFound from "../../assets/images/noRecordsFound.png";
 
 // Styled component for the animated search bar
-const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
+// const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
+//   display: "flex",
+//   alignItems: "center",
+//   width: expanded ? "300px" : "50px", // Change width based on state
+//   transition: "width 0.3s ease-in-out", // Animate width change
+//   border: expanded ? `1px solid ${theme.palette.primary.main}` : "none", // Show border when expanded
+//   borderRadius: "10px", // Optional: round the corners
+//   padding: "2px 4px",
+//   position: "relative",
+//   margin: "5px 5px",
+// }));
+const AnimatedBox = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  width: expanded ? "300px" : "50px", // Change width based on state
+  width:"300px", // Change width based on state
   transition: "width 0.3s ease-in-out", // Animate width change
-  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none", // Show border when expanded
+  border:  `1px solid ${theme.palette.primary.main}` , // Show border when expanded
   borderRadius: "10px", // Optional: round the corners
   padding: "2px 4px",
   position: "relative",
-  margin: "5px 5px",
+  margin: " 5px 5px",
 }));
 
 const RoleManagemenPage = () => {
@@ -193,9 +204,9 @@ const RoleManagemenPage = () => {
           <Box className="masterlist__header__con2--archieved">
             <IconButton onClick={handleToggleStatus}>
               {status === "inactive" ? (
-                <ArchiveOutlined color="error" />
-              ) : (
                 <ArchiveRounded color="primary" />
+              ) : (
+                <ArchiveOutlined color="primary" />
               )}
             </IconButton>
           </Box>
@@ -267,12 +278,14 @@ const RoleManagemenPage = () => {
                       <TableCell>{userRole.addedBy}</TableCell>
                       <TableCell>{userRole.modifiedBy}</TableCell>
                       <TableCell>
-                        <MoreVertOutlined
+                        <IconButton
                           onClick={(event) => {
                             handlePopOverOpen(event, userRole);
                             setActiveRow(userRole.id);
                           }}
-                        />
+                        >
+                          <MoreVertOutlined />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}

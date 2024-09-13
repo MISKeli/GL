@@ -1,23 +1,28 @@
+// ReportPage.js
 import {
   Box,
   Button,
   Divider,
   IconButton,
   InputBase,
+  Menu,
   Paper,
   styled,
   Table,
+  TableBody, // Add this import
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
   Typography,
 } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import React, { useState } from "react";
 import { info } from "../../schemas/info";
-import { OutboxRounded, SearchRounded } from "@mui/icons-material";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import {
+  FilterListRounded,
+  OutboxRounded,
+  SearchRounded,
+} from "@mui/icons-material";
 import { Controller } from "react-hook-form";
 import Date from "./Date";
 import dayjs from "dayjs";
@@ -25,17 +30,21 @@ import dayjs from "dayjs";
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
   alignItems: "center",
-  width: expanded ? "300px" : "50px", // Change width based on state
-  transition: "width 0.3s ease-in-out", // Animate width change
-  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none", // Show border when expanded
-  borderRadius: "10px", // Optional: round the corners
+  width: expanded ? "300px" : "50px",
+  transition: "width 0.3s ease-in-out",
+  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none",
+  borderRadius: "10px",
   padding: "2px 4px",
   position: "relative",
   margin: " 5px 5px",
 }));
+
 const ReportPage = () => {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(false);
+  const [reportData, setReportData] = useState([]); // State to hold fetched data
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [open, setopen] = useState(false);
 
   const GLColumn = [
     { id: "accountTitle", name: "ACCOUNT" },
@@ -66,6 +75,19 @@ const ReportPage = () => {
     { id: "uom", name: "UOM" },
     { id: "warehouseId", name: "WAREHOUSE ID" },
   ];
+
+  // Function to handle data fetched from the Date component
+  const handleFetchData = (data) => {
+    setReportData(data);
+  };
+
+  // Opening Menu
+  const handlePopOverOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handlePopOverClose = () => {
+    setAnchorEl(null);
+  };
   return (
     <>
       <Box className="masterlist">
@@ -74,21 +96,21 @@ const ReportPage = () => {
             <Typography variant="h5" className="masterlist__header--title">
               {info.report_title}
             </Typography>
-            <Button
-              startIcon={<OutboxRounded />}
-              variant="contained"
-              // onClick={() => {
-              //   openPopUp();
-              //   dispatch(setPokedData(null));
-              // }}
-            >
+            <Button startIcon={<OutboxRounded />} variant="contained">
               {info.report_export_button}
             </Button>
           </Box>
         </Box>
         <Box className="masterlist__header__con2">
           <Box className="masterlist__header__con2--date-picker">
-            <Date />
+            <IconButton>
+              <FilterListRounded
+                onClick={(event) => {
+                  handlePopOverOpen(event);
+                }}
+              />
+            </IconButton>
+       
           </Box>
           <AnimatedBox
             className="masterlist__header__con2--search"
@@ -101,7 +123,7 @@ const ReportPage = () => {
               placeholder="Search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
+              onBlur={() => search === "" && setExpanded(false)}
             />
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton
@@ -130,17 +152,40 @@ const ReportPage = () => {
                     ))}
                   </TableRow>
                 </TableHead>
+                <TableBody>
+                  {reportData?.value?.length > 0 ? (
+                    reportData?.value?.map((row, index) => (
+                      <TableRow key={index}>
+                        {GLColumn.map((col) => (
+                          <TableCell key={col.id}>{row[col.id]}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={GLColumn.length} align="center">
+                        No data available
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
               </Table>
             </TableContainer>
           </Box>
         </Box>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handlePopOverClose}
+        >
+          <Box>
+            <Typography>Transaction Date:</Typography>
+          </Box>
+          <Date onFetchData={handleFetchData} />
+        </Menu>
         <Box className="masterlist__footer"></Box>
       </Box>
     </>
-
-    //   <LocalizationProvider >
-    //   <DatePicker />
-    // </LocalizationProvider>
   );
 };
 

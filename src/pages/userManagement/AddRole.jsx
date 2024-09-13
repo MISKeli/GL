@@ -307,7 +307,7 @@ const AddRole = ({
         </form>
       </DialogContent>
       <DialogActions className="role__actions">
-        <Button color="error" onClick={handleClose}>
+        <Button color="error" variant="contained" onClick={handleClose}>
           Cancel
         </Button>
 

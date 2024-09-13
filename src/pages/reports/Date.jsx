@@ -4,14 +4,17 @@ import { Controller, useForm } from "react-hook-form";
 import { reportSchema } from "../../schemas/validation";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Grid, TextField } from "@mui/material";
+import { Button, Divider, Grid, TextField } from "@mui/material";
 import "../../styles/Date.scss";
-import { useGetAllGLReportAsyncQuery, useLazyGetAllGLReportAsyncQuery } from "../../features/api/reportApi";
-import { toast } from "sonner";
-import dayjs from "dayjs"; // Use dayjs instead of moment
+import { useLazyGetAllGLReportAsyncQuery } from "../../features/api/reportApi";
+import dayjs from "dayjs";
 import moment from "moment";
 
-const Date = ({ data }) => {
+
+
+const Date = ({ onFetchData }) => {
+  const currentDate = dayjs(); // Get the current date
+
   const {
     reset,
     control,
@@ -20,24 +23,28 @@ const Date = ({ data }) => {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(reportSchema),
-    defaultValues: { DateFrom: null, DateTo: null },
+    defaultValues: {
+      DateFrom: currentDate.startOf("month").toDate(), // Start of current month
+      DateTo: currentDate.endOf("month").toDate(), // End of current month
+    },
   });
 
-  const [triggerFetchGLReport, { data: GLReport, isLoading: isGLReportLoading }] =
-    useLazyGetAllGLReportAsyncQuery();
+  const [
+    triggerFetchGLReport,
+    { data: GLReport, isLoading: isGLReportLoading },
+  ] = useLazyGetAllGLReportAsyncQuery();
 
-  console.log("Fetched GLReport Data:", GLReport); // Debugging output
   const submitHandler = (formData) => {
-    console.log({formData})
     const body = {
       DateFrom: moment(formData.DateFrom).format("YYYY-MM-DD"),
       DateTo: moment(formData.DateTo).format("YYYY-MM-DD"),
     };
 
-    // Handle API call or further processing
     console.log("Submitting Form:", body);
-    triggerFetchGLReport(body)
-;
+    triggerFetchGLReport(body).then((result) => {
+      console.log("Fetched GLReport Data:", result.data);
+      onFetchData(result.data); // Pass the fetched data to the parent component
+    });
   };
 
   return (
@@ -51,10 +58,9 @@ const Date = ({ data }) => {
               render={({ field: { onChange, value } }) => (
                 <DatePicker
                   label="Date From"
-                  value={value ? dayjs(value) : null} // Use dayjs instead of moment
+                  value={value ? dayjs(value) : null}
                   onChange={(newValue) => {
-                    console.log("DateFrom selected:", newValue); // Debugging output
-                    onChange(newValue ? newValue.toDate() : null); // Convert dayjs to JavaScript Date object
+                    onChange(newValue ? newValue.toDate() : null);
                   }}
                   renderInput={(params) => (
                     <TextField
@@ -78,10 +84,9 @@ const Date = ({ data }) => {
               render={({ field: { onChange, value } }) => (
                 <DatePicker
                   label="Date To"
-                  value={value ? dayjs(value) : null} // Use dayjs instead of moment
+                  value={value ? dayjs(value) : null}
                   onChange={(newValue) => {
-                    console.log("DateTo selected:", newValue); // Debugging output
-                    onChange(newValue ? newValue.toDate() : null); // Convert dayjs to JavaScript Date object
+                    onChange(newValue ? newValue.toDate() : null);
                   }}
                   renderInput={(params) => (
                     <TextField
@@ -97,7 +102,8 @@ const Date = ({ data }) => {
             />
           </Grid>
         </Grid>
-        <button type="submit">Submit</button>
+        <Divider sx={{ height: 28, m: 0.5 }} orientation="horizontal" />
+        <Button type="submit">Submit</Button>
       </form>
     </LocalizationProvider>
   );

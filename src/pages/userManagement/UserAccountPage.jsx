@@ -46,12 +46,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
 
 // Styled component for the animated search bar
-const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
+const AnimatedBox = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  width: expanded ? "300px" : "50px", // Change width based on state
+  width:"300px", // Change width based on state
   transition: "width 0.3s ease-in-out", // Animate width change
-  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none", // Show border when expanded
+  border:  `1px solid ${theme.palette.primary.main}` , // Show border when expanded
   borderRadius: "10px", // Optional: round the corners
   padding: "2px 4px",
   position: "relative",
@@ -132,10 +132,6 @@ const UserAccountPage = () => {
     setStatus(status === "active" ? "inactive" : "active");
   };
 
-  //Opening Dialog
-  // const setOpenTrue = () => setOpen(true);
-  // const closePopUp = () => setOpen(false);
-
   //password reset
   const [isReset, setIsReset] = useState(false);
   const [resetPassword] = useResetPasswordMutation();
@@ -214,9 +210,9 @@ const UserAccountPage = () => {
           <Box className="masterlist__header__con2--archieved">
             <IconButton onClick={handleToggleStatus}>
               {status === "inactive" ? (
-                <ArchiveOutlined color="error" />
-              ) : (
                 <ArchiveRounded color="primary" />
+              ) : (
+                <ArchiveOutlined color="primary" />
               )}
             </IconButton>
           </Box>
@@ -286,11 +282,13 @@ const UserAccountPage = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        <MoreVertOutlined
+                        <IconButton
                           onClick={(event) => {
                             handlePopOverOpen(event, userAcc);
                           }}
-                        />
+                        >
+                          <MoreVertOutlined />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}

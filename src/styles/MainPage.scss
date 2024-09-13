@@ -11,7 +11,7 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
-    overflow: hidden; // this fixed my problem
+    overflow: hidden; // this fixed my problem responsiveness
   }
   &__content-outlet {
     height: 100%;

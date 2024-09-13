@@ -401,7 +401,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
         </form>
       </DialogContent>
       <DialogActions className="add-user__actions">
-        <Button color="error" onClick={handleClose}>
+        <Button variant="contained" color="error" onClick={handleClose}>
           Cancel
         </Button>
         <Button
