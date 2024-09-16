@@ -61,16 +61,8 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
 }));
 
 const UserAccountPage = () => {
-  const TableColumn = info.users_table_columns;  
-//   const TableColumn = [
-//     { id: ["idPrefix", "idNumber"], name: "ID" },
-//     { id: ["firstName", "middleName", "lastName"], name: "NAME" },
-//     { id: "sex", name: "SEX" },
-//     { id: "username", name: "USERNAME" },
-//     { id: "userRole", name: "ROLE" },
-//     { id: "status", name: "STATUS" },
-//     { id: "action", name: "ACTIONS" },
-//   ];
+  const TableColumn = info.users_table_columns;
+
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
 

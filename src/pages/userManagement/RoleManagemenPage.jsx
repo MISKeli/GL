@@ -75,13 +75,7 @@ const RoleManagemenPage = () => {
   const pokedData = useSelector((state) => state.auth.pokedData);
   console.log("pokeddata", pokedData);
   const debounceValue = useDebounce(search);
-  const TableColumn = [
-    { id: "roleName", name: "ROLE" },
-    { id: "permissions", name: "PERMISSIONS" },
-    { id: "addedBy", name: "ADDED BY" },
-    { id: "modifiedBy", name: "MODIFIED BY" },
-    { id: "action", name: "ACTIONS" },
-  ];
+  const TableColumn = info.role_table_columns;
 
   const { data: roleData, isLoading: isRoleLoading } = useGetAllUserRolesQuery(
     {
@@ -179,7 +173,7 @@ const RoleManagemenPage = () => {
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
-              {info.role_title} 
+              {info.role_title}
             </Typography>
 
             <Button
