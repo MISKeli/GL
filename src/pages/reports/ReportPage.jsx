@@ -16,7 +16,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { info } from "../../schemas/info";
 import {
   FilterListRounded,
@@ -45,6 +45,7 @@ const ReportPage = () => {
   const [reportData, setReportData] = useState([]); // State to hold fetched data
   const [anchorEl, setAnchorEl] = useState(null);
   const [open, setopen] = useState(false);
+  const inputRef = useRef(null); // Create a ref for InputBase
 
   const GLColumn = [
     { id: "accountTitle", name: "ACCOUNT" },
@@ -75,6 +76,12 @@ const ReportPage = () => {
     { id: "uom", name: "UOM" },
     { id: "warehouseId", name: "WAREHOUSE ID" },
   ];
+
+  // SEARCH
+  const handleSearchClick = () => {
+    setExpanded(true); // Expand the box
+    inputRef.current?.focus(); // Immediately focus the input field
+  };
 
   // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
@@ -110,7 +117,6 @@ const ReportPage = () => {
                 }}
               />
             </IconButton>
-       
           </Box>
           <AnimatedBox
             className="masterlist__header__con2--search"
@@ -124,6 +130,7 @@ const ReportPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onBlur={() => search === "" && setExpanded(false)}
+              inputRef={inputRef} // Assign the ref to InputBase
             />
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton
@@ -131,6 +138,7 @@ const ReportPage = () => {
               type="button"
               sx={{ p: "10px" }}
               aria-label="search"
+              onClick={handleSearchClick}
             >
               <SearchRounded />
             </IconButton>

@@ -20,7 +20,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import useDebounce from "../../components/useDebounce";
@@ -45,25 +45,13 @@ import { setPokedData } from "../../features/slice/authSlice";
 import { toast } from "sonner";
 import noRecordsFound from "../../assets/images/noRecordsFound.png";
 
-// Styled component for the animated search bar
-// const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
-//   display: "flex",
-//   alignItems: "center",
-//   width: expanded ? "300px" : "50px", // Change width based on state
-//   transition: "width 0.3s ease-in-out", // Animate width change
-//   border: expanded ? `1px solid ${theme.palette.primary.main}` : "none", // Show border when expanded
-//   borderRadius: "10px", // Optional: round the corners
-//   padding: "2px 4px",
-//   position: "relative",
-//   margin: "5px 5px",
-// }));
-const AnimatedBox = styled(Box)(({ theme }) => ({
+const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
   alignItems: "center",
-  width:"300px", // Change width based on state
-  transition: "width 0.3s ease-in-out", // Animate width change
-  border:  `1px solid ${theme.palette.primary.main}` , // Show border when expanded
-  borderRadius: "10px", // Optional: round the corners
+  width: expanded ? "300px" : "50px",
+  transition: "width 0.3s ease-in-out",
+  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none",
+  borderRadius: "10px",
   padding: "2px 4px",
   position: "relative",
   margin: " 5px 5px",
@@ -81,6 +69,7 @@ const RoleManagemenPage = () => {
   const [status, setStatus] = useState("active");
   const [expanded, setExpanded] = useState(false); // State for search bar expansion
   const [userPermission, setUserPermission] = useState(null);
+  const inputRef = useRef(null); // Create a ref for InputBase
 
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
@@ -103,7 +92,11 @@ const RoleManagemenPage = () => {
     },
     { refetchOnFocus: true }
   );
-
+  // SEARCH
+  const handleSearchClick = () => {
+    setExpanded(true); // Expand the box
+    inputRef.current?.focus(); // Immediately focus the input field
+  };
   // Pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -186,8 +179,9 @@ const RoleManagemenPage = () => {
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
-              {info.role_title}
+              {info.role_title} 
             </Typography>
+
             <Button
               startIcon={<LibraryAddRounded />}
               variant="contained"
@@ -222,6 +216,7 @@ const RoleManagemenPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
+              inputRef={inputRef} // Assign the ref to InputBase
             />
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton
@@ -229,6 +224,7 @@ const RoleManagemenPage = () => {
               type="button"
               sx={{ p: "10px" }}
               aria-label="search"
+              onClick={handleSearchClick}
             >
               <Search />
             </IconButton>

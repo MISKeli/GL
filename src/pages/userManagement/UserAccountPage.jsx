@@ -28,9 +28,10 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import AddUser from "../userManagement/AddUser";
@@ -44,30 +45,32 @@ import ConfirmedDialog from "../../components/ConfirmedDialog";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
+import noRecordsFound from "../../assets/images/noRecordsFound.png";
 
 // Styled component for the animated search bar
-const AnimatedBox = styled(Box)(({ theme }) => ({
+const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
   alignItems: "center",
-  width:"300px", // Change width based on state
-  transition: "width 0.3s ease-in-out", // Animate width change
-  border:  `1px solid ${theme.palette.primary.main}` , // Show border when expanded
-  borderRadius: "10px", // Optional: round the corners
+  width: expanded ? "300px" : "50px",
+  transition: "width 0.3s ease-in-out",
+  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none",
+  borderRadius: "10px",
   padding: "2px 4px",
   position: "relative",
   margin: " 5px 5px",
 }));
 
 const UserAccountPage = () => {
-  const TableColumn = [
-    { id: ["idPrefix", "idNumber"], name: "ID" },
-    { id: ["firstName", "middleName", "lastName"], name: "NAME" },
-    { id: "sex", name: "SEX" },
-    { id: "username", name: "USERNAME" },
-    { id: "userRole", name: "ROLE" },
-    { id: "status", name: "STATUS" },
-    { id: "action", name: "ACTIONS" },
-  ];
+  const TableColumn = info.users_table_columns;  
+//   const TableColumn = [
+//     { id: ["idPrefix", "idNumber"], name: "ID" },
+//     { id: ["firstName", "middleName", "lastName"], name: "NAME" },
+//     { id: "sex", name: "SEX" },
+//     { id: "username", name: "USERNAME" },
+//     { id: "userRole", name: "ROLE" },
+//     { id: "status", name: "STATUS" },
+//     { id: "action", name: "ACTIONS" },
+//   ];
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
 
@@ -82,6 +85,7 @@ const UserAccountPage = () => {
   const [expanded, setExpanded] = useState(false); // State for search bar expansion
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
   const debounceValue = useDebounce(search);
+  const inputRef = useRef(null); // Create a ref for InputBase
 
   const { data: userData, isLoading: isUserLoading } = useGetAllUserQuery(
     {
@@ -116,6 +120,12 @@ const UserAccountPage = () => {
   const handlePopOverClose = () => {
     setAnchorEl(null);
     setIsUpdate(false);
+  };
+
+  // SEARCH
+  const handleSearchClick = () => {
+    setExpanded(true); // Expand the box
+    inputRef.current?.focus(); // Immediately focus the input field
   };
 
   //Pagination
@@ -208,13 +218,15 @@ const UserAccountPage = () => {
         </Box>
         <Box className="masterlist__header__con2">
           <Box className="masterlist__header__con2--archieved">
-            <IconButton onClick={handleToggleStatus}>
-              {status === "inactive" ? (
-                <ArchiveRounded color="primary" />
-              ) : (
-                <ArchiveOutlined color="primary" />
-              )}
-            </IconButton>
+            <Tooltip title="Archived" placement="left" arrow>
+              <IconButton onClick={handleToggleStatus}>
+                {status === "inactive" ? (
+                  <ArchiveRounded color="primary" />
+                ) : (
+                  <ArchiveOutlined color="primary" />
+                )}
+              </IconButton>
+            </Tooltip>
           </Box>
           <AnimatedBox
             className="masterlist__header__con2--search"
@@ -228,6 +240,7 @@ const UserAccountPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
+              inputRef={inputRef} // Assign the ref to InputBase
             />
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton
@@ -235,6 +248,7 @@ const UserAccountPage = () => {
               type="button"
               sx={{ p: "10px" }}
               aria-label="search"
+              onClick={handleSearchClick}
             >
               <Search />
             </IconButton>
@@ -294,6 +308,11 @@ const UserAccountPage = () => {
                   ))}
                 </TableBody>
               </Table>
+              {userData?.value?.users.length === 0 ? (
+                <Box className="masterlist__content__table--norecords">
+                  <img src={noRecordsFound} alt="No Records Found" />
+                </Box>
+              ) : null}
             </TableContainer>
             <TablePagination
               component="div"
