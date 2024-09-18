@@ -21,7 +21,8 @@ export const info = {
   role_dialog_permission_title: "Permission",
   role_add_message_response: "Role Created Successfully",
   role_update_message_response: "Role Updated Successfully",
-  role_error_massage_response: "Please select at least one subcategory for each main category."
+  role_error_massage_response:
+    "Please select at least one subcategory for each main category.",
 
   role_table_columns: [
     { id: "roleName", name: "ROLE" },

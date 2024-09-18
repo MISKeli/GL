@@ -48,6 +48,7 @@ const AddRole = ({
 }) => {
   const permissions = getPermissionsFromSchema();
   const [selectedMainCategories, setSelectedMainCategories] = useState([]);
+  const [isSubcategoryValid, setIsSubcategoryValid] = useState(true);
 
   const {
     reset,
@@ -83,6 +84,12 @@ const AddRole = ({
       reset(); // Reset form if no data
     }
   }, [open, data, setValue, reset]);
+
+  useEffect(() => {
+    const selectedPermissions = watch("permissions");
+    const subcategoryValidation = validateSubcategories(selectedPermissions);
+    setIsSubcategoryValid(subcategoryValidation);
+  }, [watch("permissions"), selectedMainCategories]);
 
   // Close dialog and reset state
   const handleClose = () => {
@@ -150,7 +157,6 @@ const AddRole = ({
     selectedMainCategories.forEach((mainCategory) => {
       // Find the corresponding module schema for the selected main category
       const module = permissions.find((mod) => mod.name === mainCategory);
-      
 
       // If the main category has subcategories
       if (module && module.subCategory.length > 0) {
@@ -175,9 +181,7 @@ const AddRole = ({
     const isSubcategoryValid = validateSubcategories(roleData.permissions);
 
     if (!isSubcategoryValid) {
-      toast.error(
-        role_error_massage_response
-      );
+      toast.error(info.role_error_massage_response);
       return;
     }
 
@@ -352,7 +356,7 @@ const AddRole = ({
             variant="contained"
             type="submit"
             form="submit-form"
-            disabled={!isValid}
+            disabled={!isValid || !isSubcategoryValid}
           >
             {isUpdate ? "Save" : "Create"}
           </Button>

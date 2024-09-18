@@ -6,6 +6,7 @@ import {
   InputBase,
   Menu,
   styled,
+  Tabs,
   Typography,
 } from "@mui/material";
 import React, { useRef, useState } from "react";
@@ -16,6 +17,8 @@ import {
   SearchRounded,
 } from "@mui/icons-material";
 import Date from "./Date";
+import { Tab } from "@mui/material";
+import "../../styles/ReportPage.scss"
 
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
@@ -34,7 +37,7 @@ const ArcanaPage = () => {
   const [expanded, setExpanded] = useState(false);
   const [reportData, setReportData] = useState([]); // State to hold fetched data
   const [anchorEl, setAnchorEl] = useState(null);
-  const [open, setopen] = useState(false);
+  const [value, setValue] = useState(0);
   const inputRef = useRef(null); // Create a ref for InputBase
 
   const handleSearchClick = () => {
@@ -54,30 +57,42 @@ const ArcanaPage = () => {
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
+
+  //Tabs
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
   return (
-    <Box className="masterlist">
-      <Box className="masterlist__header">
-        <Box className="masterlist__header__con1">
-          <Typography variant="h5" className="masterlist__header--title">
+    <Box className="report">
+      <Box className="report__header">
+        <Box className="report__header__container1">
+          <Typography variant="h5" className="report__header__container1--title">
             {info.report_arcana_title}
           </Typography>
           <Button startIcon={<OutboxRounded />} variant="contained">
             {info.report_export_button}
           </Button>
         </Box>
-      </Box>
-      <Box className="masterlist__header__con2">
-        <Box className="masterlist__header__con2--date-picker">
+      <Box className="report__header__container2">
+      <Box className="report__header__container2--tab" sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs value={value} onchange={handleChange} aria-label="Arcana Tabs">
+            <Tab label="Book 1" />
+            <Tab label="Book 2" />
+            <Tab label="Book 3" />
+          </Tabs>
+        </Box>
+        <Box className="report__header__container2__filters">
+        <Box className="report__header__container2__filters--date-picker">
           <IconButton
             onClick={(event) => {
               handlePopOverOpen(event);
             }}
-          >
+            >
             <FilterListRounded color="primary" />
           </IconButton>
         </Box>
         <AnimatedBox
-          className="masterlist__header__con2--search"
+          className="report__header__container2--search"
           expanded={expanded}
           component="form"
           onClick={() => setExpanded(true)}
@@ -89,7 +104,7 @@ const ArcanaPage = () => {
             onChange={(e) => setSearch(e.target.value)}
             onBlur={() => search === "" && setExpanded(false)}
             inputRef={inputRef} // Assign the ref to InputBase
-          />
+            />
           <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
           <IconButton
             color="primary"
@@ -101,8 +116,14 @@ const ArcanaPage = () => {
             <SearchRounded />
           </IconButton>
         </AnimatedBox>
+        </Box>
+        
+        
       </Box>
-      <Box className="masterlist__content"></Box>
+            </Box>
+      <Box className="report__content">
+       
+      </Box>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -113,7 +134,7 @@ const ArcanaPage = () => {
         </Box>
         <Date onFetchData={handleFetchData} />
       </Menu>
-      <Box className="masterlist__footer"></Box>
+      <Box className="report__footer"></Box>
     </Box>
   );
 };

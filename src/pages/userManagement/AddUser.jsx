@@ -25,8 +25,9 @@ import { Close, Watch } from "@mui/icons-material";
 import { toast } from "sonner";
 import { useLazyGetCedarDataQuery } from "../../features/api/cedarApi";
 import { useDispatch, useSelector } from "react-redux";
-import { useLazyGetAllUserRoleAsyncQuery } from "../../features/api/roleApi";
+
 import { setPokedData } from "../../features/slice/authSlice";
+import { useGetAllUserRoleAsyncQuery } from "../../features/api/roleApi";
 
 const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   const {
@@ -38,7 +39,8 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     formState: { errors, isValid },
   } = useForm({
     resolver: yupResolver(userSchema),
-    code: "onChange",
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       idPrefix: "",
       idNumber: "",
@@ -55,8 +57,8 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   const [addUser] = useAddUserMutation();
   const [updateUser] = useUpdateUserMutation();
 
-  const [triggerFetchRole, { data: roleData, isLoading: isRoleLoading }] =
-    useLazyGetAllUserRoleAsyncQuery();
+  const { data: roleData, isLoading: isRoleLoading } =
+    useGetAllUserRoleAsyncQuery();
   console.log({ roleData });
 
   const [triggerFetchCedar, { data: cedarData, isLoading: isCedarLoading }] =
@@ -82,7 +84,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
         : ""
     );
   };
-  console.log(watch("userRoleId"));
+  //console.log(watch("userRoleId"));
   const handleFormValue = () => {
     setValue(
       "cedarData",
@@ -112,6 +114,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   }, [open]);
   console.log({ isUpdate });
   const submitHandler = (userData) => {
+    console.log("UseErDaTa:", userData);
     const body = {
       idPrefix: userData.idPrefix,
       idNumber: userData.idNumber,
@@ -257,8 +260,16 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                     {...field}
                     loading={isRoleLoading}
                     options={roleData?.value || []} // Add your options here
-                    getOptionLabel={(option) => option.roleName || option}
+                    getOptionLabel={(option) => {
+                      console.log("Current Option:", option); // Log each option being rendered
+                      return option.roleName || option;
+                    }}
+                    isOptionEqualToValue={(option, value) => {
+                      console.log("Option:", option, "Value:", value); // Log the comparison between option and value
+                      return option?.roleName === value; // Adjust this comparison as needed
+                    }}
                     onChange={(e, value) => {
+                      console.log("Selected Value:", value); // Log the selected value when a new option is selected
                       field.onChange(value);
                     }}
                     renderInput={(params) => (
@@ -267,9 +278,10 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                         label="Role"
                         variant="outlined"
                         fullWidth
-                        onClick={() =>
-                          triggerFetchRole({ preferCacheValue: true })
-                        }
+                        onClick={() => {
+                          console.log("Role Data:", roleData); // Log the role data when the input is clicked
+                          triggerFetchCedar({ preferCacheValue: true });
+                        }}
                         size="small"
                         error={!!errors.userRoleId}
                         helperText={errors.userRoleId?.message}
@@ -401,6 +413,9 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                     size="small"
                     error={!!errors.username}
                     helperText={errors.username?.message}
+                    onChange={(e) => {
+                      field.onChange(e.target.value); // Trigger change and validation
+                    }}
                   />
                 )}
               />
@@ -417,7 +432,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
           variant="contained"
           type="submit"
           form="submit-form"
-          disabled={!isValid}
+          disabled={isUpdate ? false : !isValid}
         >
           {isUpdate ? "Save" : "Create"}
         </Button>

@@ -66,7 +66,7 @@ const UserAccountPage = () => {
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
 
-  console.log("pokedData from Redux:", pokedData);
+  //console.log("pokedData from Redux:", pokedData);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -88,7 +88,7 @@ const UserAccountPage = () => {
     },
     { refetchOnFocus: true }
   );
-  console.log("apple", userData);
+  //console.log("apple", userData);
 
   const openPopUp = () => {
     setOpen(true);
@@ -104,7 +104,7 @@ const UserAccountPage = () => {
 
   //Opening Menu
   const handlePopOverOpen = (event, userAcc) => {
-    console.log("MOON", userAcc);
+    // console.log("MOON", userAcc);
     setAnchorEl(event.currentTarget);
     dispatch(setPokedData(userAcc));
     setIsUpdate(true);
@@ -151,12 +151,11 @@ const UserAccountPage = () => {
     resetPassword(pokedData.id)
       .unwrap()
       .then((res) => {
-        console.log("Password Res", res);
+        console.log(res);
         toast.success("Reset Password Successfully"); // Updated message
         setOpenPasswordDialog(false);
       })
       .catch((error) => {
-        console.log("Password Err", error);
         toast.error(error?.message);
       });
   };
@@ -182,7 +181,6 @@ const UserAccountPage = () => {
         }
       })
       .catch((error) => {
-        console.log({ error });
         toast.error(error?.message);
       });
   };

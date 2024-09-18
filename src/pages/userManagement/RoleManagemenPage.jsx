@@ -74,7 +74,7 @@ const RoleManagemenPage = () => {
 
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
-  console.log("pokeddata", pokedData);
+  //console.log("pokeddata", pokedData);
   const debounceValue = useDebounce(search);
   const TableColumn = info.role_table_columns;
 
@@ -152,7 +152,6 @@ const RoleManagemenPage = () => {
         }
       })
       .catch((error) => {
-        console.log({ error });
         toast.error(error?.data?.error?.message);
       });
   };
