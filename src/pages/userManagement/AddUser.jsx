@@ -9,6 +9,7 @@ import {
 import {
   Autocomplete,
   Button,
+  createFilterOptions,
   Dialog,
   DialogActions,
   DialogContent,
@@ -167,6 +168,12 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     }
   };
 
+  //filtering Cedar data
+  const filterOptions = createFilterOptions({
+    matchFrom: "any",
+    limit: 10,
+  });
+
   console.log({ pokedData, roleData });
   return (
     <Dialog
@@ -212,6 +219,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                   render={({ field }) => (
                     <Autocomplete
                       {...field}
+                      filterOptions={filterOptions}
                       loading={isCedarLoading}
                       options={cedarData || []}
                       onChange={(e, data) => {

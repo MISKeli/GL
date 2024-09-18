@@ -41,7 +41,6 @@ const Navbar = () => {
     setAnchorEl(null);
     setIsReset(false);
     setOpenPasswordDialog(true);
-    
   };
 
   //Menu
@@ -60,8 +59,6 @@ const Navbar = () => {
 
   // for getting user Data
   const user = JSON.parse(sessionStorage.getItem("user"));
-
-  
 
   return (
     <>
@@ -92,10 +89,10 @@ const Navbar = () => {
         anchorEl={anchorEl}
       >
         <Box className="navbar__menu--title">
-          <Typography fontWeight={500} >
+          <Typography fontWeight={500}>
             {user.firstName}, {user.lastName}
           </Typography>
-          
+
           <Typography variant="button">{user.roleName}</Typography>
         </Box>
         <Divider sx={{ m: 0.5, height: 1 }} orientation="horizontal" />
@@ -103,7 +100,10 @@ const Navbar = () => {
         <Typography className="navbar__menu--title">
           Profile Settings
         </Typography>
-        <MenuItem className="navbar__menu__item"  onClick={handleChangePasswordClick}>
+        <MenuItem
+          className="navbar__menu__item"
+          onClick={handleChangePasswordClick}
+        >
           <ListItemIcon>
             <Password />
           </ListItemIcon>
@@ -121,11 +121,11 @@ const Navbar = () => {
         </MenuItem>
       </Menu>
       <PasswordDialog
-          open={openPasswordDialog}
-          onClose={handleClose}
-          isReset={isReset}
-          userId={user.id}
-        />
+        open={openPasswordDialog}
+        onClose={handleClose}
+        isReset={isReset}
+        userId={user.id}
+      />
     </>
   );
 };

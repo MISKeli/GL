@@ -18,9 +18,10 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import useDebounce from "../../components/useDebounce";
@@ -91,6 +92,7 @@ const RoleManagemenPage = () => {
     setExpanded(true); // Expand the box
     inputRef.current?.focus(); // Immediately focus the input field
   };
+
   // Pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -99,9 +101,6 @@ const RoleManagemenPage = () => {
     setPageSize(parseInt(event.target.value, 10));
     setPage(0); // Reset to the first page when rows per page changes
   };
-
-  // Opening Dialog
-  const setOpenTrue = () => setOpen(true);
 
   // Status Toggle
   const handleToggleStatus = () => {
@@ -125,11 +124,11 @@ const RoleManagemenPage = () => {
     setUserPermission(data);
   };
 
+  //Opening Dialog
   const openPopUp = () => {
     setOpen(true);
     setViewOnly(false);
   };
-
   const closePopUp = () => {
     setOpen(false);
     setAnchorEl(null);
@@ -190,13 +189,15 @@ const RoleManagemenPage = () => {
         </Box>
         <Box className="masterlist__header__con2">
           <Box className="masterlist__header__con2--archieved">
-            <IconButton onClick={handleToggleStatus}>
-              {status === "inactive" ? (
-                <ArchiveRounded color="primary" />
-              ) : (
-                <ArchiveOutlined color="primary" />
-              )}
-            </IconButton>
+            <Tooltip title="Archived" placement="left" arrow>
+              <IconButton onClick={handleToggleStatus}>
+                {status === "inactive" ? (
+                  <ArchiveRounded color="primary" />
+                ) : (
+                  <ArchiveOutlined color="primary" />
+                )}
+              </IconButton>
+            </Tooltip>
           </Box>
           <AnimatedBox
             className="masterlist__header__con2--search"
@@ -208,7 +209,10 @@ const RoleManagemenPage = () => {
               sx={{ ml: 0.5, flex: 1 }}
               placeholder="Search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
               onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
               inputRef={inputRef} // Assign the ref to InputBase
             />

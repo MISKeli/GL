@@ -31,7 +31,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import AddUser from "../userManagement/AddUser";
@@ -88,7 +88,7 @@ const UserAccountPage = () => {
     },
     { refetchOnFocus: true }
   );
-  //console.log("apple", userData);
+  console.log("apple", userData);
 
   const openPopUp = () => {
     setOpen(true);
@@ -210,7 +210,7 @@ const UserAccountPage = () => {
         </Box>
         <Box className="masterlist__header__con2">
           <Box className="masterlist__header__con2--archieved">
-            <Tooltip title="Archived" placement="left" arrow>
+            <Tooltip title="Archive" placement="left" arrow>
               <IconButton onClick={handleToggleStatus}>
                 {status === "inactive" ? (
                   <ArchiveRounded color="primary" />
@@ -230,7 +230,10 @@ const UserAccountPage = () => {
               sx={{ ml: 0.5, flex: 1 }}
               placeholder="Search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
               onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
               inputRef={inputRef} // Assign the ref to InputBase
             />
@@ -332,7 +335,7 @@ const UserAccountPage = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <EditRounded />
+                    <EditRounded fontSize="small" />
                   </ListItemIcon>
                   <ListItemText primary="Edit" />
                 </MenuItem>
@@ -343,7 +346,7 @@ const UserAccountPage = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <ArchiveRounded />
+                    <ArchiveRounded fontSize="small" />
                   </ListItemIcon>
                   <ListItemText primary="Archive" />
                 </MenuItem>
@@ -354,7 +357,7 @@ const UserAccountPage = () => {
                   }}
                 >
                   <ListItemIcon>
-                    <LockReset />
+                    <LockReset fontSize="small" />
                   </ListItemIcon>
                   <ListItemText primary="Reset Password" />
                 </MenuItem>
@@ -367,7 +370,7 @@ const UserAccountPage = () => {
                 }}
               >
                 <ListItemIcon>
-                  <RestoreFromTrashOutlined />
+                  <RestoreFromTrashOutlined fontSize="small" />
                 </ListItemIcon>
                 <ListItemText primary="Restore" />
               </MenuItem>

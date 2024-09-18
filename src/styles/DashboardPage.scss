@@ -1,0 +1,37 @@
+.dashboard {
+  &__header {
+    &__box1 {
+      border-radius: 5px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+
+      background: linear-gradient(
+        to right,
+        #0c3483 0%,
+        #a2b6df 100%,
+        #6b8cce 100%,
+        #a2b6df 100%
+      );
+
+      &--title {
+        padding: 10px;
+        color: white; /* Set title color to white */
+      }
+    }
+
+    &__image-container {
+      position: relative;
+      width: 500px;
+      max-width: 400px;
+    }
+
+    &__image {
+      width: 250px;
+      max-width: 400px;
+      height: auto;
+      object-fit: cover;
+    }
+  }
+}

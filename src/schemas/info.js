@@ -21,6 +21,7 @@ export const info = {
   role_dialog_permission_title: "Permission",
   role_add_message_response: "Role Created Successfully",
   role_update_message_response: "Role Updated Successfully",
+  role_error_massage_response: "Please select at least one subcategory for each main category."
 
   role_table_columns: [
     { id: "roleName", name: "ROLE" },
@@ -32,6 +33,37 @@ export const info = {
 
   password_title: "Change Password",
 
-  report_title: "Reports",
+  report_UM_table_column: [
+    { id: "accountTitle", name: "ACCOUNT" },
+    { id: "accountTitleCode", name: "CODE" },
+    { id: "amount", name: "AMOUNT" },
+    { id: "category", name: "CATEGORY" },
+    { id: "companyCode", name: "CODE" },
+    { id: "companyName", name: "COMPANY" },
+    { id: "dateAdded", name: "DATE ADDED" },
+    { id: "departmentCode", name: "CODE" },
+    { id: "departmentName", name: "DEPARTMENT" },
+    { id: "details", name: "DETAILS" },
+    { id: "employeeName", name: "NAME" },
+    { id: "encoded", name: "ENCODED" },
+    { id: "id", name: "ID" },
+    { id: "itemCode", name: "CODE" },
+    { id: "itemDescription", name: "DESCRIPTION" },
+    { id: "locationCode", name: "LOCATION" },
+    { id: "mirId", name: "MIR ID" },
+    { id: "quantity", name: "QUANTITY" },
+    { id: "reason", name: "REASON" },
+    { id: "reference", name: "REFERENCE" },
+    { id: "source", name: "SOURCE" },
+    { id: "status", name: "STATUS" },
+    { id: "transactDate", name: "TRANSACT DATE" },
+    { id: "transactionType", name: "TRANSACTION TYPE" },
+    { id: "unitPrice", name: "UNIT PRICE" },
+    { id: "uom", name: "UOM" },
+    { id: "warehouseId", name: "WAREHOUSE ID" },
+  ],
+  report_UM_title: "Ultra Maverick Dry",
+  report_ymir_title: "YMIR",
+  report_arcana_title: "Arcana",
   report_export_button: "Export",
 };
