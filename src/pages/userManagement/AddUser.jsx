@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { userSchema } from "../../schemas/validation";
 import {
@@ -9,6 +9,7 @@ import {
 import {
   Autocomplete,
   Button,
+  CircularProgress,
   createFilterOptions,
   Dialog,
   DialogActions,
@@ -30,6 +31,8 @@ import { setPokedData } from "../../features/slice/authSlice";
 import { useGetAllUserRoleAsyncQuery } from "../../features/api/roleApi";
 
 const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
+  const [loading, setLoading] = useState(false); // Add loading state
+
   const {
     handleSubmit,
     reset,
@@ -59,7 +62,6 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
 
   const { data: roleData, isLoading: isRoleLoading } =
     useGetAllUserRoleAsyncQuery();
-  console.log({ roleData });
 
   const [triggerFetchCedar, { data: cedarData, isLoading: isCedarLoading }] =
     useLazyGetCedarDataQuery();
@@ -91,7 +93,13 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
       `${pokedData.idPrefix} ${pokedData.idNumber} ${pokedData.lastName} ${pokedData.firstName}` ||
         ""
     );
-    setValue("userRoleId", pokedData?.userRole || "");
+
+    const roleDataValues = roleData?.value?.find(
+      (item) => item?.roleName == pokedData?.userRole
+    );
+
+    setValue("userRoleId", roleDataValues || "");
+    console.log("userRole2", pokedData);
     setValue("idPrefix", pokedData?.idPrefix || "");
     setValue("idNumber", pokedData?.idNumber || "");
     setValue("firstName", pokedData?.firstName || "");
@@ -113,8 +121,8 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     }
   }, [open]);
   console.log({ isUpdate });
-  const submitHandler = (userData) => {
-    console.log("UseErDaTa:", userData);
+  const submitHandler = async (userData) => {
+    setLoading(true); // Set loading to true at the start of submission
     const body = {
       idPrefix: userData.idPrefix,
       idNumber: userData.idNumber,
@@ -136,38 +144,23 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
       userRoleId: userData.userRoleId.id,
       sex: userData.sex,
       username: userData.username,
-      //password: userData.username,
     };
-    if (isUpdate) {
-      updateUser({ id: pokedData.id, ...updateBody })
-        .unwrap()
-        .then((res) => {
-          console.log({ res });
-          const userAccResMessage = "User Updated Successfully";
-          toast.success(userAccResMessage);
-          reset();
-          handleClose();
-        })
-        .catch((error) => {
-          console.log({ error });
-          const userAccErrMessage = error?.data?.error.message;
-          toast.error(userAccErrMessage);
-        });
-    } else {
-      addUser(body)
-        .unwrap()
-        .then((res) => {
-          console.log({ res });
-          const userAccResMessage = "User Created Successfully";
-          toast.success(userAccResMessage);
-          reset();
-          handleClose();
-        })
-        .catch((error) => {
-          console.log({ error });
-          const userAccErrMessage = error?.data?.error.message;
-          toast.error(userAccErrMessage);
-        });
+
+    try {
+      if (isUpdate) {
+        await updateUser({ id: pokedData.id, ...updateBody }).unwrap();
+        toast.success("User Updated Successfully");
+      } else {
+        await addUser(body).unwrap();
+        toast.success("User Created Successfully");
+      }
+      reset();
+      handleClose();
+    } catch (error) {
+      const userAccErrMessage = error?.data?.error.message;
+      toast.error(userAccErrMessage);
+    } finally {
+      setLoading(false); // Set loading to false after submission completes
     }
   };
 
@@ -177,7 +170,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     limit: 10,
   });
 
-  console.log({ pokedData, roleData });
+  //console.log({ pokedData, roleData });
   return (
     <Dialog
       open={open}
@@ -432,9 +425,12 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
           variant="contained"
           type="submit"
           form="submit-form"
-          disabled={isUpdate ? false : !isValid}
+          disabled={!isValid || loading}
+          startIcon={
+            loading ? <CircularProgress color="info" size={20} /> : null
+          }
         >
-          {isUpdate ? "Save" : "Create"}
+          {loading ? "Processing..." : isUpdate ? "Save" : "Create"}
         </Button>
       </DialogActions>
     </Dialog>

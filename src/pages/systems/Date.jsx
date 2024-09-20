@@ -4,13 +4,17 @@ import { Controller, useForm } from "react-hook-form";
 import { reportSchema } from "../../schemas/validation";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Button, Divider, Grid, TextField } from "@mui/material";
+import {
+  Button,
+  Divider,
+  Grid,
+  TextField,
+  CircularProgress,
+} from "@mui/material";
 import "../../styles/Date.scss";
 import { useLazyGetAllGLReportAsyncQuery } from "../../features/api/reportApi";
 import dayjs from "dayjs";
 import moment from "moment";
-
-
 
 const Date = ({ onFetchData }) => {
   const currentDate = dayjs(); // Get the current date
@@ -24,8 +28,8 @@ const Date = ({ onFetchData }) => {
   } = useForm({
     resolver: yupResolver(reportSchema),
     defaultValues: {
-      DateFrom: currentDate.startOf("month").toDate(), // Start of current month
-      DateTo: currentDate.endOf("month").toDate(), // End of current month
+      DateFrom: currentDate.toDate(), // Set to current date
+      DateTo: currentDate.toDate(), // Set to current date
     },
   });
 
@@ -44,6 +48,13 @@ const Date = ({ onFetchData }) => {
     triggerFetchGLReport(body).then((result) => {
       console.log("Fetched GLReport Data:", result.data);
       onFetchData(result.data); // Pass the fetched data to the parent component
+    });
+  };
+
+  const clearHandler = () => {
+    reset({
+      DateFrom: currentDate.toDate(),
+      DateTo: currentDate.toDate(),
     });
   };
 
@@ -66,6 +77,7 @@ const Date = ({ onFetchData }) => {
                     <TextField
                       {...params}
                       fullWidth
+                      size="small" // Make the date picker small
                       helperText={
                         errors.DateFrom ? errors.DateFrom.message : ""
                       }
@@ -92,6 +104,7 @@ const Date = ({ onFetchData }) => {
                     <TextField
                       {...params}
                       fullWidth
+                      size="small" // Make the date picker small
                       helperText={errors.DateTo ? errors.DateTo.message : ""}
                       error={!!errors.DateTo}
                       className="date-picker__text-field"
@@ -103,7 +116,29 @@ const Date = ({ onFetchData }) => {
           </Grid>
         </Grid>
         <Divider sx={{ height: 28, m: 0.5 }} orientation="horizontal" />
-        <Button type="submit">Submit</Button>
+        <Grid container spacing={2}>
+          <Grid item>
+            <Button
+              variant="outlined"
+              onClick={clearHandler}
+              disabled={isGLReportLoading}
+            >
+              Clear
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isGLReportLoading}
+              startIcon={
+                isGLReportLoading ? <CircularProgress size={20} /> : null
+              }
+            >
+              {isGLReportLoading ? "Fetching..." : "Submit"}
+            </Button>
+          </Grid>
+        </Grid>
       </form>
     </LocalizationProvider>
   );

@@ -116,8 +116,8 @@
     z-index: -1;
 
     &.active {
-      background-color: $info-main;
-      color: $text-primary;
+      background-color: $text-primary;
+      color: $primary-contrast-text;
       border-radius: 10px;
       font-weight: 400;
     }

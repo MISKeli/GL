@@ -7,10 +7,11 @@ import UserManagementPage from "../pages/userManagement/UserManagementPage";
 import AccessPermission from "../components/AccessPermission";
 import UserAccountPage from "../pages/userManagement/UserAccountPage";
 import RoleManagementPage from "../pages/userManagement/RoleManagemenPage";
-import ReportPage from "../pages/reports/ReportPage";
-import ArcanaPage from "../pages/reports/ArcanaPage";
-import UMPage from "../pages/reports/UMPage";
-import YmirPage from "../pages/reports/YmirPage";
+import SystemsPage from "../pages/systems/SystemsPage";
+import ArcanaPage from "../pages/systems/ArcanaPage";
+import UMPage from "../pages/systems/UMPage";
+import YmirPage from "../pages/systems/YmirPage";
+import FistoPage from "../pages/systems/FistoPage";
 
 export const router = createBrowserRouter([
   {
@@ -51,8 +52,8 @@ export const router = createBrowserRouter([
             ],
           },
           {
-            path: "reports",
-            element: <ReportPage />,
+            path: "systems",
+            element: <SystemsPage />,
             children: [
               {
                 path: "arcana",
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
               {
                 path: "ymir",
                 element: <YmirPage />,
+              },
+              {
+                path: "fisto",
+                element: <FistoPage />,
               },
             ],
           },

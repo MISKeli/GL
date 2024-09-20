@@ -2,6 +2,7 @@ import {
   Badge,
   Box,
   Button,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -10,6 +11,7 @@ import {
   Menu,
   MenuItem,
   Paper,
+  Skeleton,
   styled,
   Table,
   TableBody,
@@ -45,6 +47,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
 import { toast } from "sonner";
 import noRecordsFound from "../../assets/images/noRecordsFound.png";
+import ConfirmedDialog from "../../components/ConfirmedDialog";
 
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
@@ -70,6 +73,7 @@ const RoleManagemenPage = () => {
   const [status, setStatus] = useState("active");
   const [expanded, setExpanded] = useState(false); // State for search bar expansion
   const [userPermission, setUserPermission] = useState(null);
+  const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
   const inputRef = useRef(null); // Create a ref for InputBase
 
   const dispatch = useDispatch();
@@ -78,7 +82,11 @@ const RoleManagemenPage = () => {
   const debounceValue = useDebounce(search);
   const TableColumn = info.role_table_columns;
 
-  const { data: roleData, isLoading: isRoleLoading } = useGetAllUserRolesQuery(
+  const {
+    data: roleData,
+    isLoading: isRoleLoading,
+    isFetching: isRoleFetching,
+  } = useGetAllUserRolesQuery(
     {
       Search: debounceValue,
       Status: status === "active" ? true : false,
@@ -150,6 +158,7 @@ const RoleManagemenPage = () => {
         } else {
           toast.success("Role Restored Successfully");
         }
+        setOpenArchiveDialog(false);
       })
       .catch((error) => {
         toast.error(error?.data?.error?.message);
@@ -242,49 +251,61 @@ const RoleManagemenPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {roleData?.value.userRoles.map((userRole) => (
-                    <TableRow
-                      key={userRole.id}
-                      className={activeRow === userRole.id ? "active" : ""}
-                    >
-                      <TableCell>{userRole.roleName}</TableCell>
-                      <TableCell
-                        onClick={() => {
-                          openPopUp();
-                          setViewOnly(true);
-                          handlePokedData(userRole);
-                        }}
-                      >
-                        <Badge
-                          badgeContent={userRole?.permissions?.length}
-                          color="error"
-                          overlap="circular"
-                          sx={{
-                            "& .MuiBadge-dot": { backgroundColor: "#3259c4" },
-                          }}
+                  {isRoleLoading || isRoleFetching
+                    ? Array.from({ length: pageSize }).map((_, index) => (
+                        <TableRow key={index}>
+                          {TableColumn.map((column) => (
+                            <TableCell key={column.id}>
+                              <Skeleton variant="text" animation="wave" />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    : roleData?.value.userRoles.map((userRole) => (
+                        <TableRow
+                          key={userRole.id}
+                          className={activeRow === userRole.id ? "active" : ""}
                         >
-                          <IconButton>
-                            <AccountTreeOutlined />
-                          </IconButton>
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{userRole.addedBy}</TableCell>
-                      <TableCell>{userRole.modifiedBy}</TableCell>
-                      <TableCell>
-                        <IconButton
-                          onClick={(event) => {
-                            handlePopOverOpen(event, userRole);
-                            setActiveRow(userRole.id);
-                          }}
-                        >
-                          <MoreVertOutlined />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          <TableCell>{userRole.roleName}</TableCell>
+                          <TableCell
+                            onClick={() => {
+                              openPopUp();
+                              setViewOnly(true);
+                              handlePokedData(userRole);
+                            }}
+                          >
+                            <Badge
+                              badgeContent={userRole?.permissions?.length}
+                              color="error"
+                              overlap="circular"
+                              sx={{
+                                "& .MuiBadge-dot": {
+                                  backgroundColor: "#3259c4",
+                                },
+                              }}
+                            >
+                              <IconButton>
+                                <AccountTreeOutlined />
+                              </IconButton>
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{userRole.addedBy}</TableCell>
+                          <TableCell>{userRole.modifiedBy}</TableCell>
+                          <TableCell>
+                            <IconButton
+                              onClick={(event) => {
+                                handlePopOverOpen(event, userRole);
+                                setActiveRow(userRole.id);
+                              }}
+                            >
+                              <MoreVertOutlined />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
-              {roleData?.value?.userRoles.length === 0 ? (
+              {roleData?.value?.userRoles.length === 0 && !isRoleLoading ? (
                 <Box className="masterlist__content__table--norecords">
                   <img src={noRecordsFound} alt="No Records Found" />
                 </Box>
@@ -314,7 +335,12 @@ const RoleManagemenPage = () => {
           </ListItemIcon>
           <ListItemText primary="Edit" />
         </MenuItem>
-        <MenuItem onClick={handleUserRoleStatus}>
+        <MenuItem
+          onClick={() => {
+            setOpenArchiveDialog(true);
+            handlePopOverClose();
+          }}
+        >
           <ListItemIcon>
             {pokedData?.isActive ? (
               <ArchiveOutlined fontSize="small" />
@@ -327,6 +353,15 @@ const RoleManagemenPage = () => {
           </ListItemText>
         </MenuItem>
       </Menu>
+      <ConfirmedDialog
+        open={openArchiveDialog}
+        onClose={() => setOpenArchiveDialog(false)}
+        onYes={handleUserRoleStatus} // Call handleUserStatus on confirmation
+        title={pokedData?.isActive ? "Archive Role" : "Restore Role"}
+        description={`Are you sure you want to ${
+          pokedData?.isActive ? "ARCHIVE" : "RESTORE"
+        } ${pokedData?.roleName || "this role"}?`}
+      />
     </>
   );
 };

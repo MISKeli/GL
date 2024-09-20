@@ -26,11 +26,11 @@ const ConfirmedDialog = ({ open, onClose, title, description, onYes }) => {
           </Stack>
         </DialogTitle>
         <DialogContent className="dialog__content">
-          <img
+          {/* <img
             src={password}
             className="dialog__content--img"
             alt="reset Password"
-          />
+          /> */}
           <Typography>{description}</Typography>
         </DialogContent>
         <DialogActions className="dialog__action">

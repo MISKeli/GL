@@ -13,6 +13,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
 } from "@mui/material";
@@ -22,10 +23,10 @@ import {
   FilterListRounded,
   OutboxRounded,
   SearchRounded,
+  SystemUpdateAltRounded,
 } from "@mui/icons-material";
 import { Controller } from "react-hook-form";
 import Date from "./Date";
-import dayjs from "dayjs";
 
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
@@ -67,6 +68,20 @@ const UMPage = () => {
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
   return (
     <>
       <Box className="masterlist">
@@ -75,8 +90,8 @@ const UMPage = () => {
             <Typography variant="h5" className="masterlist__header--title">
               {info.report_UM_title}
             </Typography>
-            <Button startIcon={<OutboxRounded />} variant="contained">
-              {info.report_export_button}
+            <Button startIcon={<SystemUpdateAltRounded />} variant="contained">
+              {info.report_import_button}
             </Button>
           </Box>
         </Box>
@@ -151,6 +166,15 @@ const UMPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              component="div"
+              count={reportData?.value?.length || 0} // Total count of items
+              page={page}
+              rowsPerPage={rowsPerPage}
+              onPageChange={handleChangePage + 1}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
           </Box>
         </Box>
         <Menu

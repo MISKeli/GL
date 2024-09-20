@@ -1,8 +1,8 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 
-function ReportPage() {
+function SystemsPage() {
   return <Outlet />;
 }
 
-export default ReportPage;
+export default SystemsPage;

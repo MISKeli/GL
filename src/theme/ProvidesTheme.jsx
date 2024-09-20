@@ -41,32 +41,35 @@ const ProvidesTheme = ({ children }) => {
             color: paletteSchema.primary.dark,
 
             "& .MuiTablePagination-select": {
-              backgroundColor: paletteSchema.primary.main,
-              color: paletteSchema.primary.contrastText,
-              borderRadius: 10,
+              //backgroundColor: paletteSchema.primary.main,
+              //color: paletteSchema.primary.contrastText,
+              //borderRadius: 10,
             },
             "& .MuiTablePagination-selectIcon": {
-              color: paletteSchema.primary.contrastText,
+              //color: paletteSchema.primary.contrastText,
             },
-            "& .MuiTablePagination-actions button": {
-              color: paletteSchema.warning.main,
-              fontWeight: 400,
-            },
-          },
-          select: {
-            backgroundColor: paletteSchema.primary.main,
-            color: paletteSchema.primary.contrastText,
-            borderRadius: 10,
-            fontWeight: 400,
-          },
-          selectIcon: {
-            color: paletteSchema.primary.contrastText,
-          },
-          actions: {
-            "& .MuiIconButton-root": {
-              color: paletteSchema.primary.dark,
+            "& .MuiTablePagination-actions": {
+              //color: paletteSchema.warning.main,
+              //fontWeight: 400,
             },
           },
+          // select: {
+          //   backgroundColor: paletteSchema.primary.main,
+          //   color: paletteSchema.primary.contrastText,
+          //   borderRadius: 10,
+          //   fontWeight: 400,
+          //   ":active": {
+          //     backgroundColor: paletteSchema.primary.main,
+          //   },
+          // },
+          // selectIcon: {
+          //   color: paletteSchema.primary.contrastText,
+          // },
+          // actions: {
+          //   "& .MuiIconButton-root": {
+          //     color: paletteSchema.primary.dark,
+          //   },
+          // },
         },
       },
       MuiButton: {
@@ -82,11 +85,6 @@ const ProvidesTheme = ({ children }) => {
               border: "1px solid rgba(255, 255, 255, 0.3)", // Border color when disabled
             },
           },
-        },
-      },
-      MuiIconButton: {
-        styleOverrides: {
-          root: {},
         },
       },
     },
@@ -137,6 +135,16 @@ const ProvidesTheme = ({ children }) => {
             backgroundColor: red,
             color: paletteSchema.primary.dark,
           },
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          "&.report__header__container2__tab":{
+            backgroundColor: red,
+          },
+          color: paletteSchema.primary.main,
         },
       },
     },

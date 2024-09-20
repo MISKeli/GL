@@ -20,6 +20,7 @@ import {
   Menu,
   MenuItem,
   Paper,
+  Skeleton,
   styled,
   Table,
   TableBody,
@@ -76,10 +77,15 @@ const UserAccountPage = () => {
   const [status, setStatus] = useState("active");
   const [expanded, setExpanded] = useState(false); // State for search bar expansion
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
   const debounceValue = useDebounce(search);
   const inputRef = useRef(null); // Create a ref for InputBase
 
-  const { data: userData, isLoading: isUserLoading } = useGetAllUserQuery(
+  const {
+    data: userData,
+    isLoading: isUserLoading,
+    isFetching: isUserFetching,
+  } = useGetAllUserQuery(
     {
       Search: debounceValue,
       Status: status === "active" ? true : false,
@@ -179,6 +185,7 @@ const UserAccountPage = () => {
         } else {
           toast.success("User Restored Successfully ");
         }
+        setOpenArchiveDialog(false);
       })
       .catch((error) => {
         toast.error(error?.message);
@@ -263,42 +270,54 @@ const UserAccountPage = () => {
                 </TableHead>
 
                 <TableBody>
-                  {userData?.value.users.map((userAcc, index) => (
-                    <TableRow
-                      key={index}
-                      className={activeRow === userAcc.id ? "active" : ""}
-                    >
-                      <TableCell>
-                        {userAcc.idPrefix}
-                        {"-"}
-                        {userAcc.idNumber}
-                      </TableCell>
-                      <TableCell>
-                        {userAcc.firstName} {userAcc.middleName}{" "}
-                        {userAcc.lastName}
-                      </TableCell>
-                      <TableCell>{userAcc.sex}</TableCell>
-                      <TableCell>{userAcc.username}</TableCell>
-                      <TableCell>{userAcc.userRole}</TableCell>
-                      <TableCell>
-                        <Chip
-                          variant="outlined"
-                          label={status === "active" ? "active" : "inactive"}
-                          color={status === "active" ? "success" : "error"}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          onClick={(event) => {
-                            handlePopOverOpen(event, userAcc);
-                          }}
+                  {isUserLoading || isUserFetching
+                    ? Array.from({ length: pageSize }).map((_, index) => (
+                        <TableRow key={index}>
+                          {TableColumn.map((column) => (
+                            <TableCell key={column.id}>
+                              <Skeleton variant="text" animation="wave" />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    : userData?.value.users.map((userAcc, index) => (
+                        <TableRow
+                          key={index}
+                          className={activeRow === userAcc.id ? "active" : ""}
                         >
-                          <MoreVertOutlined />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          <TableCell>
+                            {userAcc.idPrefix}
+                            {"-"}
+                            {userAcc.idNumber}
+                          </TableCell>
+                          <TableCell>
+                            {userAcc.firstName} {userAcc.middleName}{" "}
+                            {userAcc.lastName}
+                          </TableCell>
+
+                          <TableCell>{userAcc.username}</TableCell>
+                          <TableCell>{userAcc.userRole}</TableCell>
+                          <TableCell>
+                            <Chip
+                              variant="filled"
+                              label={
+                                status === "active" ? "active" : "inactive"
+                              }
+                              color={status === "active" ? "success" : "error"}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <IconButton
+                              onClick={(event) => {
+                                handlePopOverOpen(event, userAcc);
+                              }}
+                            >
+                              <MoreVertOutlined />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
               {userData?.value?.users.length === 0 ? (
@@ -340,7 +359,7 @@ const UserAccountPage = () => {
                 <MenuItem
                   onClick={() => {
                     handlePopOverClose();
-                    handleUserStatus();
+                    setOpenArchiveDialog(true);
                   }}
                 >
                   <ListItemIcon>
@@ -363,8 +382,8 @@ const UserAccountPage = () => {
             ) : (
               <MenuItem
                 onClick={() => {
+                  setOpenArchiveDialog(true);
                   handlePopOverClose();
-                  handleUserStatus();
                 }}
               >
                 <ListItemIcon>
@@ -375,6 +394,7 @@ const UserAccountPage = () => {
             )}
           </Menu>
         </Box>
+
         <ConfirmedDialog
           open={openPasswordDialog}
           onClose={() => setOpenPasswordDialog(false)}
@@ -383,6 +403,16 @@ const UserAccountPage = () => {
           description={`Are you sure you want to reset this ${
             pokedData?.firstName || "this user's "
           }'s password?`}
+        />
+
+        <ConfirmedDialog
+          open={openArchiveDialog}
+          onClose={() => setOpenArchiveDialog(false)}
+          onYes={handleUserStatus} // Call handleUserStatus on confirmation
+          title={pokedData?.isActive ? "Archive User" : "Restore User"}
+          description={`Are you sure you want to ${
+            pokedData?.isActive ? "ARCHIVE" : "RESTORE"
+          } ${pokedData?.firstName || "this user"}?`}
         />
       </Box>
     </>
