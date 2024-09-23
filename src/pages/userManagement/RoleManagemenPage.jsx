@@ -182,7 +182,7 @@ const RoleManagemenPage = () => {
             <Typography variant="h5" className="masterlist__header--title">
               {info.role_title}
             </Typography>
-
+            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <Button
               startIcon={<LibraryAddRounded />}
               variant="contained"
@@ -194,47 +194,47 @@ const RoleManagemenPage = () => {
               {info.role_add_button}
             </Button>
           </Box>
-        </Box>
-        <Box className="masterlist__header__con2">
-          <Box className="masterlist__header__con2--archieved">
-            <Tooltip title="Archived" placement="left" arrow>
-              <IconButton onClick={handleToggleStatus}>
-                {status === "inactive" ? (
-                  <ArchiveRounded color="primary" />
-                ) : (
-                  <ArchiveOutlined color="primary" />
-                )}
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <AnimatedBox
-            className="masterlist__header__con2--search"
-            expanded={expanded}
-            component="form"
-            onClick={() => setExpanded(true)}
-          >
-            <InputBase
-              sx={{ ml: 0.5, flex: 1 }}
-              placeholder="Search"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
-              onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
-              inputRef={inputRef} // Assign the ref to InputBase
-            />
-            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-            <IconButton
-              color="primary"
-              type="button"
-              sx={{ p: "10px" }}
-              aria-label="search"
-              onClick={handleSearchClick}
+          <Box className="masterlist__header__con2">
+            <Box className="masterlist__header__con2--archieved">
+              <Tooltip title="Archived" placement="left" arrow>
+                <IconButton onClick={handleToggleStatus}>
+                  {status === "inactive" ? (
+                    <ArchiveRounded color="primary" />
+                  ) : (
+                    <ArchiveOutlined color="primary" />
+                  )}
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <AnimatedBox
+              className="masterlist__header__con2--search"
+              expanded={expanded}
+              component="form"
+              onClick={() => setExpanded(true)}
             >
-              <Search />
-            </IconButton>
-          </AnimatedBox>
+              <InputBase
+                sx={{ ml: 0.5, flex: 1 }}
+                placeholder="Search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(0);
+                }}
+                onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
+                inputRef={inputRef} // Assign the ref to InputBase
+              />
+              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+              <IconButton
+                color="primary"
+                type="button"
+                sx={{ p: "10px" }}
+                aria-label="search"
+                onClick={handleSearchClick}
+              >
+                <Search />
+              </IconButton>
+            </AnimatedBox>
+          </Box>
         </Box>
         <Box className="masterlist__content">
           <Box className="masterlist__content__table">
