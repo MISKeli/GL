@@ -80,9 +80,9 @@ const ProvidesTheme = ({ children }) => {
               //backgroundColor: "#003366", // Background color on hover
             },
             "&:disabled": {
-              backgroundColor: "rgba(255, 255, 255, 0.2)", // Background color when disabled
-              color: "rgba(255, 255, 255, 0.5)", // Text color when disabled
-              border: "1px solid rgba(255, 255, 255, 0.3)", // Border color when disabled
+              backgroundColor: paletteSchema.text.hint, // Background color when disabled
+              color: paletteSchema.text.primary, // Text color when disabled
+              border: "1px solid paletteSchema.text.disabled", // Border color when disabled
             },
           },
         },
@@ -128,20 +128,17 @@ const ProvidesTheme = ({ children }) => {
         },
       },
     },
-    MuiDialog: {
+    MuiDialogTitle: {
       styleOverrides: {
         root: {
-          "&.MuiDialogTitle-root": {
-            backgroundColor: red,
-            color: paletteSchema.primary.dark,
-          },
+          fontWeight: "bolder",
         },
       },
     },
     MuiTabs: {
       styleOverrides: {
         root: {
-          "&.report__header__container2__tab":{
+          "&.report__header__container2__tab": {
             backgroundColor: red,
           },
           color: paletteSchema.primary.main,

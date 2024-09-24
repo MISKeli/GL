@@ -82,6 +82,7 @@ const UMPage = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+  console.log({reportData})
   return (
     <>
       <Box className="masterlist">
@@ -90,46 +91,47 @@ const UMPage = () => {
             <Typography variant="h5" className="masterlist__header--title">
               {info.report_UM_title}
             </Typography>
+            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <Button startIcon={<SystemUpdateAltRounded />} variant="contained">
               {info.report_import_button}
             </Button>
           </Box>
-        </Box>
-        <Box className="masterlist__header__con2">
-          <Box className="masterlist__header__con2--date-picker">
-            <IconButton
-              onClick={(event) => {
-                handlePopOverOpen(event);
-              }}
+          <Box className="masterlist__header__con2">
+            <Box className="masterlist__header__con2--date-picker">
+              <IconButton
+                onClick={(event) => {
+                  handlePopOverOpen(event);
+                }}
+              >
+                <FilterListRounded color="primary" />
+              </IconButton>
+            </Box>
+            <AnimatedBox
+              className="masterlist__header__con2--search"
+              expanded={expanded}
+              component="form"
+              onClick={() => setExpanded(true)}
             >
-              <FilterListRounded color="primary" />
-            </IconButton>
+              <InputBase
+                sx={{ ml: 0.5, flex: 1 }}
+                placeholder="Search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onBlur={() => search === "" && setExpanded(false)}
+                inputRef={inputRef} // Assign the ref to InputBase
+              />
+              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+              <IconButton
+                color="primary"
+                type="button"
+                sx={{ p: "10px" }}
+                aria-label="search"
+                onClick={handleSearchClick}
+              >
+                <SearchRounded />
+              </IconButton>
+            </AnimatedBox>
           </Box>
-          <AnimatedBox
-            className="masterlist__header__con2--search"
-            expanded={expanded}
-            component="form"
-            onClick={() => setExpanded(true)}
-          >
-            <InputBase
-              sx={{ ml: 0.5, flex: 1 }}
-              placeholder="Search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onBlur={() => search === "" && setExpanded(false)}
-              inputRef={inputRef} // Assign the ref to InputBase
-            />
-            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-            <IconButton
-              color="primary"
-              type="button"
-              sx={{ p: "10px" }}
-              aria-label="search"
-              onClick={handleSearchClick}
-            >
-              <SearchRounded />
-            </IconButton>
-          </AnimatedBox>
         </Box>
         <Box className="masterlist__content">
           <Box className="masterlist__content__table">
@@ -149,8 +151,11 @@ const UMPage = () => {
                 </TableHead>
                 <TableBody>
                   {reportData?.value?.length > 0 ? (
+                    
                     reportData?.value?.map((row, index) => (
+                      
                       <TableRow key={index}>
+                       
                         {GLColumn.map((col) => (
                           <TableCell key={col.id}>{row[col.id]}</TableCell>
                         ))}
@@ -173,7 +178,7 @@ const UMPage = () => {
               rowsPerPage={rowsPerPage}
               onPageChange={handleChangePage + 1}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 25]}
+              rowsPerPageOptions={[5, 10, 25, { label: "All", value: "" }]}
             />
           </Box>
         </Box>

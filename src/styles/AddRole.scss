@@ -10,24 +10,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
-    background-color: $primary-dark; // Set header background color
-    color: $primary-contrast-text;
+
+    //background-color: $primary-dark; // Set header background color
+    color: $primary-dark;
 
     .MuiIconButton-root {
-      color: $primary-contrast-text; // Set close button color to white
+      color: $primary-dark; // Set close button color to white
     }
   }
-  &__content{
-    
-   // margin: 1rem;
-
-
+  &__content {
+    // margin: 1rem;
   }
 
   &__actions {
-    background-color: $primary-dark;
-    padding: 10px;
+    //background-color: $primary-dark;
+
     display: flex;
     justify-content: flex-end; // Align actions to the right
 
@@ -37,9 +34,8 @@
   }
 
   //FORM ROLE
-  .css-1idn90j-MuiGrid-root{
+  .css-1idn90j-MuiGrid-root {
     display: flex;
     flex-direction: column;
-
   }
 }

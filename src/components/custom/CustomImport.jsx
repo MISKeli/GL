@@ -7,13 +7,100 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Stack,
+  IconButton,
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
-import { CloudUpload } from "@mui/icons-material";
+import { Close, CloudUpload } from "@mui/icons-material";
+import "../../styles/customImport.scss"; // Import the SCSS file
+import { useImportReportsMutation } from "../../features/api/importReportApi";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { importSchema } from "../../schemas/validation";
+import { useForm } from "react-hook-form";
 
 const CustomImport = ({ onDataLoaded, open, onClose }) => {
   const [data, setData] = useState([]); // State to hold parsed data
   const [isDataGridOpen, setIsDataGridOpen] = useState(false); // Dialog state for DataGrid
+
+  const {
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      reports: [
+        {
+          syncId: 0,
+          mark1: "",
+          mark2: "",
+          assetCIP: "",
+          accountingTag: "",
+          transactionDate: Date("YYYY-MM-DD HH:mm:ss"),
+          clientSupplier: "",
+          accountTitleCode: "",
+          accountTitle: "",
+          companyCode: "",
+          company: "",
+          divisionCode: "",
+          division: "",
+          departmentCode: "",
+          department: "",
+          unitCode: "",
+          unit: "",
+          subUnitCode: "",
+          subUnit: "",
+          locationCode: "",
+          location: "",
+          poNumber: "",
+          referenceNo: "",
+          itemCode: "",
+          itemDescription: "",
+          quantity: 0,
+          uom: "",
+          unitPrice: 0,
+          lineAmount: 0,
+          voucherJournal: "",
+          accountType: "",
+          drcp: "",
+          assetCode: "",
+          asset: "",
+          serviceProviderCode: "",
+          serviceProvider: "",
+          boa: "",
+          allocation: "",
+          accountGroup: "",
+          accountSubGroup: "",
+          financialStatement: "",
+          unitResponsible: "",
+          batch: "",
+          remarks: "",
+          payrollPeriod: "",
+          position: "",
+          payrollType: "",
+          payrollType2: "",
+          depreciationDescription: "",
+          remainingDepreciationValue: "",
+          usefulLife: "",
+          month: "",
+          year: "",
+          particulars: "",
+          month2: "",
+          farmType: "",
+          jeanRemarks: "",
+          from: "",
+          changeTo: "",
+          reason: "",
+          checkingRemarks: "",
+          boA2: "",
+          system: "",
+          books: "",
+        },
+      ],
+    },
+    resolver: yupResolver(importSchema),
+  });
+  const [importData] = useImportReportsMutation();
 
   const onDrop = (acceptedFiles) => {
     const reader = new FileReader();
@@ -35,7 +122,23 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
     accept: ".xlsx, .xls",
   });
 
-  // Create DataGrid columns dynamically from parsed data
+  // Update form values based on grid edits
+  const processRowUpdate = (newRow) => {
+    setData((prevData) => {
+      const updatedRows = prevData.map((row) =>
+        row.id === newRow.id ? newRow : row
+      );
+      return updatedRows;
+    });
+
+    // Update form values for validation
+    Object.keys(newRow).forEach((key) => {
+      setValue(key, newRow[key]); // Update form with new values
+    });
+
+    return newRow;
+  };
+
   const createHeader = () => {
     if (data.length === 0) return [];
     return Object.keys(data[0]).map((key) => ({
@@ -47,56 +150,75 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
   };
 
   const columns = createHeader();
+
+  // Columns for DataGrid
+  // const columns = Object.keys(data[0] || {}).map((key) => ({
+  //   field: key,
+  //   headerName: key,
+  //   width: 150,
+  //   editable: true, // Enable editing for each column
+  // }));
+
   const rows = data.map((row, index) => ({
     id: index, // Unique identifier
     ...row,
   }));
 
   const handleImport = () => {
-    // Logic to finalize the import (e.g., saving to the server)
-    console.log("Imported Data:", data);
+    // Submit data to backend
+    handleSubmit((formData) => {
+      importData(formData)
+        .unwrap()
+        .then((response) => {
+          console.log("Data successfully imported:", response);
+        })
+        .catch((error) => {
+          console.error("Error importing data:", error);
+        });
+    })();
     setIsDataGridOpen(false); // Close DataGrid dialog
     onClose(); // Close main import dialog
+
+    // console.log("Imported Data:", data);
+    // setIsDataGridOpen(false); // Close DataGrid dialog
+    // onClose(); // Close main import dialog
   };
 
   return (
     <>
       {/* First Dialog for File Upload */}
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Import Data</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        className="custom-import__dialog--main"
+      >
+        <DialogTitle>
+          Import Data
+          <Stack>
+            <IconButton onClick={onClose}>
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
         <DialogContent>
-          <div
-            {...getRootProps()}
-            className="dropzone"
-            style={{
-              border: "2px dashed #ccc",
-              padding: "60px",
-              margin: "0 40px",
-              textAlign: "center",
-              borderRadius: "10px", // Adding some rounded corners for a modern look
-              backgroundColor: "#f9f9f9", // Light background
-              fontFamily: "Lato",
-            }}
-          >
+          <div {...getRootProps()} className="custom-import__dropzone">
             <input {...getInputProps()} />
             <p>Drop a CSV/XLSX file or</p>
             <Button
               variant="contained"
-              startIcon={<CloudUpload />} // Upload icon for visual appeal
+              startIcon={<CloudUpload />}
               color="secondary"
-              style={{
-                marginTop: "10px",
-              }}
+              className="custom-import__dropzone--button"
             >
               Click to Upload
             </Button>
           </div>
         </DialogContent>
-        <DialogActions>
+        {/* <DialogActions className="custom-import__actions">
           <Button onClick={onClose} variant="contained" color="primary">
             Cancel
           </Button>
-        </DialogActions>
+        </DialogActions> */}
       </Dialog>
 
       {/* Second Dialog for DataGrid */}
@@ -105,31 +227,42 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
         onClose={() => setIsDataGridOpen(false)}
         maxWidth="lg"
         fullWidth
+        className="custom-import__dialog--data-grid"
       >
         <DialogTitle>Review Imported Data</DialogTitle>
-        <DialogContent>
+        <DialogContent
+          sx={{
+            height: "500px", // Set the fixed height
+            overflowY: "auto", // Enable scrolling when content overflows
+          }}
+        >
           {data.length > 0 && (
             <DataGrid
               rows={rows}
               columns={columns}
+              processRowUpdate={processRowUpdate} // Handle row updates
               initialState={{
                 pagination: {
                   paginationModel: {
-                    pageSize: 5,
+                    pageSize: 10,
                   },
                 },
               }}
-              pageSizeOptions={[5, 10]}
+              pageSizeOptions={[5, 10, { label: "All", value: "" }]}
               checkboxSelection
               disableRowSelectionOnClick
             />
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions className="custom-import__actions">
           <Button onClick={handleImport} variant="contained" color="primary">
             Import
           </Button>
-          <Button onClick={() => setIsDataGridOpen(false)} color="secondary">
+          <Button
+            onClick={() => setIsDataGridOpen(false)}
+            variant="contained"
+            color="secondary"
+          >
             Cancel
           </Button>
         </DialogActions>

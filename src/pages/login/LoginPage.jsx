@@ -151,13 +151,15 @@ const LoginPage = () => {
                               </InputAdornment>
                             ),
                             endAdornment: (
-                              <InputAdornment
-                                position="end"
-                                sx={!watch("password") && { display: "none" }}
-                              >
+                              <InputAdornment position="end">
                                 <IconButton
                                   onClick={handleClickShowPassword}
                                   onMouseDown={handleMouseDownPassword}
+                                  sx={{
+                                    visibility: watch("password")
+                                      ? "visible"
+                                      : "hidden",
+                                  }}
                                 >
                                   {showPassword ? (
                                     <VisibilityOff

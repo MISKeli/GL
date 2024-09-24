@@ -122,12 +122,13 @@ const PasswordDialog = ({ open, onClose, isReset, userId, username }) => {
       </DialogContent>
       <DialogActions className="password__actions">
         {decryptedUToken !== decryptedPToken ? (
-          <Button onClick={handleClose} color="error">
+          <Button onClick={handleClose} variant="contained" color="error">
             Cancel
           </Button>
         ) : null}
         <Button
           variant="contained"
+          
           disabled={!isValid}
           onClick={handleSubmit(onSubmit)}
         >

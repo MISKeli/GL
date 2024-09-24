@@ -1,0 +1,40 @@
+@import "__palette.module";
+.custom-import {
+  &__dialog {
+    &--main {
+      // Styles for the main import dialog
+      .MuiDialogTitle-root {
+        color: $primary-main;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    &--data-grid {
+      // Styles for the data grid dialog
+      max-width: 100%;
+    }
+  }
+
+  &__dropzone {
+    border: 5px dashed #ccc;
+    padding: 50px;
+    margin: 20px;
+    text-align: center;
+    border-radius: 10px; // Rounded corners for a modern look
+    background-color: #f9f9f9; // Light background color
+    font-family: "Lato", sans-serif;
+
+    &--button {
+      margin-top: 10px;
+    }
+  }
+
+  &__actions {
+    // Styles for dialog actions (buttons)
+    display: flex;
+    justify-content: space-between;
+  }
+}

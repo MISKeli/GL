@@ -11,12 +11,13 @@
 
   &__header {
     display: flex;
-    flex-direction: column;
+
+    justify-content: space-between;
 
     &__container1 {
       display: flex;
-      justify-content: space-between;
-      flex: 1;
+      justify-content: flex-start;
+
       align-items: center;
 
       &--title {
@@ -26,7 +27,7 @@
     &__container2 {
       //background-color: aqua;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
 
       &__filters {
