@@ -26,12 +26,13 @@ import { Close, Watch } from "@mui/icons-material";
 import { toast } from "sonner";
 import { useLazyGetCedarDataQuery } from "../../features/api/cedarApi";
 import { useDispatch, useSelector } from "react-redux";
-
+import ConfirmedDialog from "../../components/ConfirmedDialog";
 import { setPokedData } from "../../features/slice/authSlice";
 import { useGetAllUserRoleAsyncQuery } from "../../features/api/roleApi";
 
 const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   const [loading, setLoading] = useState(false); // Add loading state
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
   const {
     handleSubmit,
@@ -121,7 +122,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     }
   }, [open]);
   console.log({ isUpdate });
-  const submitHandler = async (userData) => {
+  const confirmSubmit = async (userData) => {
     setLoading(true); // Set loading to true at the start of submission
     const body = {
       idPrefix: userData.idPrefix,
@@ -164,6 +165,15 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     }
   };
 
+  const submitHandler = (userData) => {
+    setOpenConfirmDialog(true); // Open the confirmation dialog
+  };
+
+  const handleConfirmYes = () => {
+    handleSubmit(confirmSubmit)(); // Continue the submission after user confirms
+    setOpenConfirmDialog(false); // Close the confirmation dialog
+  };
+
   //filtering Cedar data
   const filterOptions = createFilterOptions({
     matchFrom: "any",
@@ -172,268 +182,278 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
 
   //console.log({ pokedData, roleData });
   return (
-    <Dialog
-      open={open}
-      fullWidth
-      onClose={handleClose}
-      className="add-user__dialog"
-    >
-      <DialogTitle className="add-user__header">
-        {isUpdate
-          ? info.users_dialog_update_title
-          : info.users_dialog_add_title}
-        <Stack>
-          <IconButton onClick={handleClose}>
-            <Close />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-      <DialogContent className="add-user__content">
-        <form id="submit-form" onSubmit={handleSubmit(submitHandler)}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              {isUpdate ? (
+    <>
+      <Dialog
+        open={open}
+        fullWidth
+        onClose={handleClose}
+        className="add-user__dialog"
+      >
+        <DialogTitle fontWeight={600} className="add-user__header">
+          {isUpdate
+            ? info.users_dialog_update_title
+            : info.users_dialog_add_title}
+          <Stack>
+            <IconButton onClick={handleClose}>
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent className="add-user__content">
+          <form id="submit-form" onSubmit={handleSubmit(submitHandler)}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                {isUpdate ? (
+                  <Controller
+                    name="cedarData"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Employee ID"
+                        disabled
+                        fullWidth
+                        variant="outlined"
+                        margin="dense"
+                        size="small"
+                      />
+                    )}
+                  />
+                ) : (
+                  <Controller
+                    name="cedarData"
+                    control={control}
+                    render={({ field }) => (
+                      <Autocomplete
+                        {...field}
+                        filterOptions={filterOptions}
+                        loading={isCedarLoading}
+                        options={cedarData || []}
+                        onChange={(e, data) => {
+                          handleChangeRegistrationData(data);
+                        }}
+                        getOptionLabel={(option) =>
+                          option?.general_info?.full_id_number_full_name || ""
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Employee ID"
+                            variant="outlined"
+                            fullWidth
+                            onClick={() =>
+                              triggerFetchCedar({ preferCacheValue: true })
+                            }
+                            margin="dense"
+                            size="small"
+                            error={!!errors.idNumber}
+                            helperText={errors.idNumber?.message}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                )}
+              </Grid>
+              <Grid item xs={6}>
                 <Controller
-                  name="cedarData"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Employee ID"
-                      disabled
-                      fullWidth
-                      variant="outlined"
-                      margin="dense"
-                      size="small"
-                    />
-                  )}
-                />
-              ) : (
-                <Controller
-                  name="cedarData"
+                  name="userRoleId"
                   control={control}
                   render={({ field }) => (
                     <Autocomplete
                       {...field}
-                      filterOptions={filterOptions}
-                      loading={isCedarLoading}
-                      options={cedarData || []}
-                      onChange={(e, data) => {
-                        handleChangeRegistrationData(data);
+                      loading={isRoleLoading}
+                      options={roleData?.value || []} // Add your options here
+                      getOptionLabel={(option) => {
+                        console.log("Current Option:", option); // Log each option being rendered
+                        return option.roleName || option;
                       }}
-                      getOptionLabel={(option) =>
-                        option?.general_info?.full_id_number_full_name || ""
-                      }
+                      isOptionEqualToValue={(option, value) => {
+                        console.log("Option:", option, "Value:", value); // Log the comparison between option and value
+                        return option?.roleName === value; // Adjust this comparison as needed
+                      }}
+                      onChange={(e, value) => {
+                        console.log("Selected Value:", value); // Log the selected value when a new option is selected
+                        field.onChange(value);
+                      }}
                       renderInput={(params) => (
                         <TextField
                           {...params}
-                          label="Employee ID"
+                          label="Role"
                           variant="outlined"
                           fullWidth
-                          onClick={() =>
-                            triggerFetchCedar({ preferCacheValue: true })
-                          }
-                          margin="dense"
+                          onClick={() => {
+                            console.log("Role Data:", roleData); // Log the role data when the input is clicked
+                            triggerFetchCedar({ preferCacheValue: true });
+                          }}
                           size="small"
-                          error={!!errors.idNumber}
-                          helperText={errors.idNumber?.message}
+                          error={!!errors.userRoleId}
+                          helperText={errors.userRoleId?.message}
                         />
                       )}
                     />
                   )}
                 />
-              )}
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="userRoleId"
-                control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    {...field}
-                    loading={isRoleLoading}
-                    options={roleData?.value || []} // Add your options here
-                    getOptionLabel={(option) => {
-                      console.log("Current Option:", option); // Log each option being rendered
-                      return option.roleName || option;
-                    }}
-                    isOptionEqualToValue={(option, value) => {
-                      console.log("Option:", option, "Value:", value); // Log the comparison between option and value
-                      return option?.roleName === value; // Adjust this comparison as needed
-                    }}
-                    onChange={(e, value) => {
-                      console.log("Selected Value:", value); // Log the selected value when a new option is selected
-                      field.onChange(value);
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Role"
-                        variant="outlined"
-                        fullWidth
-                        onClick={() => {
-                          console.log("Role Data:", roleData); // Log the role data when the input is clicked
-                          triggerFetchCedar({ preferCacheValue: true });
-                        }}
-                        size="small"
-                        error={!!errors.userRoleId}
-                        helperText={errors.userRoleId?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
+              </Grid>
 
-            <Grid item xs={6}>
-              <Controller
-                name="idPrefix"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="ID Prefix"
-                    variant="outlined"
-                    disabled
-                    fullWidth
-                    size="small"
-                    error={!!errors.idPrefix}
-                    helperText={errors.idPrefix?.message}
-                  />
-                )}
-              />
+              <Grid item xs={6}>
+                <Controller
+                  name="idPrefix"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="ID Prefix"
+                      variant="outlined"
+                      disabled
+                      fullWidth
+                      size="small"
+                      error={!!errors.idPrefix}
+                      helperText={errors.idPrefix?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="idNumber"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="ID Number"
+                      variant="outlined"
+                      disabled
+                      fullWidth
+                      size="small"
+                      error={!!errors.idNumber}
+                      helperText={errors.idNumber?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="firstName"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="First Name"
+                      variant="outlined"
+                      disabled
+                      fullWidth
+                      size="small"
+                      error={!!errors.firstName}
+                      helperText={errors.firstName?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="lastName"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Last Name"
+                      variant="outlined"
+                      disabled
+                      fullWidth
+                      size="small"
+                      error={!!errors.lastName}
+                      helperText={errors.lastName?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="middleName"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Middle Name"
+                      disabled
+                      variant="outlined"
+                      fullWidth
+                      size="small"
+                      error={!!errors.middleName}
+                      helperText={errors.middleName?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="sex"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Sex"
+                      variant="outlined"
+                      disabled
+                      fullWidth
+                      size="small"
+                      error={!!errors.sex}
+                      helperText={errors.sex?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="username"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Username"
+                      variant="outlined"
+                      fullWidth
+                      size="small"
+                      error={!!errors.username}
+                      helperText={errors.username?.message}
+                      onChange={(e) => {
+                        field.onChange(e.target.value); // Trigger change and validation
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="idNumber"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="ID Number"
-                    variant="outlined"
-                    disabled
-                    fullWidth
-                    size="small"
-                    error={!!errors.idNumber}
-                    helperText={errors.idNumber?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="firstName"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="First Name"
-                    variant="outlined"
-                    disabled
-                    fullWidth
-                    size="small"
-                    error={!!errors.firstName}
-                    helperText={errors.firstName?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="lastName"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Last Name"
-                    variant="outlined"
-                    disabled
-                    fullWidth
-                    size="small"
-                    error={!!errors.lastName}
-                    helperText={errors.lastName?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="middleName"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Middle Name"
-                    disabled
-                    variant="outlined"
-                    fullWidth
-                    size="small"
-                    error={!!errors.middleName}
-                    helperText={errors.middleName?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="sex"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Sex"
-                    variant="outlined"
-                    disabled
-                    fullWidth
-                    size="small"
-                    error={!!errors.sex}
-                    helperText={errors.sex?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="username"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Username"
-                    variant="outlined"
-                    fullWidth
-                    size="small"
-                    error={!!errors.username}
-                    helperText={errors.username?.message}
-                    onChange={(e) => {
-                      field.onChange(e.target.value); // Trigger change and validation
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
-        </form>
-      </DialogContent>
-      <DialogActions className="add-user__actions">
-        <Button variant="contained" color="error" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button
-          color="primary"
-          variant="contained"
-          type="submit"
-          form="submit-form"
-          disabled={!isValid || loading}
-          startIcon={
-            loading ? <CircularProgress color="info" size={20} /> : null
-          }
-        >
-          {loading ? "Processing..." : isUpdate ? "Save" : "Create"}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          </form>
+        </DialogContent>
+        <DialogActions className="add-user__actions">
+          <Button variant="contained" color="error" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            color="primary"
+            variant="contained"
+            type="submit"
+            form="submit-form"
+            disabled={!isValid || loading}
+            startIcon={
+              loading ? <CircularProgress color="info" size={20} /> : null
+            }
+          >
+            {loading ? "Processing..." : isUpdate ? "Save" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ConfirmedDialog
+        open={openConfirmDialog}
+        onClose={() => setOpenConfirmDialog(false)}
+        title="Confirm Changes"
+        description="Are you sure you want to save the changes?"
+        onYes={handleConfirmYes}
+      />
+    </>
   );
 };
 

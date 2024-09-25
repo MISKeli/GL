@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import "../../styles/layout/SideBar.scss";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Collapse,
@@ -22,9 +22,9 @@ const Sidebar = () => {
   const sidebarRef = useRef();
   const indicatorRef = useRef();
   const location = useLocation();
+  const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-  // Helper function to calculate the height of sidebar items
   const updateStepHeight = () => {
     if (sidebarRef.current) {
       const sidebarItems = sidebarRef.current.querySelectorAll(".side__item");
@@ -45,18 +45,16 @@ const Sidebar = () => {
       window.removeEventListener("resize", updateStepHeight);
     };
   }, []);
+
   const AccessPermission = user.permission || [];
   const navsModule = moduleSchema
     ?.filter((module) => module.subCategory || module.name)
-    ?.filter((item) => {
-      //console.log(item);
-      return AccessPermission.includes(item.name);
-    });
-  //console.log({ navsModule });
+    ?.filter((item) => AccessPermission.includes(item.name));
+
   useEffect(() => {
     const curPath = location.pathname.split("/")[1];
     const activeItem = navsModule.findIndex((item) => item.section === curPath);
-    setActiveIndex(curPath?.length === 0 ? 0 : activeItem);
+    setActiveIndex(curPath?.length === 0 ? 0 : activeItem); // Set active index based on pathname
 
     const subPath = location.pathname.split("/")[2];
     const activeSubItem = navsModule[activeItem]?.subCategory?.findIndex(
@@ -64,9 +62,22 @@ const Sidebar = () => {
     );
     setActiveSubIndex(subPath ? activeSubItem : null);
   }, [location]);
-  //console.log({ AccessPermission, navsModule });
-  // console.log("moduleSchema:", moduleSchema);
-  // console.log("AccessPermission:", AccessPermission);
+
+  const handleMainCatClick = (item, index) => {
+    if (item.subCategory) {
+      // If there are subcategories
+      setActiveIndex(index);
+      setActiveSubIndex(null); // Reset subcategory when mainCat is clicked
+    } else {
+      // Navigate to the main category's path if there are no subcategories
+      navigate(item.to || "");
+    }
+  };
+
+  const handleSubCatClick = (subIndex) => {
+    setActiveSubIndex(subIndex); // Set active subcategory on click
+  };
+
   return (
     <Box className="side" data-active={isDrawerOpen}>
       <Box className="side__container side__container--header">
@@ -97,13 +108,10 @@ const Sidebar = () => {
             <Fragment key={index}>
               {AccessPermission.includes(item.name) && (
                 <Fragment>
-                  <Link
-                    to={item.to || ""}
+                  <Box
                     className="side__link"
                     aria-current={activeIndex === index ? "page" : undefined}
-                    onClick={() => {
-                      if (item.subCategory) setIsDrawerOpen(true);
-                    }}
+                    onClick={() => handleMainCatClick(item, index)}
                   >
                     <Box
                       className={`side__item ${
@@ -127,34 +135,34 @@ const Sidebar = () => {
                       </Tooltip>
                       <Box className="side__item--name">{item.name}</Box>
                     </Box>
-                  </Link>
+                  </Box>
                   {item.subCategory && (
                     <Collapse in={activeIndex === index && isDrawerOpen}>
-                      {item.subCategory.map(
-                        (subItem, subIndex) =>
-                          AccessPermission.includes(subItem.name) && (
-                            <Fragment key={subIndex}>
-                              <Link
-                                to={subItem.to || "#"}
-                                className="side__link"
+                      {item.subCategory.map((subItem, subIndex) =>
+                        AccessPermission.includes(subItem.name) ? (
+                          <Fragment key={subIndex}>
+                            <Link
+                              to={subItem.to || "#"}
+                              className="side__link"
+                              onClick={() => handleSubCatClick(subIndex)} // Handle subcategory click
+                            >
+                              <Box
+                                className={`side__sub-item ${
+                                  activeSubIndex === subIndex ? "active" : ""
+                                }`}
                               >
-                                <Box
-                                  className={`side__sub-item ${
-                                    activeSubIndex === subIndex ? "active" : ""
-                                  }`}
-                                >
-                                  {activeSubIndex === subIndex ? (
-                                    <subItem.iconOn />
-                                  ) : (
-                                    <subItem.icon />
-                                  )}
-                                  <Box className="side__sub-item--name">
-                                    {subItem.name}
-                                  </Box>
+                                {activeSubIndex === subIndex ? (
+                                  <subItem.iconOn />
+                                ) : (
+                                  <subItem.icon />
+                                )}
+                                <Box className="side__sub-item--name">
+                                  {subItem.name}
                                 </Box>
-                              </Link>
-                            </Fragment>
-                          )
+                              </Box>
+                            </Link>
+                          </Fragment>
+                        ) : null
                       )}
                     </Collapse>
                   )}

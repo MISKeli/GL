@@ -5,7 +5,7 @@ const importReportApi = indexApi
   .injectEndpoints({
     endpoints: (builder) => ({
       ImportReports: builder.mutation({
-        query: (data) => ({
+        query: ({ ...data }) => ({
           url: `/reports/import`,
           method: "POST",
           body: data,

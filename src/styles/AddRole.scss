@@ -10,12 +10,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     //background-color: $primary-dark; // Set header background color
-    color: $primary-dark;
+    color: $primary-main;
 
     .MuiIconButton-root {
-      color: $primary-dark; // Set close button color to white
+      color: $primary-main; // Set close button color to white
     }
   }
   &__content {

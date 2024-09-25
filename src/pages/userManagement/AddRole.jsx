@@ -29,6 +29,7 @@ import { moduleSchema } from "../../schemas/moduleSchema";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
+import ConfirmedDialog from "../../components/ConfirmedDialog";
 
 // Helper function to get permissions from schema
 const getPermissionsFromSchema = () =>
@@ -49,6 +50,7 @@ const AddRole = ({
   const permissions = getPermissionsFromSchema();
   const [selectedMainCategories, setSelectedMainCategories] = useState([]);
   const [isSubcategoryValid, setIsSubcategoryValid] = useState(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const {
     reset,
@@ -190,179 +192,183 @@ const AddRole = ({
       permissions: roleData.permissions,
     };
 
-    const action = isUpdate
-      ? updateRole({ id: data.id, ...body })
-      : addRole(body);
-    action
-      .unwrap()
-      .then((res) => {
-        toast.success(
-          isUpdate
-            ? info.role_update_message_response
-            : info.role_add_message_response
-        );
-        reset();
-        handleClose();
-      })
-      .catch((err) => {
-        toast.error(err?.data?.error.message || "An error occurred");
-      });
+    if (isUpdate) {
+      setShowConfirmDialog(true);
+    } else {
+      addRoleRequest(body);
+    }
   };
 
+  const handleYes = () => {
+    setShowConfirmDialog(false);
+    addRoleRequest({
+      roleName: watch("roleName").toUpperCase(),
+      permissions: watch("permissions"),
+    });
+  };
   return (
-    <Dialog open={open} fullWidth className="role">
-      <DialogTitle className="role__header">
-        {isUpdate
-          ? info.role_dialog_update_title
-          : isViewOnly
-          ? info.role_dialog_permission_title
-          : info.role_dialog_add_title}
-        <Stack>
-          <IconButton onClick={handleClose}>
-            <Close />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-      <DialogContent className="role__content">
-        <form id="submit-form" onSubmit={handleSubmit(submitHandler)}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Controller
-                name="roleName"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    disabled={isViewOnly}
-                    label="Role Name"
-                    variant="outlined"
-                    fullWidth
-                    margin="dense"
-                    size="small"
-                    error={!!errors.roleName}
-                    helperText={errors.roleName?.message}
-                  />
-                )}
-              />
+    <>
+      <Dialog open={open} fullWidth className="role">
+        <DialogTitle className="role__header" fontWeight={600}>
+          {isUpdate
+            ? info.role_dialog_update_title
+            : isViewOnly
+            ? info.role_dialog_permission_title
+            : info.role_dialog_add_title}
+          <Stack>
+            <IconButton onClick={handleClose}>
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent className="role__content">
+          <form id="submit-form" onSubmit={handleSubmit(submitHandler)}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Controller
+                  name="roleName"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      disabled={isViewOnly}
+                      label="Role Name"
+                      variant="outlined"
+                      fullWidth
+                      margin="dense"
+                      size="small"
+                      error={!!errors.roleName}
+                      helperText={errors.roleName?.message}
+                    />
+                  )}
+                />
+              </Grid>
             </Grid>
-          </Grid>
 
-          <Grid container>
-            {/* Main Categories */}
-            <Grid item xs={12}>
-              <FormControl
-                component="fieldset"
-                variant="standard"
-                sx={{
-                  padding: 2,
-                  border: "1px solid #2D3748",
-                  borderRadius: "10px",
-                }}
-              >
-                <FormLabel component="legend" sx={{ padding: "0 20px" }}>
-                  Permissions
-                </FormLabel>
-                <FormGroup>
-                  <Stack direction="row" flexWrap="wrap">
-                    {permissions.map((module) => (
-                      <Controller
-                        key={module.name}
-                        control={control}
-                        name="permissions"
-                        render={() => (
-                          <FormControlLabel
-                            sx={{ flex: 1, flexBasis: "40%" }}
-                            control={
-                              <Checkbox
-                                value={module.name}
-                                checked={selectedMainCategories.includes(
-                                  module.name
-                                )}
-                                onChange={handleMainCategoryChange}
-                              />
-                            }
-                            disabled={isViewOnly}
-                            label={module.name}
-                          />
-                        )}
-                      />
-                    ))}
-                  </Stack>
-                </FormGroup>
-              </FormControl>
+            <Grid container>
+              {/* Main Categories */}
+              <Grid item xs={12}>
+                <FormControl
+                  component="fieldset"
+                  variant="standard"
+                  sx={{
+                    padding: 2,
+                    border: "1px solid #2D3748",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <FormLabel component="legend" sx={{ padding: "0 20px" }}>
+                    Permissions
+                  </FormLabel>
+                  <FormGroup>
+                    <Stack direction="row" flexWrap="wrap">
+                      {permissions.map((module) => (
+                        <Controller
+                          key={module.name}
+                          control={control}
+                          name="permissions"
+                          render={() => (
+                            <FormControlLabel
+                              sx={{ flex: 1, flexBasis: "40%" }}
+                              control={
+                                <Checkbox
+                                  value={module.name}
+                                  checked={selectedMainCategories.includes(
+                                    module.name
+                                  )}
+                                  onChange={handleMainCategoryChange}
+                                />
+                              }
+                              disabled={isViewOnly}
+                              label={module.name}
+                            />
+                          )}
+                        />
+                      ))}
+                    </Stack>
+                  </FormGroup>
+                </FormControl>
 
-              {/* Subcategories */}
-              {permissions
-                .filter((module) => module.subCategory.length > 0)
-                .filter((module) =>
-                  selectedMainCategories.includes(module.name)
-                )
-                .map((module) => (
-                  <FormControl
-                    component="fieldset"
-                    variant="standard"
-                    key={module.name}
-                    sx={{
-                      border: "1px solid #2D3748",
-                      borderRadius: "10px",
-                      padding: 2,
-                      marginTop: 2,
-                    }}
-                  >
-                    <FormLabel component="legend" sx={{ padding: "0 20px" }}>
-                      {module.name}
-                    </FormLabel>
-                    <FormGroup>
-                      <Stack direction="row" flexWrap="wrap">
-                        {module.subCategory.map((subCat) => (
-                          <Controller
-                            key={subCat.name}
-                            control={control}
-                            name="permissions"
-                            render={() => (
-                              <FormControlLabel
-                                sx={{ flex: 1, flexBasis: "40%" }}
-                                control={
-                                  <Checkbox
-                                    value={subCat.name}
-                                    checked={watch("permissions").includes(
-                                      subCat.name
-                                    )}
-                                    onChange={handleCheckboxChange}
-                                  />
-                                }
-                                disabled={isViewOnly}
-                                label={subCat.name}
-                              />
-                            )}
-                          />
-                        ))}
-                      </Stack>
-                    </FormGroup>
-                  </FormControl>
-                ))}
+                {/* Subcategories */}
+                {permissions
+                  .filter((module) => module.subCategory.length > 0)
+                  .filter((module) =>
+                    selectedMainCategories.includes(module.name)
+                  )
+                  .map((module) => (
+                    <FormControl
+                      component="fieldset"
+                      variant="standard"
+                      key={module.name}
+                      sx={{
+                        border: "1px solid #2D3748",
+                        borderRadius: "10px",
+                        padding: 2,
+                        marginTop: 2,
+                      }}
+                    >
+                      <FormLabel component="legend" sx={{ padding: "0 20px" }}>
+                        {module.name}
+                      </FormLabel>
+                      <FormGroup>
+                        <Stack direction="row" flexWrap="wrap">
+                          {module.subCategory.map((subCat) => (
+                            <Controller
+                              key={subCat.name}
+                              control={control}
+                              name="permissions"
+                              render={() => (
+                                <FormControlLabel
+                                  sx={{ flex: 1, flexBasis: "40%" }}
+                                  control={
+                                    <Checkbox
+                                      value={subCat.name}
+                                      checked={watch("permissions").includes(
+                                        subCat.name
+                                      )}
+                                      onChange={handleCheckboxChange}
+                                    />
+                                  }
+                                  disabled={isViewOnly}
+                                  label={subCat.name}
+                                />
+                              )}
+                            />
+                          ))}
+                        </Stack>
+                      </FormGroup>
+                    </FormControl>
+                  ))}
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </DialogContent>
-      <DialogActions className="role__actions">
-        <Button color="error" variant="contained" onClick={handleClose}>
-          Cancel
-        </Button>
-
-        {!isViewOnly && (
-          <Button
-            color="primary"
-            variant="contained"
-            type="submit"
-            form="submit-form"
-            disabled={!isValid || !isSubcategoryValid}
-          >
-            {isUpdate ? "Save" : "Create"}
+          </form>
+        </DialogContent>
+        <DialogActions className="role__actions">
+          <Button color="error" variant="contained" onClick={handleClose}>
+            Cancel
           </Button>
-        )}
-      </DialogActions>
-    </Dialog>
+
+          {!isViewOnly && (
+            <Button
+              color="primary"
+              variant="contained"
+              type="submit"
+              form="submit-form"
+              disabled={!isValid || !isSubcategoryValid}
+            >
+              {isUpdate ? "Save" : "Create"}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+      <ConfirmedDialog
+        open={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        title="Update Role"
+        description="Are you sure you want to update this role?"
+        onYes={handleYes}
+      />
+    </>
   );
 };
 

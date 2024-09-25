@@ -16,11 +16,11 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px;
-    //background-color: $primary-dark; // Set header background color
-    color: $primary-dark; // Set header text color to white
+
+    color: $primary-main; // Set header text color to white
 
     .MuiIconButton-root {
-      color: $primary-dark; // Set close button color to white
+      color: $primary-main; // Set close button color to white
     }
   }
 

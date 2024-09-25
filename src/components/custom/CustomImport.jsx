@@ -17,6 +17,9 @@ import { useImportReportsMutation } from "../../features/api/importReportApi";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { importSchema } from "../../schemas/validation";
 import { useForm } from "react-hook-form";
+import { defaultReport } from "../../schemas/defaultValue";
+import { info } from "../../schemas/info";
+import moment from "moment";
 
 const CustomImport = ({ onDataLoaded, open, onClose }) => {
   const [data, setData] = useState([]); // State to hold parsed data
@@ -25,82 +28,21 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
   const {
     handleSubmit,
     setValue,
+    watch,
     getValues,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      reports: [
-        {
-          syncId: 0,
-          mark1: "",
-          mark2: "",
-          assetCIP: "",
-          accountingTag: "",
-          transactionDate: Date("YYYY-MM-DD HH:mm:ss"),
-          clientSupplier: "",
-          accountTitleCode: "",
-          accountTitle: "",
-          companyCode: "",
-          company: "",
-          divisionCode: "",
-          division: "",
-          departmentCode: "",
-          department: "",
-          unitCode: "",
-          unit: "",
-          subUnitCode: "",
-          subUnit: "",
-          locationCode: "",
-          location: "",
-          poNumber: "",
-          referenceNo: "",
-          itemCode: "",
-          itemDescription: "",
-          quantity: 0,
-          uom: "",
-          unitPrice: 0,
-          lineAmount: 0,
-          voucherJournal: "",
-          accountType: "",
-          drcp: "",
-          assetCode: "",
-          asset: "",
-          serviceProviderCode: "",
-          serviceProvider: "",
-          boa: "",
-          allocation: "",
-          accountGroup: "",
-          accountSubGroup: "",
-          financialStatement: "",
-          unitResponsible: "",
-          batch: "",
-          remarks: "",
-          payrollPeriod: "",
-          position: "",
-          payrollType: "",
-          payrollType2: "",
-          depreciationDescription: "",
-          remainingDepreciationValue: "",
-          usefulLife: "",
-          month: "",
-          year: "",
-          particulars: "",
-          month2: "",
-          farmType: "",
-          jeanRemarks: "",
-          from: "",
-          changeTo: "",
-          reason: "",
-          checkingRemarks: "",
-          boA2: "",
-          system: "",
-          books: "",
-        },
-      ],
+      addedBy: 0,
+      reports: [defaultReport],
     },
     resolver: yupResolver(importSchema),
   });
   const [importData] = useImportReportsMutation();
+  console.log("second", data);
+  console.log(watch());
+
+  const headerColumn = info.report_import_table_columns;
 
   const onDrop = (acceptedFiles) => {
     const reader = new FileReader();
@@ -110,8 +52,28 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
       const workbook = XLSX.read(fileData, { type: "binary" });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      const parsedData = XLSX.utils.sheet_to_json(sheet);
+
+      // Parse data from the sheet
+      let parsedData = XLSX.utils.sheet_to_json(sheet);
+
+      // Define your custom headers mapping
+      const customHeaders = info.custom_header;
+
+      // Map the parsed data to use custom headers and handle null values
+      parsedData = parsedData.map((row) => {
+        const newRow = {};
+        for (const key in row) {
+          if (customHeaders[key]) {
+            newRow[customHeaders[key]] = row[key] ? row[key] : null; // Return null if value is empty
+          } else {
+            newRow[key] = row[key] ? row[key] : null; // Return null if value is empty
+          }
+        }
+        return newRow;
+      });
+
       setData(parsedData);
+      console.log("parsedData", parsedData);
       onDataLoaded(parsedData); // Call parent handler
       setIsDataGridOpen(true); // Open DataGrid dialog
     };
@@ -125,15 +87,16 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
   // Update form values based on grid edits
   const processRowUpdate = (newRow) => {
     setData((prevData) => {
-      const updatedRows = prevData.map((row) =>
-        row.id === newRow.id ? newRow : row
-      );
+      // Find and replace the updated row by comparing the row's unique `id`
+      const updatedRows = prevData.map((row, index) => {
+        return index === newRow.id ? newRow : row;
+      });
       return updatedRows;
     });
 
-    // Update form values for validation
+    // Update the form values for validation or submission
     Object.keys(newRow).forEach((key) => {
-      setValue(key, newRow[key]); // Update form with new values
+      setValue(`reports[0].${key}`, newRow[key]); // Ensure correct path for updating the form
     });
 
     return newRow;
@@ -151,23 +114,22 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
 
   const columns = createHeader();
 
-  // Columns for DataGrid
-  // const columns = Object.keys(data[0] || {}).map((key) => ({
-  //   field: key,
-  //   headerName: key,
-  //   width: 150,
-  //   editable: true, // Enable editing for each column
-  // }));
-
   const rows = data.map((row, index) => ({
-    id: index, // Unique identifier
     ...row,
+    id: index, // Unique identifier
+    // transactionDate: moment(row.transactionDate).format(),
+    accountingTag: row.accountingTag.toString(),
+    transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
+      .utc()
+      .toISOString(),
+    mark1: row.mark1 ? row.mark1 : null,
   }));
 
   const handleImport = () => {
     // Submit data to backend
-    handleSubmit((formData) => {
-      importData(formData)
+    handleSubmit(() => {
+      console.log("Simulated Data Submission:", rows);
+      importData({ reports: rows })
         .unwrap()
         .then((response) => {
           console.log("Data successfully imported:", response);
@@ -178,10 +140,6 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
     })();
     setIsDataGridOpen(false); // Close DataGrid dialog
     onClose(); // Close main import dialog
-
-    // console.log("Imported Data:", data);
-    // setIsDataGridOpen(false); // Close DataGrid dialog
-    // onClose(); // Close main import dialog
   };
 
   return (
@@ -207,18 +165,13 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
             <Button
               variant="contained"
               startIcon={<CloudUpload />}
-              color="secondary"
+              color="success"
               className="custom-import__dropzone--button"
             >
               Click to Upload
             </Button>
           </div>
         </DialogContent>
-        {/* <DialogActions className="custom-import__actions">
-          <Button onClick={onClose} variant="contained" color="primary">
-            Cancel
-          </Button>
-        </DialogActions> */}
       </Dialog>
 
       {/* Second Dialog for DataGrid */}
@@ -248,9 +201,10 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
                   },
                 },
               }}
-              pageSizeOptions={[5, 10, { label: "All", value: "" }]}
+              //pageSizeOptions={[5, 10, { label: "All", value: "" }]}
               checkboxSelection
               disableRowSelectionOnClick
+              experimentalFeatures={{ newEditingApi: true }}
             />
           )}
         </DialogContent>

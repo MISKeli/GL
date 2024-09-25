@@ -103,6 +103,16 @@ const ProvidesTheme = ({ children }) => {
         },
       },
     },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          "& .MuiDialogTitle-root": {
+            color: paletteSchema.primary.main,
+            fontWeight: "900",
+          },
+        },
+      },
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
@@ -122,7 +132,7 @@ const ProvidesTheme = ({ children }) => {
           "&:hover": {
             backgroundColor: paletteSchema.primary.light,
           },
-          "&.navbar__menu__item--logout:hover": {
+          "& .navbar__menu__item--logout:hover": {
             color: paletteSchema.error.main, // Red for Logout
           },
         },
@@ -130,9 +140,7 @@ const ProvidesTheme = ({ children }) => {
     },
     MuiDialogTitle: {
       styleOverrides: {
-        root: {
-          fontWeight: "bolder",
-        },
+        root: {},
       },
     },
     MuiTabs: {
