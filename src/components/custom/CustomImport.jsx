@@ -9,6 +9,9 @@ import {
   Button,
   Stack,
   IconButton,
+  CircularProgress,
+  Typography,
+  Box,
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import { Close, CloudUpload } from "@mui/icons-material";
@@ -20,10 +23,16 @@ import { useForm } from "react-hook-form";
 import { defaultReport } from "../../schemas/defaultValue";
 import { info } from "../../schemas/info";
 import moment from "moment";
+import { toast } from "sonner";
 
-const CustomImport = ({ onDataLoaded, open, onClose }) => {
-  const [data, setData] = useState([]); // State to hold parsed data
-  const [isDataGridOpen, setIsDataGridOpen] = useState(false); // Dialog state for DataGrid
+const CustomImport = ({ onDataLoaded, open, onClose, system }) => {
+  const [data, setData] = useState([]); // Holds parsed data
+  const [isDataGridOpen, setIsDataGridOpen] = useState(false); // For DataGrid dialog
+  const [isFetchingDuplicates, setIsFetchingDuplicates] = useState(false); // Loader state for duplicates
+  const [errorReports, setErrorReports] = useState([]); // Holds error reports for duplicates
+  const [isLoading, setIsLoading] = useState(false); // Loading state for the import
+  const [importedData, setImportedData] = useState([]); // Holds data after import
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false); // For duplicate dialog
 
   const {
     handleSubmit,
@@ -38,11 +47,10 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
     },
     resolver: yupResolver(importSchema),
   });
-  const [importData] = useImportReportsMutation();
-  console.log("second", data);
-  console.log(watch());
-
-  const headerColumn = info.report_import_table_columns;
+  console.log("dup", errorReports);
+  console.log("dup2", data);
+  // Import mutation with loading and fetching indicators
+  const [importData, { isFetching }] = useImportReportsMutation();
 
   const onDrop = (acceptedFiles) => {
     const reader = new FileReader();
@@ -64,18 +72,29 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
         const newRow = {};
         for (const key in row) {
           if (customHeaders[key]) {
-            newRow[customHeaders[key]] = row[key] ? row[key] : null; // Return null if value is empty
+            newRow[customHeaders[key]] = row[key]
+              ? row[key]
+              : typeof row[key] === "number"
+              ? 0
+              : null; // Return null if value is empty
           } else {
-            newRow[key] = row[key] ? row[key] : null; // Return null if value is empty
+            newRow[key] = row[key]
+              ? row[key]
+              : typeof row[key] === "number"
+              ? 0
+              : null; // Return null if value is empty
           }
         }
         return newRow;
       });
+      console.log("lineAmount", parsedData?.lineAmount);
 
       setData(parsedData);
-      console.log("parsedData", parsedData);
       onDataLoaded(parsedData); // Call parent handler
-      setIsDataGridOpen(true); // Open DataGrid dialog
+
+      // Close the first dialog and open the second dialog for review
+      onClose(); // Close the main import dialog
+      setIsDataGridOpen(true); // Open DataGrid dialog for review
     };
   };
 
@@ -84,27 +103,55 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
     accept: ".xlsx, .xls",
   });
 
-  // Update form values based on grid edits
   const processRowUpdate = (newRow) => {
+    const originalRow = data[newRow.id];
+    const updatedRow = {
+      ...originalRow,
+      ...newRow,
+      transactionDate: newRow.transactionDate
+        ? moment(newRow.transactionDate).utc().toISOString()
+        : originalRow.transactionDate,
+    };
+
     setData((prevData) => {
-      // Find and replace the updated row by comparing the row's unique `id`
       const updatedRows = prevData.map((row, index) => {
-        return index === newRow.id ? newRow : row;
+        return index === newRow.id ? updatedRow : row;
       });
+
       return updatedRows;
     });
 
-    // Update the form values for validation or submission
-    Object.keys(newRow).forEach((key) => {
-      setValue(`reports[0].${key}`, newRow[key]); // Ensure correct path for updating the form
+    Object.keys(updatedRow).forEach((key) => {
+      setValue(`reports[0].${key}`, updatedRow[key]);
     });
 
-    return newRow;
+    return updatedRow;
   };
 
   const createHeader = () => {
     if (data.length === 0) return [];
-    return Object.keys(data[0]).map((key) => ({
+    const columnToHide = "syncId"; // Replace "id" with the field you want to hide
+    const nonEditableColumns = [
+      "syncId",
+      "system",
+      "drcp",
+      "quantity",
+      "lineAmount",
+      "unitPrice",
+    ];
+    return Object.keys(data[0])
+      .filter((key) => key !== columnToHide) // Exclude the column you want to hide
+      .map((key) => ({
+        field: key,
+        headerName: key,
+        width: 150,
+        editable: !nonEditableColumns.includes(key),
+      }));
+  };
+
+  const createHeaderDuplicate = () => {
+    if (errorReports.length === 0) return [];
+    return Object.keys(errorReports[0]).map((key) => ({
       field: key,
       headerName: key,
       width: 150,
@@ -116,38 +163,71 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
 
   const rows = data.map((row, index) => ({
     ...row,
-    id: index, // Unique identifier
-    // transactionDate: moment(row.transactionDate).format(),
-    accountingTag: row.accountingTag.toString(),
+    id: row.id || index, // Unique identifier
+    accountingTag: row.accountingTag?.toString(),
     transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
       .utc()
       .toISOString(),
     mark1: row.mark1 ? row.mark1 : null,
   }));
+  console.log("Gawang row", rows);
+
+  const lineAmountTotal = rows.reduce((acc, row) => {
+    return Math.max(0, acc + (row.lineAmount || 0));
+  }, 0);
+  console.log("lineAmountTotal", lineAmountTotal);
+
+  const rowsDuplicate = errorReports.map((row, index) => ({
+    ...row,
+    id: row.id || index, // Unique identifier
+    accountingTag: row.accountingTag?.toString(),
+    transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
+      .utc()
+      .toISOString(),
+  }));
+  const columnsDuplicate = createHeaderDuplicate();
 
   const handleImport = () => {
-    // Submit data to backend
-    handleSubmit(() => {
-      console.log("Simulated Data Submission:", rows);
-      importData({ reports: rows })
-        .unwrap()
-        .then((response) => {
-          console.log("Data successfully imported:", response);
-        })
-        .catch((error) => {
-          console.error("Error importing data:", error);
-        });
+    handleSubmit(async () => {
+      const transformedRows = rows.map((row) => ({
+        ...row,
+        transactionDate: row.transactionDate
+          ? moment(row.transactionDate).utc().toISOString()
+          : moment().utc().toISOString(),
+      }));
+      setIsDataGridOpen(false); // Close DataGrid dialog
+
+      try {
+        setIsLoading(true); // Start loading
+        const response = await importData({
+          reports: transformedRows,
+        }).unwrap();
+        toast.success("Imported Successfully.");
+        setImportedData(response); // Save imported data
+        setIsDataGridOpen(false); // Close DataGrid dialog
+        onClose(); // Close main import dialog
+      } catch (error) {
+        toast.error(error?.data?.message || "Failed to import data.");
+
+        // Check for duplicates in the error response
+
+        setErrorReports(error?.data?.value.duplicateReports || []);
+        setIsDuplicateDialogOpen(true); // Open duplicate dialog
+      } finally {
+        setIsDataGridOpen(false);
+        setIsLoading(false); // Stop loading
+      }
     })();
-    setIsDataGridOpen(false); // Close DataGrid dialog
-    onClose(); // Close main import dialog
   };
 
   return (
     <>
-      {/* First Dialog for File Upload */}
       <Dialog
         open={open}
-        onClose={onClose}
+        // onClose={() => {
+        //   onClose();
+        //   setData({});
+        // }}
         className="custom-import__dialog--main"
       >
         <DialogTitle>
@@ -174,7 +254,7 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Second Dialog for DataGrid */}
+      {/* Second Dialog - DataGrid for Reviewing Imported Data */}
       <Dialog
         open={isDataGridOpen}
         onClose={() => setIsDataGridOpen(false)}
@@ -189,35 +269,130 @@ const CustomImport = ({ onDataLoaded, open, onClose }) => {
             overflowY: "auto", // Enable scrolling when content overflows
           }}
         >
-          {data.length > 0 && (
-            <DataGrid
-              rows={rows}
-              columns={columns}
-              processRowUpdate={processRowUpdate} // Handle row updates
-              initialState={{
-                pagination: {
-                  paginationModel: {
-                    pageSize: 10,
+          {isFetching || isLoading ? (
+            <CircularProgress />
+          ) : (
+            data.length > 0 && (
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                processRowUpdate={processRowUpdate}
+                initialState={{
+                  pagination: {
+                    paginationModel: {
+                      pageSize: 10,
+                    },
                   },
-                },
-              }}
-              //pageSizeOptions={[5, 10, { label: "All", value: "" }]}
-              checkboxSelection
-              disableRowSelectionOnClick
-              experimentalFeatures={{ newEditingApi: true }}
-            />
+                }}
+                pageSizeOptions={[5, 10, 25, { value: 99, label: "All" }]}
+                checkboxSelection
+                disableRowSelectionOnClick
+                experimentalFeatures={{ newEditingApi: true }}
+                sx={{
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bolder",
+                  },
+                }}
+              />
+            )
+          )}
+        </DialogContent>
+        <DialogActions
+          className="custom-import__actions"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            margin: " 0 18px",
+          }}
+        >
+          <Typography
+            variant="h5"
+            color={lineAmountTotal !== 0 ? "error" : "textPrimary"}
+          >
+            Line Amount: {Math.round(lineAmountTotal)}
+          </Typography>
+          <Box>
+            <Button
+              onClick={handleImport}
+              variant="contained"
+              color="primary"
+              disabled={isLoading || isFetching || lineAmountTotal > 0} // Disable button while loading
+            >
+              {isLoading || isFetching ? (
+                <CircularProgress size={24} />
+              ) : (
+                "Import"
+              )}
+            </Button>
+            <Button
+              onClick={() => setIsDataGridOpen(false)}
+              variant="contained"
+              color="secondary"
+            >
+              Cancel
+            </Button>
+          </Box>
+        </DialogActions>
+
+        {/* New Dialog for Duplicate Reports */}
+      </Dialog>
+      <Dialog
+        open={isDuplicateDialogOpen}
+        onClose={() => {
+          setIsDuplicateDialogOpen(false);
+          setErrorReports({});
+        }}
+        maxWidth="lg"
+        fullWidth
+        className="custom-import__dialog--duplicates"
+      >
+        <DialogTitle>Duplicate Data Found</DialogTitle>
+        <DialogContent
+          sx={{
+            height: "500px",
+            overflowY: "auto",
+          }}
+        >
+          {isFetchingDuplicates || isLoading ? (
+            <CircularProgress />
+          ) : (
+            errorReports.length > 0 && (
+              <DataGrid
+                rows={rowsDuplicate}
+                columns={columnsDuplicate.map((column) => ({
+                  ...column,
+
+                  editable: false,
+                }))} // You may want to customize columns specifically for error reports
+                initialState={{
+                  pagination: {
+                    paginationModel: {
+                      pageSize: 10,
+                    },
+                  },
+                }}
+                disableRowSelectionOnClick
+                //experimentalFeatures={{ newEditingApi: true }}
+                sx={{
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bold",
+                  },
+                  "& .MuiDataGrid-row": {
+                    color: "red",
+                  },
+                }}
+              />
+            )
           )}
         </DialogContent>
         <DialogActions className="custom-import__actions">
-          <Button onClick={handleImport} variant="contained" color="primary">
-            Import
-          </Button>
           <Button
-            onClick={() => setIsDataGridOpen(false)}
+            onClick={() => setIsDuplicateDialogOpen(false)}
             variant="contained"
             color="secondary"
           >
-            Cancel
+            Close
           </Button>
         </DialogActions>
       </Dialog>

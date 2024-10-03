@@ -12,7 +12,16 @@ const importReportApi = indexApi
         }),
         providesTags: ["import"],
       }),
+      GetAllGLReportAsync: builder.query({
+        query: (params) => ({
+          url: `/report/general-ledger`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["import"],
+      }),
     }),
   });
 
-export const { useImportReportsMutation } = importReportApi;
+export const { useImportReportsMutation, useGetAllGLReportAsyncQuery } =
+  importReportApi;

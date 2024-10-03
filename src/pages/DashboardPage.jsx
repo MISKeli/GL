@@ -1,7 +1,7 @@
 import { Box, Grid, Paper, Typography } from "@mui/material";
 import "../styles/DashboardPage.scss";
 import React from "react";
-import Telecommuting from "../assets/images/Telecommuting.png";
+import Telecommuting from "../assets/images/Telecommuting.svg";
 import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 

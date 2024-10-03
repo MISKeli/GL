@@ -35,7 +35,20 @@
         align-items: center;
       }
       &--search {
-        color: aqua;
+        display: flex;
+        align-items: center;
+        width: 50px;
+        border: none;
+        border-radius: 10px;
+        padding: 2px 4px;
+        margin: 5px;
+        transition: width 0.3s ease-in-out;
+
+        // Expanded state when focused
+        &.expanded {
+          width: 300px;
+          border: 1px solid $primary-main;
+        }
       }
     }
   }
@@ -69,7 +82,7 @@
 
           &:hover,
           &.active {
-            background-color: #d7ddff;
+            background-color: $text-hint;
           }
         }
       }
@@ -84,4 +97,5 @@
       padding: 10px 0; // Add padding for spacing
     }
   }
+  
 }

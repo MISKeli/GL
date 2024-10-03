@@ -29,6 +29,8 @@ export const changePasswordSchema = yup.object().shape({
 export const reportSchema = yup.object().shape({
   DateFrom: yup.string().required("Date is required."),
   DateTo: yup.string().required("Date is required."),
+
+  
 });
 
 export const importSchema = yup.object().shape({
@@ -37,9 +39,7 @@ export const importSchema = yup.object().shape({
   mark2: yup.string().nullable(),
   assetCIP: yup.string().nullable(),
   accountingTag: yup.string().nullable(),
-  transactionDate: yup
-    .date() //"YYYY-MM-DD HH:mm:ss"
-    .nullable(),
+  transactionDate: yup.date(), //"YYYY-MM-DD HH:mm:ss"
   clientSupplier: yup.string().nullable(),
   accountTitleCode: yup.string().nullable(),
   accountTitle: yup.string().nullable(),

@@ -1,11 +1,14 @@
 .dashboard {
   &__header {
+    position: relative;
     &__box1 {
       border-radius: 5px;
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
+      height: 230px;
+      
 
       background: linear-gradient(
         to right,
@@ -17,21 +20,26 @@
 
       &--title {
         padding: 10px;
+        
         color: white; /* Set title color to white */
       }
     }
 
-    &__image-container {
+    &__image {
       position: absolute;
+      top: 0;
+      right: 0;
+
       width: 500px;
+      
       max-width: 400px;
     }
 
-    &__image {
-      width: 250px;
-      max-width: 400px;
-      height: auto;
-      object-fit: cover;
-    }
+    // &__image {
+    //   width: 250px;
+    //   max-width: 400px;
+    //   height: auto;
+    //   object-fit: cover;
+    // }
   }
 }

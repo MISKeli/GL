@@ -1,8 +1,6 @@
 import {
   AccountBalanceOutlined,
   AccountBalanceRounded,
-  CircleOutlined,
-  CircleRounded,
   DashboardOutlined,
   DashboardRounded,
   EventNoteOutlined,
@@ -11,6 +9,10 @@ import {
   FeedRounded,
   ForestOutlined,
   ForestRounded,
+  Inventory,
+  Inventory2Outlined,
+  Inventory2Rounded,
+  InventoryRounded,
   LeaderboardOutlined,
   LeaderboardRounded,
   PersonOutline,
@@ -22,10 +24,10 @@ import {
 export const moduleSchema = [
   {
     name: "Dashboard",
-    section: "Dashboard",
+    section: "dashboard",
     icon: DashboardOutlined,
     iconOn: DashboardRounded,
-    to: "/",
+    to: "/import",
     subCategory: null,
   },
   {
@@ -50,6 +52,14 @@ export const moduleSchema = [
         to: "/users_management/role_management",
       },
     ],
+  },
+  {
+    name: "Import",
+    section: "import",
+    icon: Inventory2Outlined,
+    iconOn: Inventory2Rounded,
+    to: "/import",
+    subCategory: null,
   },
   {
     name: "Systems",

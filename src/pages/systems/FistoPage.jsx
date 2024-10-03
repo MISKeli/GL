@@ -3,22 +3,25 @@ import "../../styles/SystemsPage.scss";
 import {
   Box,
   Button,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
   Menu,
   Paper,
-  styled,
   Table,
+  TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
 } from "@mui/material";
 import { info } from "../../schemas/info";
 import * as XLSX from "xlsx";
 import {
+  ClearRounded,
   FilterListRounded,
   SearchRounded,
   SystemUpdateAltRounded,
@@ -26,19 +29,9 @@ import {
 
 import CustomImport from "../../components/custom/CustomImport";
 import Date from "./Date";
-
-
-const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
-  display: "flex",
-  alignItems: "center",
-  width: expanded ? "300px" : "50px",
-  transition: "width 0.3s ease-in-out",
-  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none",
-  borderRadius: "10px",
-  padding: "2px 4px",
-  position: "relative",
-  margin: " 5px 5px",
-}));
+import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
+import useDebounce from "../../components/useDebounce";
+import FilterComponent from "../../components/FilterComponent";
 
 function FistoPage() {
   const [reportData, setReportData] = useState([]); // State to hold fetched data
@@ -46,10 +39,26 @@ function FistoPage() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+
+  const [pageSize, setPageSize] = useState(10);
   const inputRef = useRef(null); // Create a ref for InputBase
-
+  const debounceValue = useDebounce(search);
   const headerColumn = info.report_import_table_columns;
-
+  const {
+    data: fistoData,
+    isLoading: isFistoloading,
+    isFetching: isFistoFetching,
+  } = useGetAllGLReportAsyncQuery({
+    Search: debounceValue,
+    PageNumber: page + 1,
+    PageSize: pageSize,
+    System: "Fisto",
+    ...(reportData.dateFrom ? { DateFrom: reportData.dateFrom } : {}),
+    ...(reportData.dateTo ? { DateTo: reportData.dateTo } : {}),
+  });
+  console.log("DATEEEE", reportData);
+  //console.log("fisto", fistoData);
   // SEARCH
   const handleSearchClick = () => {
     setExpanded(true); // Expand the box
@@ -58,8 +67,13 @@ function FistoPage() {
 
   // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
-    setReportData(data);
+    console.log("Received DateFrom:", data.dateFrom, "DateTo:", data.dateTo); // Debugging
+    setReportData({
+      dateFrom: data.dateFrom, // Ensure you're setting the dates explicitly
+      dateTo: data.dateTo,
+    });
   };
+
   // Function to handle data loaded from CustomImport
   const handleDataLoaded = (data) => {
     setReportData(data);
@@ -75,6 +89,15 @@ function FistoPage() {
   };
   const handlePopOverClose = () => {
     setAnchorEl(null);
+  };
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    const selectedValue = parseInt(event.target.value, 10);
+    setPageSize(selectedValue); // Directly set the selected value
+    setPage(0); // Reset to first page
   };
 
   return (
@@ -99,17 +122,12 @@ function FistoPage() {
           </Box>
           <Box className="systems__header__container2">
             <Box className="masterlist__header__con2--date-picker">
-              <IconButton
-                onClick={(event) => {
-                  handlePopOverOpen(event);
-                }}
-              >
-                <FilterListRounded color="primary" />
-              </IconButton>
+              <FilterComponent color="primary" onFetchData={handleFetchData} />
             </Box>
-            <AnimatedBox
-              className="masterlist__header__con2--search"
-              expanded={expanded}
+            <Box
+              className={`systems__header__container2--search ${
+                expanded ? "expanded" : ""
+              }`}
               component="form"
               onClick={() => setExpanded(true)}
             >
@@ -118,9 +136,23 @@ function FistoPage() {
                 placeholder="Search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onBlur={() => search === "" && setExpanded(false)}
-                inputRef={inputRef} // Assign the ref to InputBase
+                inputRef={inputRef}
+                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
               />
+              {search && (
+                <IconButton
+                  color="primary"
+                  type="button"
+                  // sx={{ p: "5px" }}
+                  aria-label="clear"
+                  onClick={() => {
+                    setSearch(""); // Clears the search input
+                    inputRef.current.focus(); // Keeps focus on the input after clearing
+                  }}
+                >
+                  <ClearRounded />
+                </IconButton>
+              )}
               <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
               <IconButton
                 color="primary"
@@ -131,33 +163,76 @@ function FistoPage() {
               >
                 <SearchRounded />
               </IconButton>
-            </AnimatedBox>
+            </Box>
           </Box>
         </Box>
         <CustomImport
           open={isDialogOpen}
           onClose={handleDialogClose}
           onDataLoaded={handleDataLoaded}
+          system="fisto"
         />
+        
+        
         <Box className="systems__content">
-          <Box className="systems__content__table">
-            <TableContainer
-              component={Paper}
-              sx={{ overflow: "auto", height: "100%" }}
+          {isFistoFetching || isFistoloading ? (
+            <Box
+              className="systems__content__table"
+              
             >
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {headerColumn.map((columnTable) => (
-                      <TableCell key={columnTable.id}>
-                        {columnTable.name}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-              </Table>
-            </TableContainer>
-          </Box>
+              <CircularProgress size={45}  />
+            </Box>
+          ) : (
+            <Box className="systems__content__table">
+              <TableContainer
+                component={Paper}
+                sx={{ overflow: "auto", height: "100%" }}
+              >
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      {headerColumn.map((columnTable) => (
+                        <TableCell key={columnTable.id}>
+                          {columnTable.name}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {fistoData?.reports?.length > 0 ? (
+                      fistoData?.reports?.map((row, index) => (
+                        <TableRow key={index}>
+                          {headerColumn.map((col) => (
+                            <TableCell key={col.id}>{row[col.id]}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        {/* <TableCell colSpan={headerColumn.length} align="center">
+                        No data available
+                      </TableCell> */}
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                component="div"
+                count={fistoData?.totalCount || 0} // Total count of items
+                page={page}
+                rowsPerPage={pageSize}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[
+                  5,
+                  10,
+                  25,
+                  { label: "All", value: fistoData?.totalCount || 0 },
+                ]} // Dynamically use the total count for "All"
+              />
+            </Box>
+          )}
         </Box>
 
         <Menu
@@ -165,9 +240,7 @@ function FistoPage() {
           open={Boolean(anchorEl)}
           onClose={handlePopOverClose}
         >
-          <Box>
-            
-          </Box>
+          <Box></Box>
           <Date onFetchData={handleFetchData} />
         </Menu>
         <Box className="systems__footer"></Box>

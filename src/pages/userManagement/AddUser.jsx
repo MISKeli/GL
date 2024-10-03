@@ -100,7 +100,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     );
 
     setValue("userRoleId", roleDataValues || "");
-    console.log("userRole2", pokedData);
+    // console.log("userRole2", pokedData);
     setValue("idPrefix", pokedData?.idPrefix || "");
     setValue("idNumber", pokedData?.idNumber || "");
     setValue("firstName", pokedData?.firstName || "");
@@ -121,7 +121,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
       handleFormValue();
     }
   }, [open]);
-  console.log({ isUpdate });
+  //console.log({ isUpdate });
   const confirmSubmit = async (userData) => {
     setLoading(true); // Set loading to true at the start of submission
     const body = {
@@ -265,15 +265,15 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                       loading={isRoleLoading}
                       options={roleData?.value || []} // Add your options here
                       getOptionLabel={(option) => {
-                        console.log("Current Option:", option); // Log each option being rendered
+                        //console.log("Current Option:", option); // Log each option being rendered
                         return option.roleName || option;
                       }}
                       isOptionEqualToValue={(option, value) => {
-                        console.log("Option:", option, "Value:", value); // Log the comparison between option and value
+                        // console.log("Option:", option, "Value:", value); // Log the comparison between option and value
                         return option?.roleName === value; // Adjust this comparison as needed
                       }}
                       onChange={(e, value) => {
-                        console.log("Selected Value:", value); // Log the selected value when a new option is selected
+                        //console.log("Selected Value:", value); // Log the selected value when a new option is selected
                         field.onChange(value);
                       }}
                       renderInput={(params) => (
@@ -283,7 +283,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                           variant="outlined"
                           fullWidth
                           onClick={() => {
-                            console.log("Role Data:", roleData); // Log the role data when the input is clicked
+                            //.log("Role Data:", roleData); // Log the role data when the input is clicked
                             triggerFetchCedar({ preferCacheValue: true });
                           }}
                           size="small"

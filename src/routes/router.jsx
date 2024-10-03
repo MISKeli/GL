@@ -12,6 +12,7 @@ import ArcanaPage from "../pages/systems/ArcanaPage";
 import UMPage from "../pages/systems/UMPage";
 import YmirPage from "../pages/systems/YmirPage";
 import FistoPage from "../pages/systems/FistoPage";
+import ImportPage from "../pages/ImportPage";
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
                 ),
               },
             ],
+          },
+          {
+            path: "import",
+            element: <ImportPage />,
           },
           {
             path: "systems",

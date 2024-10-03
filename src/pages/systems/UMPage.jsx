@@ -59,6 +59,7 @@ const UMPage = () => {
   // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
     setReportData(data);
+   
   };
 
   // Opening Menu

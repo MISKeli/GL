@@ -86,6 +86,7 @@ const AddRole = ({
       reset(); // Reset form if no data
     }
   }, [open, data, setValue, reset]);
+  console.log("DATA", data);
 
   useEffect(() => {
     const selectedPermissions = watch("permissions");
@@ -177,6 +178,21 @@ const AddRole = ({
     return isValid;
   };
 
+  const addRoleRequest = async (roleData) => {
+    try {
+      if (isUpdate) {
+        await updateRole(roleData).unwrap();
+        toast.success("Role updated successfully.");
+      } else {
+        await addRole(roleData).unwrap();
+        toast.success("Role added successfully.");
+      }
+      handleClose(); // Close the dialog on success
+    } catch (error) {
+      toast.error(error?.data?.message || "Failed to process the request.");
+    }
+  };
+
   // Submit form handler
   const submitHandler = (roleData) => {
     // Validate subcategories
@@ -202,6 +218,7 @@ const AddRole = ({
   const handleYes = () => {
     setShowConfirmDialog(false);
     addRoleRequest({
+      id: data.id,
       roleName: watch("roleName").toUpperCase(),
       permissions: watch("permissions"),
     });
