@@ -182,9 +182,9 @@ function FistoPage() {
                       ))
                     ) : (
                       <TableRow>
-                        {/* <TableCell colSpan={headerColumn.length} align="center">
+                        <TableCell colSpan={headerColumn.length} align="center">
                         No data available
-                      </TableCell> */}
+                      </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
