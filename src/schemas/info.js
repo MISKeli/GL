@@ -185,7 +185,7 @@ export const info = {
     "Location Code": "locationCode",
     "Location": "location",
     "PO No.": "poNumber",
-    "Ref.No.": "referenceNo",
+    "Reference No.": "referenceNo",
     "Item Code": "itemCode",
     "Description": "itemDescription",
     "Quantity": "quantity",

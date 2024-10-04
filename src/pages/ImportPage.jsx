@@ -35,13 +35,7 @@ const ImportPage = () => {
   const [importedData, setImportedData] = useState([]); // Holds data after import
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false); // For duplicate dialog
 
-  const {
-    handleSubmit,
-    setValue,
-    watch,
-    getValues,
-    formState: { errors },
-  } = useForm({
+  const { handleSubmit, setValue } = useForm({
     defaultValues: {
       addedBy: 0,
       reports: [defaultReport],
@@ -52,10 +46,19 @@ const ImportPage = () => {
 
   const createHeader = () => {
     if (data.length === 0) return [];
-    const columnToHide = "syncId"; // Replace "id" with the field you want to hide
+    const columnToHide = "syncId";
     const nonEditableColumns = ["syncId", "system", "drcp"];
-    return Object.keys(data[0])
-      .filter((key) => key !== columnToHide) // Exclude the column you want to hide
+
+    // Get all unique keys across all rows
+    const allKeys = data.reduce((keys, row) => {
+      Object.keys(row).forEach((key) => {
+        if (!keys.includes(key)) keys.push(key);
+      });
+      return keys;
+    }, []);
+
+    return allKeys
+      .filter((key) => key !== columnToHide)
       .map((key) => ({
         field: key,
         headerName: key,
@@ -68,11 +71,80 @@ const ImportPage = () => {
   const rows = data.map((row, index) => ({
     ...row,
     id: row.id || index, // Unique identifier
-    accountingTag: row.accountingTag?.toString(),
-    transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
-      .utc()
-      .toISOString(),
-    mark1: row.mark1 ? row.mark1 : null,
+    // accountingTag: row.accountingTag?.toString(),
+    // transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
+    //   .utc()
+    //   .toISOString(),
+    syncId: row.syncId ? row.syncId : null,
+    mark1: row.mark1 ? row.mark1 : "",
+    mark2: row.mark2 ? row.mark2 : "",
+    assetCIP: row.assetCIP ? row.assetCIP : "",
+    accountingTag: row.accountingTag ? row?.accountingTag?.toString() : "",
+    transactionDate: row.transactionDate
+      ? moment(row.transactionDate, "MM/DD/YYYY").utc().toISOString()
+      : "",
+    clientSupplier: row.clientSupplier ? row.clientSupplier : "",
+    accountTitleCode: row.accountTitleCode ? row.accountTitleCode : "",
+    accountTitle: row.accountTitle ? row.accountTitle : "",
+    companyCode: row.companyCode ? row.companyCode : "",
+    company: row.company ? row.company : "",
+    divisionCode: row.divisionCode ? row.divisionCode : "",
+    division: row.division ? row.division : "",
+    departmentCode: row.departmentCode ? row.departmentCode : "",
+    department: row.department ? row.department : "",
+    unitCode: row.unitCode ? row.unitCode : "",
+    unit: row.unit ? row.unit : "",
+    subUnitCode: row.subUnitCode ? row.subUnitCode : "",
+    subUnit: row.subUnit ? row.subUnit : "",
+    locationCode: row.locationCode ? row.locationCode : "",
+    location: row.location ? row.location : "",
+    poNumber: row.poNumber ? row.poNumber : "",
+    referenceNo: row.referenceNo ? row.referenceNo : "",
+    itemCode: row.itemCode ? row.itemCode : "",
+    itemDescription: row.itemDescription ? row.itemDescription : "",
+    quantity: row.quantity ? row.quantity : null,
+    uom: row.uom ? row.uom : "",
+    unitPrice: row.unitPrice ? row.unitPrice : null,
+    lineAmount: row.lineAmount ? row.lineAmount : null,
+    voucherJournal: row.voucherJournal ? row.voucherJournal : "",
+    accountType: row.accountType ? row.accountType : "",
+    drcp: row.drcp ? row.drcp : "",
+    assetCode: row.assetCode ? row.assetCode : "",
+    asset: row.asset ? row.asset : "",
+    serviceProviderCode: row.serviceProviderCode ? row.serviceProviderCode : "",
+    serviceProvider: row.serviceProvider ? row.serviceProvider : "",
+    boa: row.boa ? row.boa : "",
+    allocation: row.allocation ? row.allocation : "",
+    accountGroup: row.accountGroup ? row.accountGroup : "",
+    accountSubGroup: row.accountSubGroup ? row.accountSubGroup : "",
+    financialStatement: row.financialStatement ? row.financialStatement : "",
+    unitResponsible: row.unitResponsible ? row.unitResponsible : "",
+    batch: row.batch ? row.batch : "",
+    remarks: row.remarks ? row.remarks : "",
+    payrollPeriod: row.payrollPeriod ? row.payrollPeriod : "",
+    position: row.position ? row.position : "",
+    payrollType: row.payrollType ? row.payrollType : "",
+    payrollType2: row.payrollType2 ? row.payrollType2 : "",
+    depreciationDescription: row.depreciationDescription
+      ? row.depreciationDescription
+      : "",
+    remainingDepreciationValue: row.remainingDepreciationValue
+      ? row.remainingDepreciationValue
+      : "",
+    usefulLife: row.usefulLife ? row.usefulLife : "",
+    month: row.month ? row.month : "",
+    year: row.year ? row.year : "",
+    particulars: row.particulars ? row.particulars : "",
+    month2: row.month2 ? row.month2 : "",
+    farmType: row.farmType ? row.farmType : "",
+    jeanRemarks: row.jeanRemarks ? row.jeanRemarks : "",
+    from: row.from ? row.from : "",
+    changedTo: row.changedTo ? row.changedTo : "",
+    reason: row.reason ? row.reason : "",
+    checkingRemarks: row.checkingRemarks ? row.checkingRemarks : "",
+    boA2: row.boA2 ? row.boA2 : "",
+    system: row.system ? row.system : "",
+    books: row.books ? row.books : "",
   }));
   const createHeaderDuplicate = () => {
     if (errorReports.length === 0) return [];
