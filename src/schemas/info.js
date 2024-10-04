@@ -223,7 +223,7 @@ export const info = {
     "From": "from",
     "Changed To": "changeTo",
     "Reason": "reason",
-    "Checking Remarks": "checkingRemarks",
+    "Checking Remarks": "checkingRemarks", 
     "BOA 2": "boA2",
     "System": "system",
     "Books": "books",

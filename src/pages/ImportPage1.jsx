@@ -448,7 +448,9 @@ const ImportPage1 = () => {
                 onClick={handleImport}
                 variant="contained"
                 color="primary"
-                disabled={isLoading || isFetching || lineAmountTotal > 0} // Disable button while loading
+                disabled={
+                  isLoading || isFetching || Math.round(lineAmountTotal) > 0
+                } // Disable button while loading
               >
                 {isLoading || isFetching ? (
                   <CircularProgress size={24} />

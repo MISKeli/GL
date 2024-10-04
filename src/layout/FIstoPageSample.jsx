@@ -19,9 +19,10 @@ import {
   Typography,
 } from "@mui/material";
 import { info } from "../../schemas/info";
-
+import * as XLSX from "xlsx";
 import {
   ClearRounded,
+  FilterListRounded,
   SearchRounded,
   SystemUpdateAltRounded,
 } from "@mui/icons-material";
@@ -31,15 +32,10 @@ import Date from "./Date";
 import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
 import useDebounce from "../../components/useDebounce";
 import FilterComponent from "../../components/FilterComponent";
-import dayjs from "dayjs";
-import moment from "moment";
 
-function FistoPage() {
-  const currentDate = dayjs();
-  const [reportData, setReportData] = useState({
-    DateFrom: moment(currentDate).format("YYYY-MM-DD"),
-    DateTo: moment(currentDate).format("YYYY-MM-DD"),
-  }); // State to hold fetched data
+function FistoPageSample() {
+  const [reportData, setReportData] = useState([]); // State to hold fetched data
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state for CustomImport
   const [anchorEl, setAnchorEl] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -58,8 +54,8 @@ function FistoPage() {
     PageNumber: page + 1,
     PageSize: pageSize,
     System: "Fisto",
-    DateFrom: reportData.DateFrom,
-    DateTo: reportData.DateTo,
+    ...(reportData.dateFrom ? { DateFrom: reportData.dateFrom } : {}),
+    ...(reportData.dateTo ? { DateTo: reportData.dateTo } : {}),
   });
   console.log("DATEEEE", reportData);
   //console.log("fisto", fistoData);
@@ -75,6 +71,20 @@ function FistoPage() {
     console.log("Received DateFrom:", data.dateFrom, "DateTo:", data.dateTo); // Debugging
     setReportData(data);
   };
+
+  // Function to handle data loaded from CustomImport
+  const handleDataLoaded = (data) => {
+    setReportData(data);
+  };
+
+  // Function to open/close the dialog
+  const handleDialogOpen = () => setIsDialogOpen(true);
+  const handleDialogClose = () => setIsDialogOpen(false);
+
+  // Opening Menu
+  const handlePopOverOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
@@ -87,6 +97,7 @@ function FistoPage() {
     setPageSize(selectedValue); // Directly set the selected value
     setPage(0); // Reset to first page
   };
+
   return (
     <>
       <Box className="systems">
@@ -98,14 +109,18 @@ function FistoPage() {
             >
               {info.report_fisto_title}
             </Typography>
+            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+            <Button
+              startIcon={<SystemUpdateAltRounded />}
+              variant="contained"
+              onClick={handleDialogOpen} // Trigger dialog open here
+            >
+              {info.report_import_button}
+            </Button>
           </Box>
           <Box className="systems__header__container2">
             <Box className="masterlist__header__con2--date-picker">
-              <FilterComponent
-                color="primary"
-                onFetchData={handleFetchData}
-                setReportData={setReportData}
-              />
+              <FilterComponent color="primary" onFetchData={handleFetchData} />
             </Box>
             <Box
               className={`systems__header__container2--search ${
@@ -149,6 +164,12 @@ function FistoPage() {
             </Box>
           </Box>
         </Box>
+        <CustomImport
+          open={isDialogOpen}
+          onClose={handleDialogClose}
+          onDataLoaded={handleDataLoaded}
+          system="fisto"
+        />
 
         <Box className="systems__content">
           {isFistoFetching || isFistoloading ? (
@@ -222,4 +243,4 @@ function FistoPage() {
   );
 }
 
-export default FistoPage;
+export default FistoPageSample;

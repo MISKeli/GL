@@ -72,12 +72,12 @@ const Navbar = () => {
           <IconButton>
             <Notifications />
           </IconButton>
-          <IconButton>
-            <AccountCircleRounded
-              onClick={(event) => {
-                handlePopOverOpen(event);
-              }}
-            />
+          <IconButton
+            onClick={(event) => {
+              handlePopOverOpen(event);
+            }}
+          >
+            <AccountCircleRounded />
           </IconButton>
         </Box>
       </Box>

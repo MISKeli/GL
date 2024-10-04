@@ -23,5 +23,8 @@ const importReportApi = indexApi
     }),
   });
 
-export const { useImportReportsMutation, useGetAllGLReportAsyncQuery } =
-  importReportApi;
+export const {
+  useImportReportsMutation,
+  useGetAllGLReportAsyncQuery,
+  useLazyGetAllGLReportAsyncQuery,
+} = importReportApi;
