@@ -23,13 +23,9 @@
       }
 
       &__buttons {
-        display: flex;
-        justify-content: flex-end;
-
-        button {
-        padding: 16px;
-          width: 48%;
-        }
+        // display: flex;
+        // justify-content: end;
+        margin-left: 15px;
       }
     }
   }

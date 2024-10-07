@@ -35,18 +35,19 @@ const ImportPage = () => {
   const [importedData, setImportedData] = useState([]); // Holds data after import
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false); // For duplicate dialog
 
-  const { handleSubmit, setValue } = useForm({
+  const { handleSubmit, setValue, watch } = useForm({
     defaultValues: {
       addedBy: 0,
       reports: [defaultReport],
     },
     resolver: yupResolver(importSchema),
   });
+  console.log(watch());
   const [importData, { isFetching }] = useImportReportsMutation();
 
   const createHeader = () => {
     if (data.length === 0) return [];
-    const columnToHide = "syncId";
+    const columnToHide = "";
     const nonEditableColumns = ["syncId", "system", "drcp"];
 
     // Get all unique keys across all rows
@@ -75,7 +76,7 @@ const ImportPage = () => {
     // transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
     //   .utc()
     //   .toISOString(),
-    syncId: row.syncId ? row.syncId : null,
+    syncId: row.syncId ? row.syncId.toString() : "",
     mark1: row.mark1 ? row.mark1 : "",
     mark2: row.mark2 ? row.mark2 : "",
     assetCIP: row.assetCIP ? row.assetCIP : "",
@@ -156,24 +157,12 @@ const ImportPage = () => {
     }));
   };
 
-  // const lineAmountTotal = rows.reduce((acc, row) => {
-  //   return Math.max(row.lineAmount, acc + (row.lineAmount || 0));
-  // }, 0);
-  // console.log("lineAmountTotal", parseFloat(lineAmountTotal).toFixed(2));
-
-  // const lineAmountTotal = rows.reduce((acc, row) => {
-  //   return acc + (row.lineAmount || 0);
-  // }, 0);
-
   const lineAmountTotal = rows.reduce((acc, row) => {
     return acc + (row.lineAmount || 0);
   }, 0);
 
   const roundedTotal = Math.round(lineAmountTotal);
   console.log("lineAmountTotal", roundedTotal);
-
-  // const roundedTotal = parseFloat(lineAmountTotal).toFixed(2);
-  // console.log("lineAmountTotal", roundedTotal);
 
   const onDrop = (acceptedFiles) => {
     console.log("tanggap", acceptedFiles);
@@ -213,7 +202,13 @@ const ImportPage = () => {
       });
 
       setData(parsedData);
-
+      // Use setValue to update the form with parsed data
+      parsedData.forEach((report, index) => {
+        Object.keys(report).forEach((key) => {
+          // Update the form for each report, assuming the reports are in an array
+          setValue(`reports[${index}].${key}`, report[key]);
+        });
+      });
       // Close the first dialog and open the second dialog for review
 
       setIsDataGridOpen(true); // Open DataGrid dialog for review
@@ -259,37 +254,37 @@ const ImportPage = () => {
   }));
   const columnsDuplicate = createHeaderDuplicate();
 
-  const handleImport = () => {
-    handleSubmit(async () => {
-      const transformedRows = rows.map((row) => ({
-        ...row,
-        transactionDate: row.transactionDate
-          ? moment(row.transactionDate).utc().toISOString()
-          : moment().utc().toISOString(),
-      }));
-      //setIsDataGridOpen(false); // Close DataGrid dialog
+  const handleImport = async () => {
+    console.log("test");
+    const transformedRows = rows.map((row) => ({
+      ...row,
+      transactionDate: row.transactionDate
+        ? moment(row.transactionDate).utc().toISOString()
+        : moment().utc().toISOString(),
+    }));
+    //setIsDataGridOpen(false); // Close DataGrid dialog
 
-      try {
-        setIsLoading(true); // Start loading
-        const response = await importData({
-          reports: transformedRows,
-        }).unwrap();
-        toast.success("Imported Successfully.");
-        setImportedData(response); // Save imported data
-        setIsDataGridOpen(false); // Close DataGrid dialog
-        // onClose(); // Close main import dialog
-      } catch (error) {
-        toast.error(error?.data?.message || "Failed to import data.");
+    try {
+      setIsLoading(true); // Start loading
+      const response = await importData({
+        reports: transformedRows,
+      }).unwrap();
+      console.log("response", response);
+      toast.success("Imported Successfully.");
+      setImportedData(response); // Save imported data
+      setIsDataGridOpen(false); // Close DataGrid dialog
+      // onClose(); // Close main import dialog
+    } catch (error) {
+      toast.error(error?.data?.message || "Failed to import data.");
 
-        // Check for duplicates in the error response
+      // Check for duplicates in the error response
 
-        setErrorReports(error?.data?.value.duplicateReports || []);
-        setIsDuplicateDialogOpen(true); // Open duplicate dialog
-      } finally {
-        setIsDataGridOpen(false);
-        setIsLoading(false); // Stop loading
-      }
-    })();
+      setErrorReports(error?.data?.value.duplicateReports || []);
+      setIsDuplicateDialogOpen(true); // Open duplicate dialog
+    } finally {
+      setIsDataGridOpen(false);
+      setIsLoading(false); // Stop loading
+    }
   };
   return (
     <>
@@ -303,11 +298,12 @@ const ImportPage = () => {
           <Box {...getRootProps()} className="import__content__dropzone">
             <input {...getInputProps()} multiple />
             <Typography className="import__content__dropzone--title">
-              Drop a CSV/XLSX file or
+              Drop a CSV/XLSX file
             </Typography>
             <Typography className="import__content__dropzone--title">
               or
             </Typography>
+
             <Button
               variant="contained"
               startIcon={<CloudUpload />}

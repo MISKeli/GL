@@ -29,12 +29,10 @@ export const changePasswordSchema = yup.object().shape({
 export const reportSchema = yup.object().shape({
   DateFrom: yup.string().required("Date is required."),
   DateTo: yup.string().required("Date is required."),
-
-  
 });
 
 export const importSchema = yup.object().shape({
-  // syncId
+    syncId: yup.string().required("Sync Id is required."),
   mark1: yup.string().nullable(),
   mark2: yup.string().nullable(),
   assetCIP: yup.string().nullable(),

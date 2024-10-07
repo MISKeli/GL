@@ -1,12 +1,14 @@
+import React, { useRef, useState } from "react";
+import "../../styles/SystemsPage.scss";
 import {
   Box,
-  Button,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
   Menu,
   Paper,
-  styled,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -14,69 +16,48 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Tabs,
   Typography,
 } from "@mui/material";
-import React, { useRef, useState } from "react";
 import { info } from "../../schemas/info";
-import {
-  FilterListRounded,
-  OutboxRounded,
-  SearchRounded,
-  SystemUpdateAltRounded,
-} from "@mui/icons-material";
+
+import { ClearRounded, SearchRounded } from "@mui/icons-material";
 import Date from "./Date";
-import { Tab } from "@mui/material";
-import "../../styles/SystemsPage.scss";
+import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
+import useDebounce from "../../components/useDebounce";
+import FilterComponent from "../../components/FilterComponent";
+import dayjs from "dayjs";
+import moment from "moment";
 
-const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
-  display: "flex",
-  alignItems: "center",
-  width: expanded ? "300px" : "50px",
-  transition: "width 0.3s ease-in-out",
-  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none",
-  borderRadius: "10px",
-  padding: "2px 4px",
-  position: "relative",
-  margin: " 5px 5px",
-}));
-
-const TabPanel = ({ children, value, index, ...other }) => {
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box>{children}</Box>}
-    </div>
-  );
-};
-
-const ArcanaPage = () => {
-  const [search, setSearch] = useState("");
-  const [expanded, setExpanded] = useState(false);
-  const [reportData, setReportData] = useState([]); // State to hold fetched data
+function ArcanaPage() {
+  const currentDate = dayjs();
+  const [reportData, setReportData] = useState({
+    DateFrom: moment(currentDate).format("YYYY-MM-DD"),
+    DateTo: moment(currentDate).format("YYYY-MM-DD"),
+  }); // State to hold fetched data
   const [anchorEl, setAnchorEl] = useState(null);
-  const [value, setValue] = useState(0);
-  const inputRef = useRef(null); // Create a ref for InputBase
-
+  const [expanded, setExpanded] = useState(false);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Handle page change
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  // Handle rows per page change
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-  const tableData = info.report_sample_table_column;
+  const [pageSize, setPageSize] = useState(10);
+  const inputRef = useRef(null); // Create a ref for InputBase
+  const debounceValue = useDebounce(search);
+  const headerColumn = info.report_import_table_columns;
+  const {
+    data: systemData,
+    isLoading: isSystemloading,
+    isFetching: isSystemFetching,
+  } = useGetAllGLReportAsyncQuery({
+    Search: debounceValue,
+    PageNumber: page + 1,
+    PageSize: pageSize,
+    System: "Arcana",
+    DateFrom: reportData.DateFrom,
+    DateTo: reportData.DateTo,
+  });
+  //console.log("DATEEEE", reportData);
+  //console.log("fisto", fistoData);
+  // SEARCH
   const handleSearchClick = () => {
     setExpanded(true); // Expand the box
     inputRef.current?.focus(); // Immediately focus the input field
@@ -84,64 +65,46 @@ const ArcanaPage = () => {
 
   // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
+    console.log("DATAAA", data);
+    console.log("Received DateFrom:", data.dateFrom, "DateTo:", data.dateTo); // Debugging
     setReportData(data);
-  };
-
-  // Opening Menu
-  const handlePopOverOpen = (event) => {
-    setAnchorEl(event.currentTarget);
   };
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
-  //Tabs
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+  const handleChangeRowsPerPage = (event) => {
+    const selectedValue = parseInt(event.target.value, 10);
+    setPageSize(selectedValue); // Directly set the selected value
+    setPage(0); // Reset to first page
   };
   return (
-    <Box className="systems">
-      <Box className="systems__header">
-        <Box className="systems__header__container1">
-          <Typography
-            variant="h5"
-            className="systems__header__container1--title"
-          >
-            {info.report_arcana_title}
-          </Typography>
-          <Button startIcon={<SystemUpdateAltRounded />} variant="contained">
-            {info.report_import_button}
-          </Button>
-        </Box>
-        <Box className="systems__header__container2">
-          <Box
-            //className="report__header__container2__tab"
-            sx={{ borderBottom: 1, borderColor: "divider" }}
-          >
-            <Tabs
-              className="systems__header__container2__tab"
-              value={value}
-              onChange={handleChange}
-              aria-label="Arcana Tabs"
+    <>
+      <Box className="systems">
+        <Box className="systems__header">
+          <Box className="systems__header__container1">
+            <Typography
+              variant="h5"
+              className="systems__header__container1--title"
             >
-              <Tab label="Book 1" />
-              <Tab label="Book 2" />
-              <Tab label="Book 3" />
-            </Tabs>
+              {info.system_arcana_title}
+            </Typography>
           </Box>
-          <Box className="systems__header__container2__filters">
-            <Box className="systems__header__container2__filters--date-picker">
-              <IconButton
-                onClick={(event) => {
-                  handlePopOverOpen(event);
-                }}
-              >
-                <FilterListRounded color="primary" />
-              </IconButton>
+          <Box className="systems__header__container2">
+            <Box className="masterlist__header__con2--date-picker">
+              <FilterComponent
+                color="primary"
+                onFetchData={handleFetchData}
+                setReportData={setReportData}
+              />
             </Box>
-            <AnimatedBox
-              className="systems__header__container2--search"
-              expanded={expanded}
+            <Box
+              className={`systems__header__container2--search ${
+                expanded ? "expanded" : ""
+              }`}
               component="form"
               onClick={() => setExpanded(true)}
             >
@@ -150,9 +113,22 @@ const ArcanaPage = () => {
                 placeholder="Search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onBlur={() => search === "" && setExpanded(false)}
-                inputRef={inputRef} // Assign the ref to InputBase
+                inputRef={inputRef}
+                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
               />
+              {search && (
+                <IconButton
+                  color="primary"
+                  type="button"
+                  aria-label="clear"
+                  onClick={() => {
+                    setSearch(""); // Clears the search input
+                    inputRef.current.focus(); // Keeps focus on the input after clearing
+                  }}
+                >
+                  <ClearRounded />
+                </IconButton>
+              )}
               <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
               <IconButton
                 color="primary"
@@ -163,40 +139,55 @@ const ArcanaPage = () => {
               >
                 <SearchRounded />
               </IconButton>
-            </AnimatedBox>
+            </Box>
           </Box>
         </Box>
-      </Box>
-      <Box className="systems__content">
-        <TabPanel value={value} index={0}>
+
+        <Box className="systems__content">
           <Box className="systems__content__table">
             <TableContainer
               component={Paper}
-              sx={{ overflow: "auto", height: "520px" }}
+              sx={{ overflow: "auto", height: "100%" }}
             >
-              <Table stickyHeader aria-label="simple table">
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    {tableData.map((sampleTable) => (
-                      <TableCell key={sampleTable.id}>
-                        {sampleTable.name}
+                    {headerColumn.map((columnTable) => (
+                      <TableCell key={columnTable.id}>
+                        {columnTable.name}
                       </TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {reportData?.value?.length > 0 ? (
-                    reportData?.value?.map((row, index) => (
+                  {isSystemFetching || isSystemloading ? (
+                    Array.from({ length: pageSize }).map((_, index) => (
                       <TableRow key={index}>
-                        {tableData.map((col) => (
+                        {headerColumn.map((col) => (
+                          <TableCell key={col.id}>
+                            <Skeleton
+                              variant="text"
+                              animation="wave"
+                              height={100}
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : systemData?.reports?.length > 0 ? (
+                    systemData?.reports?.map((row, index) => (
+                      <TableRow key={index}>
+                        {headerColumn.map((col) => (
                           <TableCell key={col.id}>{row[col.id]}</TableCell>
                         ))}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={tableData.length} align="center">
-                        No data available
+                      <TableCell colSpan={headerColumn.length} align="center">
+                        <Typography variant="h6">
+                          {info.system_no_data}
+                        </Typography>
                       </TableCell>
                     </TableRow>
                   )}
@@ -205,35 +196,33 @@ const ArcanaPage = () => {
             </TableContainer>
             <TablePagination
               component="div"
-              count={reportData?.value?.length || 0} // Total count of items
+              count={systemData?.totalCount || 0}
               page={page}
-              rowsPerPage={rowsPerPage}
+              rowsPerPage={pageSize}
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 25]}
+              rowsPerPageOptions={[
+                5,
+                10,
+                25,
+                { label: "All", value: systemData?.totalCount || 0 },
+              ]}
             />
           </Box>
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          Content for Tab 2
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          Content for Tab 3
-        </TabPanel>
-      </Box>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handlePopOverClose}
-      >
-        <Box>
-          <Typography>Transaction Date:</Typography>
         </Box>
-        <Date onFetchData={handleFetchData} />
-      </Menu>
-      <Box className="systems__footer"></Box>
-    </Box>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handlePopOverClose}
+        >
+          <Box></Box>
+          <Date onFetchData={handleFetchData} />
+        </Menu>
+        <Box className="systems__footer"></Box>
+      </Box>
+    </>
   );
-};
+}
 
 export default ArcanaPage;

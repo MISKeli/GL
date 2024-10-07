@@ -7,6 +7,7 @@ import {
   IconButton,
   TextField,
   CircularProgress,
+  Box,
 } from "@mui/material";
 import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
 import dayjs from "dayjs";
@@ -119,28 +120,31 @@ const FilterComponent = ({ onFetchData, setReportData }) => {
               />
             </MenuItem>
           </LocalizationProvider>
-          <div className="filter__menu__buttons">
+          <Box className="filter__menu__content__buttons">
             <Button
               variant="contained"
               color="primary"
               type="submit"
+              onClick={() => {
+                handleMenuClose();
+              }}
               disabled={isGLReportLoading}
               startIcon={
                 isGLReportLoading ? <CircularProgress size={20} /> : null
               }
             >
               {isGLReportLoading ? "Fetching..." : "Submit"}
-            </Button>
+            </Button>{" "}
             <Button
               variant="outlined"
               color="secondary"
               onClick={() => {
-                clearDate(), handleMenuClose();
+                clearDate();
               }}
             >
               Clear
             </Button>
-          </div>
+          </Box>
         </form>
       </Menu>
     </div>

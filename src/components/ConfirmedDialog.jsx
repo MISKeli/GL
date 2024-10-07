@@ -17,7 +17,7 @@ const ConfirmedDialog = ({ open, onClose, title, description, onYes }) => {
   return (
     <>
       <Dialog open={open} className="dialog">
-        <DialogTitle className="dialog__header">
+        <DialogTitle fontWeight={600} className="dialog__header">
           {title}
           <Stack>
             <IconButton onClick={onClose}>
@@ -31,10 +31,10 @@ const ConfirmedDialog = ({ open, onClose, title, description, onYes }) => {
             className="dialog__content--img"
             alt="reset Password"
           /> */}
-          <Typography>{description}</Typography>
+          <Typography variant="h6">{description}</Typography>
         </DialogContent>
         <DialogActions className="dialog__action">
-          <Button onClick={onClose} color="info">
+          <Button onClick={onClose} variant="contained" color="primary">
             No
           </Button>
           <Button onClick={onYes} variant="contained" color="error">

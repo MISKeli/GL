@@ -12,6 +12,8 @@ import ArcanaPage from "../pages/systems/ArcanaPage";
 import UMPage from "../pages/systems/UMPage";
 import YmirPage from "../pages/systems/YmirPage";
 import FistoPage from "../pages/systems/FistoPage";
+import ElixirETDPage from "../pages/systems/ElixirETDPage";
+import ElixirPharmacyPage from "../pages/systems/ElixirPharmacyPage";
 import ImportPage from "../pages/ImportPage";
 
 export const router = createBrowserRouter([
@@ -67,6 +69,14 @@ export const router = createBrowserRouter([
               {
                 path: "um",
                 element: <UMPage />,
+              },
+              {
+                path: "elixir_etd",
+                element: <ElixirETDPage />,
+              },
+              {
+                path: "elixir_pharmacy",
+                element: <ElixirPharmacyPage />,
               },
               {
                 path: "ymir",

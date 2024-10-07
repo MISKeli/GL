@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import "../../styles/SystemsPage.scss";
 import {
   Box,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -18,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import { info } from "../../schemas/info";
+
 import { ClearRounded, SearchRounded } from "@mui/icons-material";
 import Date from "./Date";
 import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
@@ -26,18 +28,19 @@ import FilterComponent from "../../components/FilterComponent";
 import dayjs from "dayjs";
 import moment from "moment";
 
-function FistoPage() {
+function ElixirPharmacyPage() {
   const currentDate = dayjs();
   const [reportData, setReportData] = useState({
     DateFrom: moment(currentDate).format("YYYY-MM-DD"),
     DateTo: moment(currentDate).format("YYYY-MM-DD"),
-  });
+  }); // State to hold fetched data
   const [anchorEl, setAnchorEl] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+
   const [pageSize, setPageSize] = useState(10);
-  const inputRef = useRef(null);
+  const inputRef = useRef(null); // Create a ref for InputBase
   const debounceValue = useDebounce(search);
   const headerColumn = info.report_import_table_columns;
   const {
@@ -48,34 +51,36 @@ function FistoPage() {
     Search: debounceValue,
     PageNumber: page + 1,
     PageSize: pageSize,
-    System: "Fisto",
+    System: "Ultra Maverick Dry",
     DateFrom: reportData.DateFrom,
     DateTo: reportData.DateTo,
   });
-
+  //console.log("DATEEEE", reportData);
+  //console.log("fisto", fistoData);
+  // SEARCH
   const handleSearchClick = () => {
-    setExpanded(true);
-    inputRef.current?.focus();
+    setExpanded(true); // Expand the box
+    inputRef.current?.focus(); // Immediately focus the input field
   };
 
+  // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
+    console.log("DATAAA", data);
+    console.log("Received DateFrom:", data.dateFrom, "DateTo:", data.dateTo); // Debugging
     setReportData(data);
   };
-
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
     const selectedValue = parseInt(event.target.value, 10);
-    setPageSize(selectedValue);
-    setPage(0);
+    setPageSize(selectedValue); // Directly set the selected value
+    setPage(0); // Reset to first page
   };
-
   return (
     <>
       <Box className="systems">
@@ -85,7 +90,7 @@ function FistoPage() {
               variant="h5"
               className="systems__header__container1--title"
             >
-              {info.system_fisto_title}
+              {info.system_ElixirPharmacy_title}
             </Typography>
           </Box>
           <Box className="systems__header__container2">
@@ -109,7 +114,7 @@ function FistoPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 inputRef={inputRef}
-                onBlur={() => search === "" && setExpanded(false)}
+                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
               />
               {search && (
                 <IconButton
@@ -117,8 +122,8 @@ function FistoPage() {
                   type="button"
                   aria-label="clear"
                   onClick={() => {
-                    setSearch("");
-                    inputRef.current.focus();
+                    setSearch(""); // Clears the search input
+                    inputRef.current.focus(); // Keeps focus on the input after clearing
                   }}
                 >
                   <ClearRounded />
@@ -220,4 +225,4 @@ function FistoPage() {
   );
 }
 
-export default FistoPage;
+export default ElixirPharmacyPage;

@@ -15,6 +15,8 @@ import {
   InventoryRounded,
   LeaderboardOutlined,
   LeaderboardRounded,
+  LocalPharmacyOutlined,
+  LocalPharmacyRounded,
   PersonOutline,
   PersonRounded,
   SupervisedUserCircleOutlined,
@@ -27,9 +29,10 @@ export const moduleSchema = [
     section: "dashboard",
     icon: DashboardOutlined,
     iconOn: DashboardRounded,
-    to: "/import",
+    to: "/",
     subCategory: null,
   },
+  
   {
     name: "Users Management",
     section: "users_management",
@@ -76,7 +79,21 @@ export const moduleSchema = [
         to: "/systems/arcana",
       },
       {
-        name: "UM",
+        name: "Elixir ETD",
+        section: "elixir_etd",
+        icon: AccountBalanceOutlined,
+        iconOn: AccountBalanceRounded,
+        to: "/systems/elixir_etd",
+      },
+      {
+        name: "Elixir Pharmacy",
+        section: "elixir_pharmacy",
+        icon: LocalPharmacyOutlined,
+        iconOn: LocalPharmacyRounded,
+        to: "/systems/elixir_pharmacy",
+      },
+      {
+        name: "Ultra Maverick Dry",
         section: "um",
         icon: AccountBalanceOutlined,
         iconOn: AccountBalanceRounded,

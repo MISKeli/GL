@@ -1,15 +1,15 @@
-// ReportPage.js
+import React, { useRef, useState } from "react";
+import "../../styles/SystemsPage.scss";
 import {
   Box,
-  Button,
   Divider,
   IconButton,
   InputBase,
   Menu,
   Paper,
-  styled,
+  Skeleton,
   Table,
-  TableBody, // Add this import
+  TableBody,
   TableCell,
   TableContainer,
   TableHead,
@@ -17,99 +17,89 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useRef, useState } from "react";
 import { info } from "../../schemas/info";
-import {
-  FilterListRounded,
-  OutboxRounded,
-  SearchRounded,
-  SystemUpdateAltRounded,
-} from "@mui/icons-material";
-import { Controller } from "react-hook-form";
+import { ClearRounded, SearchRounded } from "@mui/icons-material";
 import Date from "./Date";
+import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
+import useDebounce from "../../components/useDebounce";
+import FilterComponent from "../../components/FilterComponent";
+import dayjs from "dayjs";
+import moment from "moment";
 
-const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
-  display: "flex",
-  alignItems: "center",
-  width: expanded ? "300px" : "50px",
-  transition: "width 0.3s ease-in-out",
-  border: expanded ? `1px solid ${theme.palette.primary.main}` : "none",
-  borderRadius: "10px",
-  padding: "2px 4px",
-  position: "relative",
-  margin: " 5px 5px",
-}));
-
-const UMPage = () => {
-  const [search, setSearch] = useState("");
-  const [expanded, setExpanded] = useState(false);
-  const [reportData, setReportData] = useState([]); // State to hold fetched data
+function UMPage() {
+  const currentDate = dayjs();
+  const [reportData, setReportData] = useState({
+    DateFrom: moment(currentDate).format("YYYY-MM-DD"),
+    DateTo: moment(currentDate).format("YYYY-MM-DD"),
+  });
   const [anchorEl, setAnchorEl] = useState(null);
-  const [open, setopen] = useState(false);
-  const inputRef = useRef(null); // Create a ref for InputBase
+  const [expanded, setExpanded] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const inputRef = useRef(null);
+  const debounceValue = useDebounce(search);
+  const headerColumn = info.report_import_table_columns;
+  const {
+    data: systemData,
+    isLoading: isSystemloading,
+    isFetching: isSystemFetching,
+  } = useGetAllGLReportAsyncQuery({
+    Search: debounceValue,
+    PageNumber: page + 1,
+    PageSize: pageSize,
+    System: "Ultra Maverick Dry",
+    DateFrom: reportData.DateFrom,
+    DateTo: reportData.DateTo,
+  });
 
-  const GLColumn = info.report_UM_table_column;
-
-  // SEARCH
   const handleSearchClick = () => {
-    setExpanded(true); // Expand the box
-    inputRef.current?.focus(); // Immediately focus the input field
+    setExpanded(true);
+    inputRef.current?.focus();
   };
 
-  // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
     setReportData(data);
-   
   };
 
-  // Opening Menu
-  const handlePopOverOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  // Handle page change
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
-  // Handle rows per page change
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const selectedValue = parseInt(event.target.value, 10);
+    setPageSize(selectedValue);
     setPage(0);
   };
-  console.log({reportData})
+
   return (
     <>
-      <Box className="masterlist">
-        <Box className="masterlist__header">
-          <Box className="masterlist__header__con1">
-            <Typography variant="h5" className="masterlist__header--title">
-              {info.report_UM_title}
+      <Box className="systems">
+        <Box className="systems__header">
+          <Box className="systems__header__container1">
+            <Typography
+              variant="h5"
+              className="systems__header__container1--title"
+            >
+              {info.system_UM_title}
             </Typography>
-            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-            <Button startIcon={<SystemUpdateAltRounded />} variant="contained">
-              {info.report_import_button}
-            </Button>
           </Box>
-          <Box className="masterlist__header__con2">
+          <Box className="systems__header__container2">
             <Box className="masterlist__header__con2--date-picker">
-              <IconButton
-                onClick={(event) => {
-                  handlePopOverOpen(event);
-                }}
-              >
-                <FilterListRounded color="primary" />
-              </IconButton>
+              <FilterComponent
+                color="primary"
+                onFetchData={handleFetchData}
+                setReportData={setReportData}
+              />
             </Box>
-            <AnimatedBox
-              className="masterlist__header__con2--search"
-              expanded={expanded}
+            <Box
+              className={`systems__header__container2--search ${
+                expanded ? "expanded" : ""
+              }`}
               component="form"
               onClick={() => setExpanded(true)}
             >
@@ -118,9 +108,22 @@ const UMPage = () => {
                 placeholder="Search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                inputRef={inputRef}
                 onBlur={() => search === "" && setExpanded(false)}
-                inputRef={inputRef} // Assign the ref to InputBase
               />
+              {search && (
+                <IconButton
+                  color="primary"
+                  type="button"
+                  aria-label="clear"
+                  onClick={() => {
+                    setSearch("");
+                    inputRef.current.focus();
+                  }}
+                >
+                  <ClearRounded />
+                </IconButton>
+              )}
               <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
               <IconButton
                 color="primary"
@@ -131,11 +134,12 @@ const UMPage = () => {
               >
                 <SearchRounded />
               </IconButton>
-            </AnimatedBox>
+            </Box>
           </Box>
         </Box>
-        <Box className="masterlist__content">
-          <Box className="masterlist__content__table">
+
+        <Box className="systems__content">
+          <Box className="systems__content__table">
             <TableContainer
               component={Paper}
               sx={{ overflow: "auto", height: "100%" }}
@@ -143,29 +147,42 @@ const UMPage = () => {
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    {GLColumn.map((genledTable) => (
-                      <TableCell key={genledTable.id}>
-                        {genledTable.name}
+                    {headerColumn.map((columnTable) => (
+                      <TableCell key={columnTable.id}>
+                        {columnTable.name}
                       </TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {reportData?.value?.length > 0 ? (
-                    
-                    reportData?.value?.map((row, index) => (
-                      
+                  {isSystemFetching || isSystemloading ? (
+                    Array.from({ length: pageSize }).map((_, index) => (
                       <TableRow key={index}>
-                       
-                        {GLColumn.map((col) => (
+                        {headerColumn.map((col) => (
+                          <TableCell key={col.id}>
+                            <Skeleton
+                              variant="text"
+                              animation="wave"
+                              height={100}
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : systemData?.reports?.length > 0 ? (
+                    systemData?.reports?.map((row, index) => (
+                      <TableRow key={index}>
+                        {headerColumn.map((col) => (
                           <TableCell key={col.id}>{row[col.id]}</TableCell>
                         ))}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={GLColumn.length} align="center">
-                        No data available
+                      <TableCell colSpan={headerColumn.length} align="center">
+                        <Typography variant="h6">
+                          {info.system_no_data}
+                        </Typography>
                       </TableCell>
                     </TableRow>
                   )}
@@ -174,29 +191,33 @@ const UMPage = () => {
             </TableContainer>
             <TablePagination
               component="div"
-              count={reportData?.value?.length || 0} // Total count of items
+              count={systemData?.totalCount || 0}
               page={page}
-              rowsPerPage={rowsPerPage}
-              onPageChange={handleChangePage + 1}
+              rowsPerPage={pageSize}
+              onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 25, { label: "All", value: "" }]}
+              rowsPerPageOptions={[
+                5,
+                10,
+                25,
+                { label: "All", value: systemData?.totalCount || 0 },
+              ]}
             />
           </Box>
         </Box>
+
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handlePopOverClose}
         >
-          <Box>
-            <Typography>Transaction Date:</Typography>
-          </Box>
+          <Box></Box>
           <Date onFetchData={handleFetchData} />
         </Menu>
-        <Box className="masterlist__footer"></Box>
+        <Box className="systems__footer"></Box>
       </Box>
     </>
   );
-};
+}
 
 export default UMPage;
