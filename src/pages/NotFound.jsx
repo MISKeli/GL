@@ -1,16 +1,22 @@
 import React from "react";
 import "../styles/NotFound.scss";
+import { Box, Button } from "@mui/material";
+import notfound from "../assets/images/404.svg";
+import { useNavigate } from "react-router-dom";
 
 const Notfound = () => {
+  const navigate = useNavigate();
+
+  const handleMainPage = () => {
+    navigate("/");
+  };
   return (
-    <div className="error-container">
-      {/* Error message */}
-      <div className="error-message">
-        <h1>Oops! Something went wrong.</h1>
-        <p>We're sorry, but there was an error.</p>
-        <p>Please try again later.</p>
-      </div>
-    </div>
+    <Box className="notfound">
+      <img src={notfound} alt="notfound" />
+      <Button variant="contained" onClick={handleMainPage}>
+        Back to Main Page
+      </Button>
+    </Box>
   );
 };
 

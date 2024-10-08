@@ -64,6 +64,7 @@ const Sidebar = () => {
   }, [location]);
 
   const handleMainCatClick = (item, index) => {
+    setIsDrawerOpen(true);
     if (item.subCategory) {
       // If there are subcategories
       setActiveIndex(index);

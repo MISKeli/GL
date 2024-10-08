@@ -413,7 +413,7 @@ const ImportPage = () => {
             className="import__content__dialog--title"
             fontWeight={600}
           >
-            Duplicate Data Found
+            Error Data Found
           </DialogTitle>
           <DialogContent className="import__content__dialog--content">
             {isFetchingDuplicates || isLoading ? (

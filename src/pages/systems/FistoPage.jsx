@@ -53,6 +53,8 @@ function FistoPage() {
     DateTo: reportData.DateTo,
   });
 
+  console.log("Fisto", systemData);
+
   const handleSearchClick = () => {
     setExpanded(true);
     inputRef.current?.focus();

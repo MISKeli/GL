@@ -7,6 +7,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const DashboardPage = () => {
   const user = JSON.parse(sessionStorage.getItem("user"));
+
+  
   return (
     <>
       <Box className="dashboard">

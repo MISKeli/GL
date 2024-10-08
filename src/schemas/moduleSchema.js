@@ -22,6 +22,16 @@ import {
   SupervisedUserCircleOutlined,
   SupervisedUserCircleRounded,
 } from "@mui/icons-material";
+import Ymir from "../assets/icon/Ymir";
+import YmirOn from "../assets/icon/YmirOn";
+import Fisto from "../assets/icon/fisto";
+import UM from "../assets/icon/UM";
+import UMOn from "../assets/icon/UMOn";
+import Elixir from "../assets/icon/Elixir";
+import ElixirOn from "../assets/icon/ElixirOn";
+import FistoOn from "../assets/icon/FistoOn";
+import Arcana from "../assets/icon/Arcana";
+import ArcanaOn from "../assets/icon/ArcanaOn";
 
 export const moduleSchema = [
   {
@@ -32,7 +42,7 @@ export const moduleSchema = [
     to: "/",
     subCategory: null,
   },
-  
+
   {
     name: "Users Management",
     section: "users_management",
@@ -74,15 +84,15 @@ export const moduleSchema = [
       {
         name: "Arcana",
         section: "arcana",
-        icon: EventNoteOutlined,
-        iconOn: EventNoteRounded,
+        icon: Arcana,
+        iconOn:  ArcanaOn,
         to: "/systems/arcana",
       },
       {
         name: "Elixir ETD",
         section: "elixir_etd",
-        icon: AccountBalanceOutlined,
-        iconOn: AccountBalanceRounded,
+        icon: Elixir,
+        iconOn: ElixirOn,
         to: "/systems/elixir_etd",
       },
       {
@@ -95,22 +105,22 @@ export const moduleSchema = [
       {
         name: "Ultra Maverick Dry",
         section: "um",
-        icon: AccountBalanceOutlined,
-        iconOn: AccountBalanceRounded,
+        icon: UM,
+        iconOn: UMOn,
         to: "/systems/um",
       },
       {
         name: "Ymir",
         section: "ymir",
-        icon: ForestOutlined,
-        iconOn: ForestRounded,
+        icon: Ymir,
+        iconOn: YmirOn,
         to: "/systems/ymir",
       },
       {
         name: "Fisto",
         section: "fisto",
-        icon: LeaderboardOutlined,
-        iconOn: LeaderboardRounded,
+        icon: Fisto,
+        iconOn: FistoOn,
         to: "/systems/fisto",
       },
     ],
