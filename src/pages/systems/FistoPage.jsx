@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../../styles/SystemsPage.scss";
 import {
   Box,
@@ -20,7 +20,11 @@ import {
 import { info } from "../../schemas/info";
 import { ClearRounded, SearchRounded } from "@mui/icons-material";
 import Date from "./Date";
-import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
+import {
+  useGetAllGLReportAsyncQuery,
+  useLazyGetAllGLReportAsyncQuery,
+} from "../../features/api/importReportApi";
+
 import useDebounce from "../../components/useDebounce";
 import FilterComponent from "../../components/FilterComponent";
 import dayjs from "dayjs";
@@ -40,6 +44,11 @@ function FistoPage() {
   const inputRef = useRef(null);
   const debounceValue = useDebounce(search);
   const headerColumn = info.report_import_table_columns;
+
+  // Lazy fetch to get total count without date filters
+  const [fetchTotalCount, { data: totalCountData }] =
+    useLazyGetAllGLReportAsyncQuery();
+
   const {
     data: systemData,
     isLoading: isSystemloading,
@@ -52,8 +61,19 @@ function FistoPage() {
     DateFrom: reportData.DateFrom,
     DateTo: reportData.DateTo,
   });
-
   console.log("Fisto", systemData);
+
+  // Fetch total count on component mount (without date filtering)
+  useEffect(() => {
+    fetchTotalCount({
+      Search: "",
+      PageNumber: 1,
+      PageSize: 1, // Only fetching count, so limit page size
+      System: "Fisto",
+      DateFrom: "", // Empty to include all data
+      DateTo: "", // Empty to include all data
+    });
+  }, [fetchTotalCount]);
 
   const handleSearchClick = () => {
     setExpanded(true);
@@ -191,20 +211,6 @@ function FistoPage() {
                 </TableBody>
               </Table>
             </TableContainer>
-            <TablePagination
-              component="div"
-              count={systemData?.totalCount || 0}
-              page={page}
-              rowsPerPage={pageSize}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[
-                5,
-                10,
-                25,
-                { label: "All", value: systemData?.totalCount || 0 },
-              ]}
-            />
           </Box>
         </Box>
 
@@ -216,7 +222,25 @@ function FistoPage() {
           <Box></Box>
           <Date onFetchData={handleFetchData} />
         </Menu>
-        <Box className="systems__footer"></Box>
+        <Box className="systems__footer">
+          <Typography>
+            Total Records: {totalCountData?.totalCount || 0}
+          </Typography>
+          <TablePagination
+            component="div"
+            count={systemData?.totalCount || 0}
+            page={page}
+            rowsPerPage={pageSize}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[
+              5,
+              10,
+              25,
+              { label: "All", value: systemData?.totalCount || 0 },
+            ]}
+          />
+        </Box>
       </Box>
     </>
   );
