@@ -31,8 +31,14 @@ export const reportSchema = yup.object().shape({
   DateTo: yup.string().required("Date is required."),
 });
 
+export const systemSchema = yup.object().shape({
+  systemName: yup.string().required("System Name is required."),
+  endpoint: yup.string().required("Endpoint is required."),
+  token: yup.string().required("Token is required."),
+});
+
 export const importSchema = yup.object().shape({
-    syncId: yup.string().required("Sync Id is required."),
+  syncId: yup.string().required("Sync Id is required."),
   mark1: yup.string().nullable(),
   mark2: yup.string().nullable(),
   assetCIP: yup.string().nullable(),

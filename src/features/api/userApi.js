@@ -38,5 +38,9 @@ const userApi = indexApi
     }),
   });
 
-export const { useAddUserMutation, useGetAllUserQuery, useUpdateUserMutation, useUpdateUserStatusMutation } =
-  userApi;
+export const {
+  useAddUserMutation,
+  useGetAllUserQuery,
+  useUpdateUserMutation,
+  useUpdateUserStatusMutation,
+} = userApi;

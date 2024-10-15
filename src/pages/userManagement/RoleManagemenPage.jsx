@@ -2,7 +2,6 @@ import {
   Badge,
   Box,
   Button,
-  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -23,7 +22,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import useDebounce from "../../components/useDebounce";
@@ -37,7 +36,6 @@ import {
   ArchiveRounded,
   EditRounded,
   LibraryAddRounded,
-  LockReset,
   MoreVertOutlined,
   RestoreFromTrashOutlined,
   Search,
@@ -295,7 +293,7 @@ const RoleManagemenPage = () => {
                             <IconButton
                               onClick={(event) => {
                                 handlePopOverOpen(event, userRole);
-                                setActiveRow(userRole.id);
+                                
                               }}
                             >
                               <MoreVertOutlined />

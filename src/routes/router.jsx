@@ -15,6 +15,7 @@ import FistoPage from "../pages/systems/FistoPage";
 import ElixirETDPage from "../pages/systems/ElixirETDPage";
 import ElixirPharmacyPage from "../pages/systems/ElixirPharmacyPage";
 import ImportPage from "../pages/ImportPage";
+import SystemSetupPage from "../pages/systemSetup/SystemSetupPage";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
                 ),
               },
             ],
+          },
+          {
+            path: "system_setup",
+            element: <SystemSetupPage />,
           },
           {
             path: "import",

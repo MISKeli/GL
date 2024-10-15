@@ -69,7 +69,7 @@ const PasswordDialog = ({ open, onClose, isReset, userId, username }) => {
   };
   return (
     <Dialog open={open} fullWidth className="password">
-      <DialogTitle className="password__title">
+      <DialogTitle className="password__title" fontWeight={600}>
         <Stack direction="row" justifyContent="space-between">
           {info.password_title}
           {decryptedUToken !== decryptedPToken ? (

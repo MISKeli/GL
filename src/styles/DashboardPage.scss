@@ -1,15 +1,18 @@
+@import "__palette.module";
+@import "__mixins";
+
 .dashboard {
   &__header {
     position: relative;
+    padding-top: 40px;
     &__box1 {
       border-radius: 5px;
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
-      height: 230px;
+      height: 215px;
       
-
       background: linear-gradient(
         to right,
         #0c3483 0%,
@@ -19,9 +22,10 @@
       );
 
       &--title {
+        
         padding: 10px;
         
-        color: white; /* Set title color to white */
+        color: $primary-contrast-text;
       }
     }
 
@@ -31,15 +35,13 @@
       right: 0;
 
       width: 500px;
-      
       max-width: 400px;
+      @include md {
+        display: flex;
+      }
+      display: none;
+      
     }
 
-    // &__image {
-    //   width: 250px;
-    //   max-width: 400px;
-    //   height: auto;
-    //   object-fit: cover;
-    // }
   }
 }

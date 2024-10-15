@@ -46,7 +46,7 @@ const ImportPage1 = () => {
   } = useForm({
     defaultValues: {
       addedBy: 0,
-      reports: [defaultReport],
+      reports: [defaultReport.report],
     },
     resolver: yupResolver(importSchema),
   });

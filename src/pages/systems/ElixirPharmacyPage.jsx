@@ -226,9 +226,9 @@ function ElixirPharmacyPage() {
           <Date onFetchData={handleFetchData} />
         </Menu>
         <Box className="systems__footer">
-          <Typography>
+          {/* <Typography>
             Total Records: {totalCountData?.totalCount || 0}
-          </Typography>
+          </Typography> */}
           <TablePagination
             component="div"
             count={systemData?.totalCount || 0}

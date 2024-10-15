@@ -1,36 +1,36 @@
-$primary-main: #3d61ae;
-$primary-light: #4c6ea5;
-$primary-dark: #2f3f5c;
+$primary-main: darken(#3d61ae, 10%); // #304f8d
+$primary-light: darken(#4c6ea5, 10%); // #3e5987
+$primary-dark: darken(#2f3f5c, 10%); // #232d43
 $primary-contrast-text: #ffffff;
 
-$secondary-main: #ed252a;
-$secondary-light: #ff3737;
-$secondary-dark: #c21616;
+$secondary-main: darken(#ed252a, 10%); // #c71f23
+$secondary-light: darken(#ff3737, 10%); // #d52d2d
+$secondary-dark: darken(#c21616, 10%); // #9b1111
 $secondary-contrast-text: #ffffff;
 
-$info-main: #3dabe1;
-$info-light: #64c5e6;
-$info-dark: #2196f3;
+$info-main: darken(#3dabe1, 10%); // #3390bb
+$info-light: darken(#64c5e6, 10%); // #54a3bf
+$info-dark: darken(#2196f3, 10%); // #1a77c2
 $info-contrast-text: #ffffff;
 
-$warning-main: #ffc107;
-$warning-light: #ffd07b;
-$warning-dark: #ffa07a;
-$warning-contrast-text: #000000;
+$warning-main: darken(#ffc107, 10%); // #e0a605
+$warning-light: darken(#ffd07b, 10%); // #d3b06f
+$warning-dark: darken(#ffa07a, 10%); // #e08d6d
+$warning-contrast-text: darken(#000000, 10%); // #000000 (unchanged)
 
-$error-main: #e74c3c;
-$error-light: #ff7f7f;
-$error-dark: #c0392b;
+$error-main: darken(#e74c3c, 10%); // #c53f31
+$error-light: darken(#ff7f7f, 10%); // #d96b6b
+$error-dark: darken(#c0392b, 10%); // #9e2e22
 $error-contrast-text: #ffffff;
 
-$success-main: #2ecc71;
-$success-light: #34c759;
-$success-dark: #1e8655;
+$success-main: darken(#2ecc71, 10%); // #25a75d
+$success-light: darken(#34c759, 10%); // #2ba449
+$success-dark: darken(#1e8655, 10%); // #176944
 $success-contrast-text: #ffffff;
 
-$tertiary-main: #9c27b0;
-$tertiary-light: #ba68c8;
-$tertiary-dark: #7b1fa2;
+$tertiary-main: darken(#9c27b0, 10%); // #831e91
+$tertiary-light: darken(#ba68c8, 10%); // #9a56a7
+$tertiary-dark: darken(#7b1fa2, 10%); // #641982
 $tertiary-contrast-text: #ffffff;
 
 $background-default: #f1f3f9;
@@ -42,10 +42,11 @@ $text-secondary: #666666;
 $text-disabled: #999999;
 $text-hint: #aaaaaa;
 
-$caution-main: #ff9800;
-$caution-light: #ffc947;
-$caution-dark: #c66900;
-$caution-contrast-text: #000000;
+$caution-main: darken(#ff9800, 10%); // #e68900
+$caution-light: darken(#ffc947, 10%); // #d8a13b
+$caution-dark: darken(#c66900, 10%); // #9e5300
+$caution-contrast-text: darken(#000000, 10%); // #000000 (unchanged)
+
 
 :export {
   primary-main: $primary-main;

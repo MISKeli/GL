@@ -94,7 +94,7 @@ const UserAccountPage = () => {
     },
     { refetchOnFocus: true }
   );
-  //console.log("apple", userData);
+  console.log("appleeee", userData);
 
   const openPopUp = () => {
     setOpen(true);
@@ -105,7 +105,6 @@ const UserAccountPage = () => {
     setAnchorEl(null);
     setIsUpdate(false);
     dispatch(setPokedData(null));
-    //clearPokedData();
   };
 
   //Opening Menu
@@ -213,48 +212,48 @@ const UserAccountPage = () => {
               {info.users_add_button}
             </Button>
           </Box>
-        <Box className="masterlist__header__con2">
-          <Box className="masterlist__header__con2--archieved">
-            <Tooltip title="Archive" placement="left" arrow>
-              <IconButton onClick={handleToggleStatus}>
-                {status === "inactive" ? (
-                  <ArchiveRounded color="primary" />
-                ) : (
-                  <ArchiveOutlined color="primary" />
-                )}
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <AnimatedBox
-            className="masterlist__header__con2--search"
-            expanded={expanded}
-            component="form"
-            onClick={() => setExpanded(true)}
+          <Box className="masterlist__header__con2">
+            <Box className="masterlist__header__con2--archieved">
+              <Tooltip title="Archive" placement="left" arrow>
+                <IconButton onClick={handleToggleStatus}>
+                  {status === "inactive" ? (
+                    <ArchiveRounded color="primary" />
+                  ) : (
+                    <ArchiveOutlined color="primary" />
+                  )}
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <AnimatedBox
+              className="masterlist__header__con2--search"
+              expanded={expanded}
+              component="form"
+              onClick={() => setExpanded(true)}
             >
-            <InputBase
-              sx={{ ml: 0.5, flex: 1 }}
-              placeholder="Search"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
-              onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
-              inputRef={inputRef} // Assign the ref to InputBase
+              <InputBase
+                sx={{ ml: 0.5, flex: 1 }}
+                placeholder="Search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(0);
+                }}
+                onBlur={() => search === "" && setExpanded(false)} // Collapse when losing focus if search is empty
+                inputRef={inputRef} // Assign the ref to InputBase
               />
-            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-            <IconButton
-              color="primary"
-              type="button"
-              sx={{ p: "10px" }}
-              aria-label="search"
-              onClick={handleSearchClick}
+              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+              <IconButton
+                color="primary"
+                type="button"
+                sx={{ p: "10px" }}
+                aria-label="search"
+                onClick={handleSearchClick}
               >
-              <Search />
-            </IconButton>
-          </AnimatedBox>
+                <Search />
+              </IconButton>
+            </AnimatedBox>
+          </Box>
         </Box>
-              </Box>
         <Box className="masterlist__content">
           <Box className="masterlist__content__table">
             <TableContainer

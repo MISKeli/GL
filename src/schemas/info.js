@@ -28,6 +28,20 @@ export const info = {
     { id: "permissions", name: "PERMISSIONS" },
     { id: "addedBy", name: "ADDED BY" },
     { id: "modifiedBy", name: "MODIFIED BY" },
+
+    { id: "action", name: "ACTIONS" },
+  ],
+
+  setup_title: "System Setup",
+  setup_add_button: "Add System",
+  setup_dialog_add_title: "Add System",
+  setup_dialog_update_title: "Update System",
+
+  setup_table_columns: [
+    { id: "systemName", name: "SYSTEM" },
+    { id: "endpoint", name: "ENDPOINT" },
+     { id: "token", name: "TOKEN" },
+    { id: "status", name: "STATUS" },
     { id: "action", name: "ACTIONS" },
   ],
 

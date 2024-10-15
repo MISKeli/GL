@@ -1,22 +1,24 @@
-import { DataGrid } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridToolbarContainer,
+  GridToolbarExport,
+} from "@mui/x-data-grid";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  Stack,
-  IconButton,
   CircularProgress,
   Typography,
   Box,
 } from "@mui/material";
-import { Close, CloudUpload } from "@mui/icons-material";
+import { CloudUpload } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import React, { useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { importSchema } from "../schemas/validation";
-import { defaultReport } from "../schemas/defaultValue";
+import { defaultValue } from "../schemas/defaultValue";
 
 import { useDropzone } from "react-dropzone";
 import * as XLSX from "xlsx";
@@ -35,10 +37,10 @@ const ImportPage = () => {
   const [importedData, setImportedData] = useState([]); // Holds data after import
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false); // For duplicate dialog
 
-  const { handleSubmit, setValue, watch } = useForm({
+  const { setValue, watch } = useForm({
     defaultValues: {
       addedBy: 0,
-      reports: [defaultReport],
+      reports: [defaultValue.report],
     },
     resolver: yupResolver(importSchema),
   });
@@ -47,8 +49,8 @@ const ImportPage = () => {
 
   const createHeader = () => {
     if (data.length === 0) return [];
-    const columnToHide = "";
-    const nonEditableColumns = ["syncId", "system", "drcp"];
+    const columnToHide = "syncId";
+    const nonEditableColumns = ["syncId", "system", "drcp", "lineAmount"];
 
     // Get all unique keys across all rows
     const allKeys = data.reduce((keys, row) => {
@@ -72,10 +74,7 @@ const ImportPage = () => {
   const rows = data.map((row, index) => ({
     ...row,
     id: row.id || index, // Unique identifier
-    // accountingTag: row.accountingTag?.toString(),
-    // transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
-    //   .utc()
-    //   .toISOString(),
+
     syncId: row.syncId ? row.syncId.toString() : "",
     mark1: row.mark1 ? row.mark1 : "",
     mark2: row.mark2 ? row.mark2 : "",
@@ -164,8 +163,18 @@ const ImportPage = () => {
   const roundedTotal = Math.round(lineAmountTotal);
   console.log("lineAmountTotal", roundedTotal);
 
-  const onDrop = (acceptedFiles) => {
-    console.log("tanggap", acceptedFiles);
+  const onDrop = (acceptedFiles, fileRejections) => {
+    if (acceptedFiles.length > 1) {
+      toast.error("Importing Multiple Files.");
+      return;
+    }
+    if (fileRejections.length > 0) {
+      // Show error toast if there are any rejected files
+      toast.error("Submitting file is invalid.");
+      return;
+    }
+    console.log("Accepted File:", acceptedFiles[0]);
+
     const reader = new FileReader();
     reader.readAsBinaryString(acceptedFiles[0]);
     reader.onload = (e) => {
@@ -216,7 +225,13 @@ const ImportPage = () => {
   };
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: ".xlsx, .xls",
+    accept: {
+      "application/vnd.ms-excel": [".xls"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+    },
+    multiple: true,
   });
 
   const processRowUpdate = (newRow) => {
@@ -286,6 +301,7 @@ const ImportPage = () => {
       setIsLoading(false); // Stop loading
     }
   };
+  const nonEditableColumns = ["syncId", "system", "drcp", "lineAmount"];
   return (
     <>
       <Box className="import">
@@ -305,6 +321,7 @@ const ImportPage = () => {
             </Typography>
 
             <Button
+              sx={{ marginTop: 2 }}
               variant="contained"
               startIcon={<CloudUpload />}
               color="success"
@@ -346,6 +363,11 @@ const ImportPage = () => {
                   rows={rows}
                   columns={columns}
                   processRowUpdate={processRowUpdate}
+                  getCellClassName={(params) => {
+                    return nonEditableColumns.includes(params.field)
+                      ? "non-editable-cell"
+                      : "";
+                  }}
                   initialState={{
                     pagination: {
                       paginationModel: {
@@ -354,7 +376,7 @@ const ImportPage = () => {
                     },
                   }}
                   pageSizeOptions={[5, 10, 25, { value: 99, label: "All" }]}
-                  checkboxSelection
+                  //checkboxSelection
                   disableRowSelectionOnClick
                   experimentalFeatures={{ newEditingApi: true }}
                   sx={{
@@ -378,13 +400,9 @@ const ImportPage = () => {
                 onClick={handleImport}
                 variant="contained"
                 color="primary"
-                disabled={isLoading || isFetching || roundedTotal != 0} // Disable button while loading
+                disabled={isLoading || isFetching || roundedTotal !== 0} // Disable button while loading
               >
-                {isLoading || isFetching ? (
-                  <CircularProgress size={24} />
-                ) : (
-                  "Import"
-                )}
+                Import
               </Button>{" "}
               <Button
                 onClick={() => setIsDataGridOpen(false)}

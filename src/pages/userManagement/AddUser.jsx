@@ -29,6 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 import ConfirmedDialog from "../../components/ConfirmedDialog";
 import { setPokedData } from "../../features/slice/authSlice";
 import { useGetAllUserRoleAsyncQuery } from "../../features/api/roleApi";
+import { defaultValue } from "../../schemas/defaultValue";
 
 const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   const [loading, setLoading] = useState(false); // Add loading state
@@ -45,17 +46,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     resolver: yupResolver(userSchema),
     mode: "onChange",
     reValidateMode: "onChange",
-    defaultValues: {
-      idPrefix: "",
-      idNumber: "",
-      firstName: "",
-      lastName: "",
-      middleName: "",
-      userRoleId: null,
-      sex: "",
-      username: "",
-      password: "",
-    },
+    defaultValues: [defaultValue.userAcc],
   });
   const dispatch = useDispatch();
   const [addUser] = useAddUserMutation();
@@ -100,7 +91,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     );
 
     setValue("userRoleId", roleDataValues || "");
-    // console.log("userRole2", pokedData);
+     //console.log("userRole2", pokedData);
     setValue("idPrefix", pokedData?.idPrefix || "");
     setValue("idNumber", pokedData?.idNumber || "");
     setValue("firstName", pokedData?.firstName || "");
@@ -111,7 +102,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     setValue("username", pokedData?.username || "");
   };
   const handleClose = () => {
-    reset();
+    reset(defaultValue.userAcc);
     closeHandler();
     dispatch(setPokedData(null));
   };
@@ -121,7 +112,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
       handleFormValue();
     }
   }, [open]);
-  //console.log({ isUpdate });
+  //console.log("IsUPdate", isUpdate);
   const confirmSubmit = async (userData) => {
     setLoading(true); // Set loading to true at the start of submission
     const body = {
@@ -166,7 +157,11 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
   };
 
   const submitHandler = (userData) => {
-    setOpenConfirmDialog(true); // Open the confirmation dialog
+    if (isUpdate) {
+      setOpenConfirmDialog(true); // Open confirmation dialog when updating
+    } else {
+      handleSubmit(confirmSubmit)(userData); // Directly submit when adding new user
+    }
   };
 
   const handleConfirmYes = () => {
