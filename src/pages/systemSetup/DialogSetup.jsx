@@ -27,6 +27,7 @@ import { useSelector } from "react-redux";
 import { defaultValue } from "../../schemas/defaultValue";
 import ConfirmedDialog from "../../components/ConfirmedDialog";
 import { useTestConnectQuery } from "../../features/api/testerApi";
+
 const DialogSetup = ({
   open = false,
   closeHandler,
@@ -35,6 +36,7 @@ const DialogSetup = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [connectionSuccess, setConnectionSuccess] = useState(false); // New state to track connection success
   const pokedData = useSelector((state) => state.auth.pokedData);
 
   const {
@@ -59,17 +61,18 @@ const DialogSetup = ({
     refetch,
   } = useTestConnectQuery(
     {
-      endpoint: watch("endpoint"), // Dynamically get the endpoint from the form
-      token: watch("token"), // Dynamically get the token from the form
+      endpoint: watch("endpoint"),
+      token: watch("token"),
     },
-    { skip: !watch("endpoint") || !watch("token") } // Only run when manually triggered by refetch
+    { skip: !watch("endpoint") || !watch("token") }
   );
-  console.log("TESTER", testData);
+
   const [AddNewSystem] = useAddNewSystemMutation();
   const [UpdateSystem] = useUpdateSystemMutation();
 
   const handleClose = () => {
     reset(defaultValue.system);
+    setConnectionSuccess(false); // Reset connection success on close
     closeHandler();
   };
 
@@ -124,29 +127,28 @@ const DialogSetup = ({
     }
   };
 
-  const handleTestClick = () => {
+  const handleTestClick = async () => {
     const endpoint = watch("endpoint");
     const token = watch("token");
-
-    console.log("Endpoint:", endpoint);
-    console.log("Token:", token);
 
     if (!endpoint || !token) {
       toast.error("Please provide both endpoint and token.");
       return;
     }
-    refetch(); // Manually trigger the test
+
+    try {
+      const { isSuccess } = await refetch({ endpoint, token });
+
+      if (isSuccess) {
+        toast.success("Connection successful!");
+        setConnectionSuccess(true); // Mark connection as successful
+      } else {
+        toast.error("Connection failed. Please check the endpoint and token.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while testing the connection.");
+    }
   };
-
-  useEffect(() => {
-    if (isTestSuccess) {
-      toast.success("Connection successful!");
-    }
-
-    if (isTestError) {
-      toast.error("Connection failed. Please check the endpoint and token.");
-    }
-  }, [isTestSuccess, isTestError]);
 
   const handleConfirmYes = () => {
     handleSubmit(confirmSubmit)();
@@ -231,25 +233,29 @@ const DialogSetup = ({
           <Button color="error" variant="contained" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            color="info"
-            variant="contained"
-            disabled={loading || !isValid}
-            onClick={handleTestClick}
-          >
-            Test
-          </Button>
-          <Button
-            variant="contained"
-            type="submit"
-            form="submit-form"
-            disabled={!isValid || !isTestSuccess || loading}
-            startIcon={
-              loading ? <CircularProgress color="info" size={20} /> : null
-            }
-          >
-            {loading ? "Processing..." : isUpdate ? "Save" : "Register"}
-          </Button>
+          {!connectionSuccess && ( // Hide Test button after successful connection
+            <Button
+              color="info"
+              variant="contained"
+              disabled={loading || !isValid}
+              onClick={handleTestClick}
+            >
+              Test
+            </Button>
+          )}
+          {connectionSuccess && ( // Show Register button only after successful connection
+            <Button
+              variant="contained"
+              type="submit"
+              form="submit-form"
+              disabled={loading || !isValid}
+              startIcon={
+                loading ? <CircularProgress color="info" size={20} /> : null
+              }
+            >
+              {loading ? "Processing..." : isUpdate ? "Save" : "Register"}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
       <ConfirmedDialog
