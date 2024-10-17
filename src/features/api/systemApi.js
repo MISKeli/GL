@@ -43,5 +43,6 @@ export const {
   useAddNewSystemMutation,
   useUpdateSystemMutation,
   useGetAllSystemsAsyncQuery,
+  useLazyGetAllSystemsAsyncQuery,
   useUpdateSystemStatusMutation,
 } = systemApi;

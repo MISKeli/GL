@@ -16,6 +16,7 @@ import ElixirETDPage from "../pages/systems/ElixirETDPage";
 import ElixirPharmacyPage from "../pages/systems/ElixirPharmacyPage";
 import ImportPage from "../pages/ImportPage";
 import SystemSetupPage from "../pages/systemSetup/SystemSetupPage";
+import SystemPage from "../pages/SystemPage";
 
 export const router = createBrowserRouter([
   {
@@ -58,6 +59,14 @@ export const router = createBrowserRouter([
           {
             path: "system_setup",
             element: <SystemSetupPage />,
+          },
+          {
+            path: "system",
+            element: (
+              <AccessPermission permission={"System"}>
+                <SystemPage />
+              </AccessPermission>
+            ),
           },
           {
             path: "import",

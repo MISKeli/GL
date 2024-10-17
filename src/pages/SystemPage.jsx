@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import "../../styles/SystemsPage.scss";
+import "../styles/SystemsPage.scss";
 import {
   Box,
   CircularProgress,
@@ -20,21 +20,21 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { info } from "../../schemas/info";
+import { info } from "../schemas/info";
 
 import { ClearRounded, SearchRounded } from "@mui/icons-material";
-import Date from "./Date";
+// import Date from "./Date";
 import {
   useGetAllGLReportAsyncQuery,
   useLazyGetAllGLReportAsyncQuery,
-} from "../../features/api/importReportApi";
-import useDebounce from "../../components/useDebounce";
-import FilterComponent from "../../components/FilterComponent";
+} from "../features/api/importReportApi";
+import useDebounce from "../components/useDebounce";
+import FilterComponent from "../components/FilterComponent";
 import dayjs from "dayjs";
 import moment from "moment";
-import { useLazyGetAllSystemsAsyncQuery } from "../../features/api/systemApi";
+import { useLazyGetAllSystemsAsyncQuery } from "../features/api/systemApi";
 
-function YmirPage() {
+function SystemPage() {
   const currentDate = dayjs();
   const [reportData, setReportData] = useState({
     DateFrom: moment(currentDate).format("YYYY-MM-DD"),
@@ -49,7 +49,10 @@ function YmirPage() {
   const [pageSize, setPageSize] = useState(10);
   const inputRef = useRef(null); // Create a ref for InputBase
   const debounceValue = useDebounce(search);
-  const headerColumn = info.report_import_table_columns;
+  const headerColumn = info.report_import_table_columns.map((col) => ({
+    ...col,
+    width: col.width || "auto", // Set default width if not defined
+  }));
 
   // Lazy query to fetch systems
   const [getSystems, { data: systemsData, isLoading: isSystemsLoading }] =
@@ -189,7 +192,7 @@ function YmirPage() {
                     {headerColumn.map((columnTable) => (
                       <TableCell
                         key={columnTable.id}
-                        className={`column-${columnTable.id}`}
+                        style={{ width: columnTable.width }} // Add inline style for width
                       >
                         {columnTable.name}
                       </TableCell>
@@ -201,10 +204,7 @@ function YmirPage() {
                     Array.from({ length: pageSize }).map((_, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
-                          <TableCell
-                            key={col.id}
-                            className={`column-${col.id}`}
-                          >
+                          <TableCell key={col.id}>
                             <Skeleton
                               variant="text"
                               animation="wave"
@@ -218,7 +218,7 @@ function YmirPage() {
                     systemData?.reports?.map((row, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
-                          <TableCell key={col.id}>
+                          <TableCell key={col.id} style={{ width: col.width }}>
                             {" "}
                             {row[col.id] ? row[col.id] : "-"}
                           </TableCell>
@@ -269,4 +269,4 @@ function YmirPage() {
   );
 }
 
-export default YmirPage;
+export default SystemPage;

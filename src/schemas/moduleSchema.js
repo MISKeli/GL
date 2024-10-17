@@ -66,6 +66,14 @@ export const moduleSchema = [
     subCategory: null,
   },
   {
+    name: "System",
+    section: "system",
+    icon: FeedOutlined,
+    iconOn: FeedRounded,
+    to: "/system",
+    subCategory: null,
+  },
+  {
     name: "Import",
     section: "import",
     icon: Inventory2Outlined,

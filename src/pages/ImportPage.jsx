@@ -12,6 +12,7 @@ import {
   CircularProgress,
   Typography,
   Box,
+  Divider,
 } from "@mui/material";
 import { CloudUpload } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
@@ -27,6 +28,12 @@ import { info } from "../schemas/info";
 import { useImportReportsMutation } from "../features/api/importReportApi";
 import moment from "moment";
 import { toast } from "sonner";
+import DropDownComponent from "../components/DropDownComponent";
+import {
+  useGetAllSystemsAsyncQuery,
+  useLazyGetAllSystemsAsyncQuery,
+} from "../features/api/systemApi";
+import { useLazyTestConnectQuery } from "../features/api/testerApi";
 
 const ImportPage = () => {
   const [data, setData] = useState([]); // Holds parsed data
@@ -36,6 +43,8 @@ const ImportPage = () => {
   const [isLoading, setIsLoading] = useState(false); // Loading state for the import
   const [importedData, setImportedData] = useState([]); // Holds data after import
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false); // For duplicate dialog
+  const [selectedValue, setSelectedValue] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
   const { setValue, watch } = useForm({
     defaultValues: {
@@ -44,7 +53,7 @@ const ImportPage = () => {
     },
     resolver: yupResolver(importSchema),
   });
-  console.log(watch());
+
   const [importData, { isFetching }] = useImportReportsMutation();
 
   const createHeader = () => {
@@ -161,7 +170,7 @@ const ImportPage = () => {
   }, 0);
 
   const roundedTotal = Math.round(lineAmountTotal);
-  console.log("lineAmountTotal", roundedTotal);
+  //console.log("lineAmountTotal", roundedTotal);
 
   const onDrop = (acceptedFiles, fileRejections) => {
     if (acceptedFiles.length > 1) {
@@ -173,7 +182,7 @@ const ImportPage = () => {
       toast.error("Submitting file is invalid.");
       return;
     }
-    console.log("Accepted File:", acceptedFiles[0]);
+    // console.log("Accepted File:", acceptedFiles[0]);
 
     const reader = new FileReader();
     reader.readAsBinaryString(acceptedFiles[0]);
@@ -270,7 +279,6 @@ const ImportPage = () => {
   const columnsDuplicate = createHeaderDuplicate();
 
   const handleImport = async () => {
-    console.log("test");
     const transformedRows = rows.map((row) => ({
       ...row,
       transactionDate: row.transactionDate
@@ -284,8 +292,6 @@ const ImportPage = () => {
       const response = await importData({
         reports: transformedRows,
       }).unwrap();
-      console.log("response", response);
-      toast.success("Imported Successfully.");
       setImportedData(response); // Save imported data
       setIsDataGridOpen(false); // Close DataGrid dialog
       // onClose(); // Close main import dialog
@@ -302,10 +308,38 @@ const ImportPage = () => {
     }
   };
   const nonEditableColumns = ["syncId", "system", "drcp", "lineAmount"];
+  const [triggerFetchSystem,{data: fetchSystem}] = useLazyTestConnectQuery();
+
+  const handleChange = async (data) => {
+    setSelectedValue(data);
+    setSelectedDate(data)
+
+    try {
+      console.log({ data });
+      const response = await triggerFetchSystem({
+        endpoint: data.endpoint,
+        token: data.token,
+      }).unwrap();
+      console.log({ response });
+
+      toast.success(response.message);
+    } catch (error) {
+      toast.error(error?.message || "Error establishing connection");
+    }
+  };
+
   return (
     <>
       <Box className="import">
         <Box className="import__header">
+          <Typography variant="h5" className="import__header--sync">
+            Syncing
+            <Divider sx={{ height: 28, m: 0.5 }} />
+            <DropDownComponent
+              labelKey="systemName"
+              onChange={handleChange}
+            />
+          </Typography>
           <Typography variant="h5" className="import__header--title">
             Import Data
           </Typography>
@@ -476,6 +510,7 @@ const ImportPage = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
         <Box className="import__footer"></Box>
       </Box>
     </>

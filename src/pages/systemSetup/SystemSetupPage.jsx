@@ -85,7 +85,9 @@ const SystemSetupPage = () => {
     PageNumber: params.page + 1,
     PageSize: params.PageSize,
   });
-  //console.log("apple", systemData);
+  console.log("apple", systemData);
+
+  
   const changeStatus = (data) =>
     setParams((currentValue) => ({
       ...currentValue,

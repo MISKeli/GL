@@ -10,6 +10,16 @@
   &__header {
     &--title {
       color: $primary-main;
+      
+      
+    }
+    &--sync{
+      color: $primary-main;
+      
+      justify-content: flex-start;
+      align-items: center;
+      display: flex;
+      flex-direction: row;
     }
   }
   &__content {

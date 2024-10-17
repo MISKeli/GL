@@ -35,6 +35,7 @@ const DialogSetup = ({
   isUpdate = false,
 }) => {
   const [loading, setLoading] = useState(false);
+  
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [connectionSuccess, setConnectionSuccess] = useState(false); // New state to track connection success
   const pokedData = useSelector((state) => state.auth.pokedData);
