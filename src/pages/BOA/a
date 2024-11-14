@@ -1,0 +1,75 @@
+import React, { useState } from "react";
+//import ElixirPharmacyPage from "../../pages/systems/ElixirPharmacyPage";
+import { Box, IconButton, MenuItem, Select, Tooltip } from "@mui/material";
+import PurchasesBookPage from "../../pages/BOA/PurchasesBookPage";
+import CashDisbursementBookPage from "./CashDisbursementBookPage";
+import SalesJournalPage from "./SalesJournalPage";
+import PBHorizontal from "./PBHorizontal";
+import HorizontalCashDisbursementBookPage from "./HorizontalCashDisbursementBookPage";
+import { TableView } from "@mui/icons-material";
+const BoaPage = () => {
+  const [value, setValue] = useState("option4");
+
+  const handleChange = (event) => {
+    setValue(event.target.value);
+  };
+
+  const views = {
+    option1: <PBHorizontal />,
+    option2: <HorizontalCashDisbursementBookPage />,
+    //option3: <ElixirPharmacyPage />,
+    option4: <PurchasesBookPage />,
+    option5: <CashDisbursementBookPage />,
+    option6: <SalesJournalPage />,
+  };
+
+  // Determine if the view is horizontal or vertical
+  const isHorizontal = value === "option1" || value === "option3";
+  const tooltipTitle = isHorizontal ? "Horizontal View" : "Vertical View";
+  return (
+    <>
+      <Box className="view" sx={{ overflow: "auto", height: "100%" }}>
+        <Tooltip title={tooltipTitle} placement="right">
+          <IconButton
+            sx={{
+              position: "fixed",
+              backgroundColor: "red",
+              marginLeft: "265px",
+              marginTop: "10px",
+            }}
+          >
+            <TableView color="primary" />
+          </IconButton>
+        </Tooltip>
+
+        <Select
+          value={value}
+          onChange={handleChange}
+          //color="primary"
+          sx={{
+            minWidth: "230px",
+            width: "250px",
+            borderRadius: "10px",
+            backgroundColor: "background.header",
+            position: "absolute",
+
+            fontWeight: "bold",
+            //color: "primary.dark",
+            marginLeft: "10px",
+          }}
+        >
+          <MenuItem value="option1">Purchases Book</MenuItem>
+          <MenuItem value="option2">Cash Disbursement Book</MenuItem>
+          <MenuItem value="option3">Sales Journal</MenuItem>
+          <MenuItem value="option4">Purchases Book V1</MenuItem>
+          <MenuItem value="option5">Cash Disbursement Book V1</MenuItem>
+          <MenuItem value="option6">Sales Journal V1</MenuItem>
+        </Select>
+
+        {views[value]}
+      </Box>
+    </>
+  );
+};
+
+export default BoaPage;

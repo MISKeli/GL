@@ -24,6 +24,8 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
+    "exceljs": "^4.4.0",
+    "export-from-json": "^1.7.4",
     "moment": "^2.30.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

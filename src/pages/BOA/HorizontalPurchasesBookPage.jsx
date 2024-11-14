@@ -1,5 +1,7 @@
 import {
   Box,
+  Button,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -17,26 +19,30 @@ import {
 import React, { useRef, useState, useEffect } from "react";
 import useDebounce from "../../components/useDebounce";
 import moment from "moment";
-import dayjs from "dayjs";
-import { ClearRounded, SearchRounded } from "@mui/icons-material";
+import {
+  ClearRounded,
+  IosShareRounded,
+  SearchRounded,
+} from "@mui/icons-material";
 import "../../styles/BoaPage.scss";
 import { info } from "../../schemas/info";
-import { useGenerateHorizontalCashDisbursementBookPerMonthQuery } from "../../features/api/boaApi";
+import {
+  useExportVerticalCashDisbursementBookPerMonthQuery,
+  useGenerateHorizontalPurchasesBookPerMonthQuery,
+} from "../../features/api/boaApi";
 import BoaFilterComponent from "../../components/BoaFilterComponent";
-const ElixirETDPage = () => {
-  const currentDate = dayjs();
+const HorizontalPurchasesBookPage = () => {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
+  const [hasDataToExport, setHasDataToExport] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const [cdbHeader, setCdbHeader] = useState(
-    info.cash_disbursement_book_horizontal
-  );
+  const [cdbHeader, setCdbHeader] = useState(info.Purchases_Book_horizontal);
   const [transformedData, setTransformedData] = useState([]);
   const inputRef = useRef(null);
   const [reportData, setReportData] = useState({
-    DateFrom: moment(currentDate).format("YYYY-MM-DD"),
-    DateTo: moment(currentDate).format("YYYY-MM-DD"),
+    DateFrom: moment().format("YYYY-MM-DD"),
+    DateTo: moment().format("YYYY-MM-DD"),
   }); // State to hold fetched data
   const debounceValue = useDebounce(search);
   const seenIds = new Set();
@@ -52,7 +58,13 @@ const ElixirETDPage = () => {
       seenIds.add(item.id);
       return true;
     });
+
   const headerColumn = joinedCdbHeader;
+  const { data: exportData, isLoading: isExportLoading } =
+    useExportVerticalCashDisbursementBookPerMonthQuery({
+      Month: reportData.Month,
+      Year: reportData.Year,
+    });
 
   const {
     data: boaData,
@@ -60,64 +72,56 @@ const ElixirETDPage = () => {
     isFetching: isboaFetching,
 
     isSuccess,
-  } = useGenerateHorizontalCashDisbursementBookPerMonthQuery({
+  } = useGenerateHorizontalPurchasesBookPerMonthQuery({
     Search: debounceValue,
     PageNumber: page + 1,
     PageSize: pageSize,
-    System: reportData.System,
     Month: reportData.Month,
     Year: reportData.Year,
   });
-  console.log("horizontalCDB", boaData);
-  console.log("headerCDB", cdbHeader);
+  // console.log("horizontalPB", boaData);
+  // console.log("headerPB", cdbHeader);
 
-  console.log({ headerColumn });
   //Pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
   useEffect(() => {
     if (isSuccess) {
-      console.log(" is success");
-      const extraHeaders = boaData?.value?.cashDisbursementBook?.flatMap(
-        (item) =>
-          item.accountName?.map((headeritem) => ({
-            id: headeritem.nameOfAccount,
-            name: headeritem.nameOfAccount.toUpperCase(),
-            subItems: [
-              { id: "debit", name: "DEBIT" },
-              { id: "credit", name: "CREDIT" },
-            ],
-          }))
+      const extraHeaders = boaData?.value?.purchasesBook?.flatMap((item) =>
+        item.accountName?.map((headeritem) => ({
+          id: headeritem.nameOfAccount,
+          name: headeritem.nameOfAccount.toUpperCase(),
+          subItems: [
+            { id: "debit", name: "DEBIT" },
+            { id: "credit", name: "CREDIT" },
+          ],
+        }))
       );
       const newSetHeaders = [...new Set(extraHeaders)];
-      console.log({ newSetHeaders });
-      console.log({ extraHeaders });
-      setCdbHeader([
-        ...info.cash_disbursement_book_horizontal,
-        ...newSetHeaders,
-      ]);
+      // console.log({ newSetHeaders });
+      // console.log({ extraHeaders });
+      setCdbHeader([...info.Purchases_Book_horizontal, ...newSetHeaders]);
     }
   }, [isSuccess, boaData?.value]);
 
-  console.log("ww", boaData?.value?.cashDisbursementBook);
-
   useEffect(() => {
     // Simulating API data fetch
-    const apiData = boaData?.value?.cashDisbursementBook || [];
+    const apiData = boaData?.value?.purchasesBook || [];
 
     // Transform the data
     const newData = apiData.map((entry) => {
       // Destructure existing fields
       const {
-        chequeDate,
-        bank,
-        cvNumber,
-        chequeNumber,
-        payee,
+        glDate,
+        transactionDate,
+        nameOfSupplier,
         description,
-        tagNumber,
-        apvNumber,
+        poNumber,
+        rrNumber,
+        apv,
+        receiptNumber,
+        amount,
         accountName,
       } = entry;
 
@@ -130,14 +134,15 @@ const ElixirETDPage = () => {
 
       // Combine all fields into one object
       return {
-        chequeDate,
-        bank,
-        cvNumber,
-        chequeNumber,
-        payee,
+        glDate,
+        transactionDate,
+        nameOfSupplier,
         description,
-        tagNumber,
-        apvNumber,
+        poNumber,
+        rrNumber,
+        apv,
+        receiptNumber,
+        amount,
         ...accounts,
       };
     });
@@ -145,10 +150,6 @@ const ElixirETDPage = () => {
     // Set the transformed data to state
     setTransformedData(newData);
   }, [boaData]);
-
-  console.log("NEW DATA:", transformedData);
-
-  console.log("DATA: ", cdbHeader);
 
   const handleChangeRowsPerPage = (event) => {
     const selectedValue = parseInt(event.target.value, 25);
@@ -164,15 +165,8 @@ const ElixirETDPage = () => {
 
   // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
-    console.log("DATAAA", data);
-    console.log(
-      "Received MONTH:",
-      data.Month,
-      "year:",
-      data.Year,
-      "system",
-      data.System
-    ); // Debugging
+    //console.log("DATAAA", data);
+
     setReportData(data);
   };
 
@@ -246,25 +240,24 @@ const ElixirETDPage = () => {
                       >
                         {columnTable.name}
                         {columnTable.subItems && (
-                          <TableRow
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            {columnTable.subItems.map((subItems) => (
-                              <TableCell
-                                key={subItems.id}
-                                sx={{
-                                  textAlign: subItems.credit ? "left" : "", // Center subItems text
-                                  borderBottom: 0,
-                                  padding: "5px", // Ensure proper padding for aesthetics
-                                }}
-                              >
-                                {subItems.name}
-                              </TableCell>
-                            ))}
-                          </TableRow>
+                          <Table>
+                            <TableHead>
+                              <TableRow>
+                                {columnTable.subItems.map((subItems) => (
+                                  <TableCell
+                                    key={subItems.id}
+                                    sx={{
+                                      textAlign: subItems.credit ? "left" : "",
+                                      borderBottom: 0,
+                                      padding: "5px",
+                                    }}
+                                  >
+                                    {subItems.name}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            </TableHead>
+                          </Table>
                         )}
                       </TableCell>
                     ))}
@@ -290,27 +283,33 @@ const ElixirETDPage = () => {
                       <TableRow key={rowIndex}>
                         {headerColumn.map((column) => {
                           const value = row[column.id];
-
                           return (
                             <TableCell key={column.id}>
                               {value && typeof value === "object" ? (
-                                <TableRow 
-                                style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                      }}
-                                >
-                                  <TableCell sx={{
-                                            textAlign: "center",
-                                            borderBottom: 0,
-                                            padding: "5px",
-                                          }}> {value.debit}</TableCell>
-                                  <TableCell sx={{
-                                            textAlign: "center",
-                                            borderBottom: 0,
-                                            padding: "5px",
-                                          }}> {value.credit}</TableCell>
-                                </TableRow>
+                                <Table>
+                                  <TableBody>
+                                    <TableRow>
+                                      <TableCell
+                                        sx={{
+                                          textAlign: "center",
+                                          borderBottom: 0,
+                                          padding: "5px",
+                                        }}
+                                      >
+                                        {value.debit}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={{
+                                          textAlign: "center",
+                                          borderBottom: 0,
+                                          padding: "5px",
+                                        }}
+                                      >
+                                        {value.credit}
+                                      </TableCell>
+                                    </TableRow>
+                                  </TableBody>
+                                </Table>
                               ) : (
                                 value || "—"
                               )}
@@ -334,7 +333,23 @@ const ElixirETDPage = () => {
           </Box>
         </Box>
         <Box className="boa__footer">
-          {" "}
+          <Box>
+            <Button
+              variant="contained"
+              color="primary"
+              //onClick={onExport}
+              disabled={!hasDataToExport || isExportLoading}
+              startIcon={
+                isExportLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <IosShareRounded />
+                )
+              }
+            >
+              {isExportLoading ? "Exporting..." : "Export"}
+            </Button>
+          </Box>
           <TablePagination
             component="div"
             count={boaData?.value?.totalCount || 0}
@@ -355,4 +370,4 @@ const ElixirETDPage = () => {
   );
 };
 
-export default ElixirETDPage;
+export default HorizontalPurchasesBookPage;

@@ -34,9 +34,12 @@ import {
   useLazyGetAllSystemsAsyncQuery,
 } from "../features/api/systemApi";
 import { useLazyTestConnectQuery } from "../features/api/testerApi";
+import dayjs from "dayjs";
 
 const ImportPage = () => {
+  const currentDate = dayjs();
   const [data, setData] = useState([]); // Holds parsed data
+  const [dialogTitle, setDialogTitle] = useState("Review Imported Data");
   const [isDataGridOpen, setIsDataGridOpen] = useState(false); // For DataGrid dialog
   const [isFetchingDuplicates, setIsFetchingDuplicates] = useState(false); // Loader state for duplicates
   const [errorReports, setErrorReports] = useState([]); // Holds error reports for duplicates
@@ -44,7 +47,9 @@ const ImportPage = () => {
   const [importedData, setImportedData] = useState([]); // Holds data after import
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false); // For duplicate dialog
   const [selectedValue, setSelectedValue] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [date, setDate] = useState({
+    adjustment_month: moment(currentDate).format("MM-YYYY"),
+  });
 
   const { setValue, watch } = useForm({
     defaultValues: {
@@ -220,6 +225,7 @@ const ImportPage = () => {
       });
 
       setData(parsedData);
+      setDialogTitle("Review Imported Data");
       // Use setValue to update the form with parsed data
       parsedData.forEach((report, index) => {
         Object.keys(report).forEach((key) => {
@@ -295,6 +301,7 @@ const ImportPage = () => {
       setImportedData(response); // Save imported data
       setIsDataGridOpen(false); // Close DataGrid dialog
       // onClose(); // Close main import dialog
+      toast.success("File imported successfully!");
     } catch (error) {
       toast.error(error?.data?.message || "Failed to import data.");
 
@@ -307,27 +314,48 @@ const ImportPage = () => {
       setIsLoading(false); // Stop loading
     }
   };
-  const nonEditableColumns = ["syncId", "system", "drcp", "lineAmount"];
-  const [triggerFetchSystem,{data: fetchSystem}] = useLazyTestConnectQuery();
 
+  const nonEditableColumns = ["syncId", "system", "drcp", "lineAmount"];
+  const [triggerFetchSystem, { data: fetchSystem }] = useLazyTestConnectQuery();
+  const [params, setParams] = useState({
+    endpoint: null,
+    token: null,
+    adjustment_month: null,
+  });
+
+  console.log({ params });
   const handleChange = async (data) => {
     setSelectedValue(data);
-    setSelectedDate(data)
 
     try {
       console.log({ data });
       const response = await triggerFetchSystem({
-        endpoint: data.endpoint,
+        endpoint: `${params.endpoint}/${params.adjustment_month}`,
         token: data.token,
       }).unwrap();
       console.log({ response });
 
-      toast.success(response.message);
+      toast.success("Establishing Connection Successfully.");
     } catch (error) {
-      toast.error(error?.message || "Error establishing connection");
+      // toast.error(error?.message || "Error establishing connection");
     }
   };
 
+  const onHandleSync = async () => {
+    try {
+      console.log({ data });
+      const response = await triggerFetchSystem(params).unwrap();
+      console.log({ response });
+
+      setData(response);
+      setDialogTitle("Review Synced Data");
+      setIsDataGridOpen(true);
+
+      toast.success("Establishing Connection Successfully.");
+    } catch (error) {
+      // toast.error(error?.message || "Error establishing connection");
+    }
+  };
   return (
     <>
       <Box className="import">
@@ -338,6 +366,8 @@ const ImportPage = () => {
             <DropDownComponent
               labelKey="systemName"
               onChange={handleChange}
+              onHandleSync={onHandleSync}
+              setParams={setParams}
             />
           </Typography>
           <Typography variant="h5" className="import__header--title">
@@ -379,7 +409,7 @@ const ImportPage = () => {
             className="import__content__dialog--title"
             fontWeight={600}
           >
-            Review Imported Data
+            {dialogTitle}
           </DialogTitle>
           <DialogContent
             className="import__content__dialog--content"
@@ -455,7 +485,7 @@ const ImportPage = () => {
           open={isDuplicateDialogOpen}
           onClose={() => {
             setIsDuplicateDialogOpen(false);
-            setErrorReports({});
+            setErrorReports([]);
           }}
           maxWidth="lg"
           fullWidth

@@ -17,42 +17,45 @@
     &__container1 {
       display: flex;
       justify-content: flex-start;
-
       align-items: center;
+
+      &--title {
+        color: $primary-main;
+      }
 
       &--dropdown {
         width: 200px; // Adjust based on your design
         padding: 8px; // Space inside the dropdown
-        border: 0.5px solid $primary-main; // Add a primary color border
-        border-radius: 8px; // Smooth the corners
+
+        border-radius: 10px; // Smooth the corners
         background-color: $background-header; // Set a background color
-        font-size: 24px;
-        color: $primary-main;
+        //font-size: 24px;
+        //color: $primary-main;
 
         &:hover {
           border-color: $primary-dark; // Darker border on hover
         }
 
-         // Styles for the selected value
-         & .MuiSelect-select {
+        // Styles for the selected value
+        & .MuiSelect-select {
           padding: 5px; // Padding inside the selected item area
           color: $primary-main; // Color of the text
-          font-weight: 500;
+          font-weight: 600;
         }
 
-         // Customize the dropdown arrow icon
-         & .MuiSelect-icon {
+        // Customize the dropdown arrow icon
+        & .MuiSelect-icon {
           color: $primary-main; // Primary color for the arrow
         }
 
-         // Customizing the dropdown menu
-         & .MuiPaper-root {
+        // Customizing the dropdown menu
+        & .MuiPaper-root {
           border-radius: 8px; // Rounded corners for the dropdown menu
           background-color: $background-paper; // Background color of the dropdown
-          box-shadow: 0px 4px 12px rgba(116, 93, 93, 0.1); // Subtle shadow for depth
+          //box-shadow: 0px 4px 12px rgba(116, 93, 93, 0.1); // Subtle shadow for depth
         }
-         // Styles for individual items in the dropdown
-         & .MuiMenuItem-root {
+        // Styles for individual items in the dropdown
+        & .MuiMenuItem-root {
           padding: 10px 16px; // Padding inside each menu item
           color: $text-primary; // Color of the text in the dropdown items
           font-size: 14px;
@@ -68,7 +71,6 @@
             color: $primary-main; // Contrast text color for better visibility
           }
         }
-
       }
     }
     &__container2 {
@@ -117,33 +119,6 @@
       width: auto;
       overflow-x: auto; // Allow horizontal scrolling if needed
       overflow-y: auto; // Enable vertical scrolling when content overflows
-      & thead {
-        
-        & th {
-          white-space: nowrap; // Prevent text wrapping in header
-          
-        }
-  
-      }
-
-      & tbody {
-        & td {
-         // white-space: nowrap; // Prevent text wrapping in cells
-         
-        }
-       
-
-        & tr {
-          transition: background-color 0.3s ease;
-
-          &:hover,
-          &.active {
-            background-color: $text-hint;
-          }
-        }
-      
-    
-      }
     }
 
     &--pagination {

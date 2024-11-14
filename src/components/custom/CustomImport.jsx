@@ -20,7 +20,7 @@ import { useImportReportsMutation } from "../../features/api/importReportApi";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { importSchema } from "../../schemas/validation";
 import { useForm } from "react-hook-form";
-import { defaultReport } from "../../schemas/defaultValue";
+import {  defaultValue } from "../../schemas/defaultValue";
 import { info } from "../../schemas/info";
 import moment from "moment";
 import { toast } from "sonner";
@@ -43,7 +43,7 @@ const CustomImport = ({ onDataLoaded, open, onClose, system }) => {
   } = useForm({
     defaultValues: {
       addedBy: 0,
-      reports: [defaultReport],
+      reports: [defaultValue.report],
     },
     resolver: yupResolver(importSchema),
   });

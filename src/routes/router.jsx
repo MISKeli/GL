@@ -17,6 +17,8 @@ import ElixirPharmacyPage from "../pages/systems/ElixirPharmacyPage";
 import ImportPage from "../pages/ImportPage";
 import SystemSetupPage from "../pages/systemSetup/SystemSetupPage";
 import SystemPage from "../pages/SystemPage";
+import BoaPage from "../pages/BOA/BoaPage";
+import MainSystemPage from "../pages/systems/MainSystemPage";
 
 export const router = createBrowserRouter([
   {
@@ -61,12 +63,21 @@ export const router = createBrowserRouter([
             element: <SystemSetupPage />,
           },
           {
+            path: "boa",
+            element: <BoaPage />
+             
+          },
+          {
             path: "system",
-            element: (
-              <AccessPermission permission={"System"}>
+            element: 
                 <SystemPage />
-              </AccessPermission>
-            ),
+              
+          },
+          {
+            path: "main_system",
+            element: 
+                <MainSystemPage />
+              
           },
           {
             path: "import",

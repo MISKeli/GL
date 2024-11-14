@@ -44,7 +44,7 @@ function ArcanaPage() {
   const [pageSize, setPageSize] = useState(10);
   const inputRef = useRef(null); // Create a ref for InputBase
   const debounceValue = useDebounce(search);
-  const headerColumn = info.report_import_table_columns;
+  const headerColumn = info.Purchases_Book;
 
   // Lazy fetch to get total count without date filters
   const [fetchTotalCount, { data: totalCountData }] =
@@ -106,12 +106,12 @@ function ArcanaPage() {
       <Box className="systems">
         <Box className="systems__header">
           <Box className="systems__header__container1">
-            <Typography
+            {/* <Typography
               variant="h5"
               className="systems__header__container1--title"
             >
-              {info.system_arcana_title}
-            </Typography>
+              {info.book_purchasesBook}
+            </Typography> */}
           </Box>
           <Box className="systems__header__container2">
             <Box className="masterlist__header__con2--date-picker">
@@ -173,11 +173,42 @@ function ArcanaPage() {
                 <TableHead>
                   <TableRow>
                     {headerColumn.map((columnTable) => (
-                      <TableCell key={columnTable.id}>
+                      <TableCell
+                        sx={{
+                          minWidth: columnTable.id === "description" ? 250 : 60,
+                          display:
+                            columnTable.id === "rawMaterials" ? "flex" : "",
+                          flexDirection:
+                            columnTable.id === "rawMaterials" ? "column" : "",
+                          alignItems:
+                            columnTable.id === "rawMaterials" ? "center" : "",
+                        }}
+                        align="center"
+                        key={columnTable.id}
+                        colSpan={1}
+                      >
                         {columnTable.name}
+                        {columnTable.subItems && (
+                          <TableRow>
+                            {columnTable.subItems.map((subItems) => (
+                              <TableCell
+                                colSpan={2}
+                                align="center"
+                                key={subItems.id}
+                                sx={{ borderBottom: 0 }}
+                              >
+                                {subItems.name}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
+                  {/* {subItems.id==="rawMaterials"&&( <TableRow>
+                    <TableCell>Debit</TableCell>
+                    <TableCell>Credit</TableCell>
+                  </TableRow>)} */}
                 </TableHead>
                 <TableBody>
                   {isSystemFetching || isSystemloading ? (
@@ -198,16 +229,46 @@ function ArcanaPage() {
                     systemData?.reports?.map((row, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
-                          <TableCell key={col.id}>{row[col.id]}</TableCell>
+                          <>
+                            <TableCell key={col.id}>
+                              {col.id === "rowMaterials"
+                                ? col.subItems.map((sub) => (
+                                    <TableCell
+                                      key={sub.id}
+                                      sx={{ borderBottom: 0 }}
+                                    >
+                                      Sample
+                                    </TableCell>
+                                  ))
+                                : row[col.id]}
+                            </TableCell>
+                          </>
                         ))}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={headerColumn.length} align="center">
+                      {/* <TableCell colSpan={headerColumn.length} align="center">
                         <Typography variant="h6">
                           {info.system_no_data}
                         </Typography>
+                      </TableCell> */}
+
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>Sample</TableCell>
+                      <TableCell>
+                        <TableRow>
+                          <TableCell sx={{ borderBottom: 0 }}>Sample</TableCell>
+                          <TableCell sx={{ borderBottom: 0 }}>Sample</TableCell>
+                        </TableRow>
                       </TableCell>
                     </TableRow>
                   )}

@@ -2,15 +2,17 @@ import React, { useState } from "react";
 //import ElixirPharmacyPage from "../../pages/systems/ElixirPharmacyPage";
 import { Box, IconButton, MenuItem, Select, Tooltip } from "@mui/material";
 
-import CashDisbursementBookPage from "../BOA/CashDisbursementBookPage";
+import CashDisbursementBookPage from "./CashDisbursementBookPage";
 
-import HorizontalCashDisbursementBookPage from "../BOA/HorizontalCashDisbursementBookPage";
-import { TableView } from "@mui/icons-material";
-import PurchasesBookPage from "../BOA/PurchasesBookPage";
-import SalesJournalPage from "../BOA/SalesJournalPage";
-import HorizontalPurchasesBookPage from "../BOA/HorizontalPurchasesBookPage";
-
-const UMPage = () => {
+import HorizontalCashDisbursementBookPage from "./HorizontalCashDisbursementBookPage";
+import {
+  AlignHorizontalLeftRounded,
+  AlignVerticalTopRounded,
+} from "@mui/icons-material";
+import PurchasesBookPage from "./PurchasesBookPage";
+import SalesJournalPage from "./SalesJournalPage";
+import HorizontalPurchasesBookPage from "./HorizontalPurchasesBookPage";
+const BoaPage = () => {
   const [value, setValue] = useState("option1");
   const [isHorizontalView, setIsHorizontalView] = useState(true);
 
@@ -31,7 +33,11 @@ const UMPage = () => {
               marginTop: "10px",
             }}
           >
-            <TableView color="primary" />
+            {isHorizontalView ? (
+              <AlignHorizontalLeftRounded color="primary" />
+            ) : (
+              <AlignVerticalTopRounded color="primary" />
+            )}
           </IconButton>
         </Tooltip>
 
@@ -80,4 +86,4 @@ const UMPage = () => {
   );
 };
 
-export default UMPage;
+export default BoaPage;

@@ -87,7 +87,6 @@ const SystemSetupPage = () => {
   });
   console.log("apple", systemData);
 
-  
   const changeStatus = (data) =>
     setParams((currentValue) => ({
       ...currentValue,

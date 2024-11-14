@@ -1,40 +1,32 @@
 @import "__palette.module";
-
-.setup {
+.boa {
   height: 100%;
   width: 100%;
   display: flex;
+  justify-content: center;
   flex-direction: column;
+
   padding: 10px;
   padding-top: 0;
   padding-bottom: 0;
-
   &__header {
+    //margin-top: -62px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-end;
 
-    &__con1 {
+    &__container {
       display: flex;
-      justify-content: flex-start;
-
+      //flex-direction: row;
       align-items: center;
-
-      &--title {
-        color: $primary-main;
-      }
-    }
-    &__con2 {
-      //background-color: aqua;
-      display: flex;
       justify-content: flex-end;
-      align-items: center;
 
-      &__filters {
+      &--filter {
+        //position: absolute;
         display: flex;
         align-items: center;
       }
       &--search {
+        //position: absolute;
         display: flex;
         align-items: center;
         width: 50px;
@@ -64,33 +56,13 @@
       flex-direction: column;
       width: auto;
       overflow-x: auto;
-      overflow-y: hidden; // Enable vertical scrolling when content overflows
-
-      &--norecords {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        gap: 16px;
-        justify-content: center;
-        align-items: center;
-
-        img {
-          width: 100vh;
-          height: auto;
-        }
-      }
-      &__tooltip {
-        // Custom styles for Tooltip when token is viewed
-
-        background-color: $info-main;
-        color: $text-primary;
-        font-size: 24px;
-        padding: 8px;
-        border-radius: 4px;
-        //box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-      }
     }
-
+  }
+  &__footer {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    background-color: red($color: #000000);
     &--pagination {
       height: auto;
       overflow: hidden; // Prevent scrollbar by hiding overflow

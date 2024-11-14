@@ -1,4 +1,6 @@
 import {
+  CollectionsBookmarkOutlined,
+  CollectionsBookmarkRounded,
   DashboardOutlined,
   DashboardRounded,
   DeveloperBoard,
@@ -12,6 +14,8 @@ import {
   PersonRounded,
   SupervisedUserCircleOutlined,
   SupervisedUserCircleRounded,
+  SupervisorAccountOutlined,
+  SupervisorAccountRounded,
 } from "@mui/icons-material";
 import Ymir from "../assets/icon/Ymir";
 import YmirOn from "../assets/icon/YmirOn";
@@ -66,6 +70,14 @@ export const moduleSchema = [
     subCategory: null,
   },
   {
+    name: "Import/Sync System",
+    section: "main_system",
+    icon: SupervisorAccountOutlined,
+    iconOn: SupervisorAccountRounded,
+    to: "/main_system",
+    subCategory: null,
+  },
+  {
     name: "System",
     section: "system",
     icon: FeedOutlined,
@@ -82,6 +94,14 @@ export const moduleSchema = [
     subCategory: null,
   },
   {
+    name: "Book of Accounts",
+    section: "boa",
+    icon: CollectionsBookmarkOutlined,
+    iconOn: CollectionsBookmarkRounded,
+    to: "/boa",
+    subCategory: null,
+  },
+  {
     name: "Systems",
     section: "systems",
     icon: FeedOutlined,
@@ -89,21 +109,21 @@ export const moduleSchema = [
     to: "/systems",
     subCategory: [
       {
-        name: "Arcana",
+        name: "Purchases Book",
         section: "arcana",
         icon: Arcana,
         iconOn: ArcanaOn,
         to: "/systems/arcana",
       },
       {
-        name: "Elixir ETD",
+        name: "Cash Disbursement Book",
         section: "elixir_etd",
         icon: Elixir,
         iconOn: ElixirOn,
         to: "/systems/elixir_etd",
       },
       {
-        name: "Elixir Pharmacy",
+        name: "Sales Journal",
         section: "elixir_pharmacy",
         icon: LocalPharmacyOutlined,
         iconOn: LocalPharmacyRounded,

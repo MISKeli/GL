@@ -31,10 +31,19 @@ export const reportSchema = yup.object().shape({
   DateTo: yup.string().required("Date is required."),
 });
 
+export const boaSchema = yup.object().shape({
+  selectedDate: yup.date().required("Date is required"),
+  //System: yup.string().required("System is required."),
+});
+
 export const systemSchema = yup.object().shape({
   systemName: yup.string().required("System Name is required."),
   endpoint: yup.string().required("Endpoint is required."),
   token: yup.string().required("Token is required."),
+});
+
+export const systemDateSchema = yup.object().shape({
+  adjustment_month: yup.string().required("Date is required."),
 });
 
 export const importSchema = yup.object().shape({

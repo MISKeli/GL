@@ -47,6 +47,7 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
 import noRecordsFound from "../../assets/images/noRecordsFound.png";
+import DynamicExport from "../../components/DynamicExport";
 
 // Styled component for the animated search bar
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
@@ -337,7 +338,9 @@ const UserAccountPage = () => {
               rowsPerPageOptions={[5, 10, 25]}
             />
           </Box>
-          <Box className="masterlist__footer"></Box>
+          <Box className="masterlist__footer">
+          
+          </Box>
           <Menu
             open={Boolean(anchorEl)}
             onClose={handlePopOverClose}

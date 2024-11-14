@@ -1,6 +1,7 @@
 import { createTheme, Paper, ThemeProvider } from "@mui/material";
 import { paletteSchema } from "../schemas/paletteSchema";
 import { red } from "@mui/material/colors";
+import { Padding } from "@mui/icons-material";
 
 console.log("palette", paletteSchema);
 const ProvidesTheme = ({ children }) => {
@@ -25,6 +26,7 @@ const ProvidesTheme = ({ children }) => {
         styleOverrides: {
           root: {
             "& .MuiTableCell-root": {
+              whiteSpace: "nowrap",
               backgroundColor: paletteSchema.primary.main,
               fontSize: 13,
               fontWeight: 600,
@@ -32,6 +34,28 @@ const ProvidesTheme = ({ children }) => {
             },
           },
         },
+      },
+      MuiTableBody: {
+        styleOverrides: {
+          root: {
+            whiteSpace: "nowrap", // so the tableBody single line
+            "& .MuiTableRow-root": {
+              transition: "background-color 0.3s ease",
+              "&:hover": {
+                backgroundColor: paletteSchema.background.default,
+              },
+            },
+          },
+        },
+      },
+      MuiDataGrid:{
+        styleOverrides:{
+          root:{
+            "& .MuiDataGrid-scrollbar": {
+          ariaHidden: "false", // Override if possible
+        },
+          }
+        }
       },
       MuiTablePagination: {
         styleOverrides: {
@@ -75,6 +99,7 @@ const ProvidesTheme = ({ children }) => {
       MuiButton: {
         styleOverrides: {
           root: {
+            fontWeight: 600,
             borderRadius: 10,
             "&:hover": {
               //backgroundColor: "#003366", // Background color on hover
@@ -146,10 +171,27 @@ const ProvidesTheme = ({ children }) => {
     MuiTabs: {
       styleOverrides: {
         root: {
-          "&.report__header__container2__tab": {
-            backgroundColor: red,
+          fontFamily: "Lato, sans-serif",
+          fontWeight: 600,
+          
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          "& .MuiTab-root":{
+            fontWeight: 900,
           },
-          color: paletteSchema.primary.main,
+          fontFamily: "Lato, sans-serif",
+          
+        },
+      },
+    },
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          color: paletteSchema.secondary.main,
         },
       },
     },

@@ -1,7 +1,9 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useRef, useState } from "react";
-import "../styles/SystemsPage.scss";
+import "../../styles/SystemsPage.scss";
 import {
   Box,
+  Button,
   Divider,
   IconButton,
   InputBase,
@@ -19,21 +21,22 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { info } from "../schemas/info";
+import { info } from "../../schemas/info";
 
-import { ClearRounded, SearchRounded } from "@mui/icons-material";
-// import Date from "./Date";
 import {
-  useGetAllGLReportAsyncQuery,
-  useLazyGetAllGLReportAsyncQuery,
-} from "../features/api/importReportApi";
-import useDebounce from "../components/useDebounce";
-import FilterComponent from "../components/FilterComponent";
+  ClearRounded,
+  LibraryAddRounded,
+  SearchRounded,
+} from "@mui/icons-material";
+import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
+import useDebounce from "../../components/useDebounce";
+import FilterComponent from "../../components/FilterComponent";
 import dayjs from "dayjs";
 import moment from "moment";
-import { useLazyGetAllSystemsAsyncQuery } from "../features/api/systemApi";
+import { useLazyGetAllSystemsAsyncQuery } from "../../features/api/systemApi";
 
-function SystemPage() {
+import CusImport from "../../pages/systems/CusImport";
+function MainSystemPage() {
   const currentDate = dayjs();
   const [reportData, setReportData] = useState({
     DateFrom: moment(currentDate).format("YYYY-MM-DD"),
@@ -46,6 +49,7 @@ function SystemPage() {
   const [selectedSystem, setSelectedSystem] = useState(""); // State for selected system
 
   const [pageSize, setPageSize] = useState(25);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const inputRef = useRef(null); // Create a ref for InputBase
   const debounceValue = useDebounce(search);
   const headerColumn = info.report_import_table_columns.map((col) => ({
@@ -104,17 +108,26 @@ function SystemPage() {
   const handleSystemChange = (event) => {
     setSelectedSystem(event.target.value);
   };
+
+  // Function to open/close the dialog
+  const handleDialogOpen = () => setIsDialogOpen(true);
+  const handleDialogClose = () => setIsDialogOpen(false);
+
   return (
     <>
       <Box className="systems">
+        <CusImport
+          open={isDialogOpen}
+          onClose={handleDialogClose}
+          inert={isDialogOpen}
+        />
         <Box className="systems__header">
           <Box className="systems__header__container1">
             {/* Dropdown to select system */}
             <Select
-            sx={{ borderRadius: "10px"}}
-              //color="primary"
+              sx={{ borderRadius: "10px" }}
               variant="outlined"
-              value={selectedSystem}
+              value={selectedSystem || ""} // Ensure value is defined
               onChange={handleSystemChange}
               displayEmpty
               inputProps={{ "aria-label": "Select System" }}
@@ -129,6 +142,14 @@ function SystemPage() {
                 </MenuItem>
               ))}
             </Select>
+            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+            <Button
+              startIcon={<LibraryAddRounded />}
+              variant="contained"
+              onClick={handleDialogOpen}
+            >
+              {info.system_import_button}
+            </Button>
           </Box>
           <Box className="systems__header__container2">
             <Box className="masterlist__header__con2--date-picker">
@@ -195,7 +216,7 @@ function SystemPage() {
                         sx={{
                           whiteSpace:
                             columnTable.id === "itemDescription"
-                              ? "nowrap!important"
+                              ? "nowrap"
                               : "normal",
                         }}
                       >
@@ -251,7 +272,6 @@ function SystemPage() {
           onClose={handlePopOverClose}
         >
           <Box></Box>
-          <Date onFetchData={handleFetchData} />
         </Menu>
         <Box className="systems__footer">
           <TablePagination
@@ -274,4 +294,4 @@ function SystemPage() {
   );
 }
 
-export default SystemPage;
+export default MainSystemPage;

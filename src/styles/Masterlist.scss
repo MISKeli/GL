@@ -26,7 +26,6 @@
       align-items: center;
 
       &--search {
-        
       }
     }
 
@@ -49,22 +48,6 @@
       width: auto;
       overflow-x: auto;
       overflow-y: hidden; // Prevent vertical scrollbar
-      & thead {
-        & th {
-          white-space: nowrap;
-        }
-      }
-
-      & tbody {
-        & tr {
-          transition: background-color 0.3s ease;
-
-          &:hover,
-          &.active {
-            background-color: $text-hint;
-          }
-        }
-      }
     }
 
     &__table--norecords {

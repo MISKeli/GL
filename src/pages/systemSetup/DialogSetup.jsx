@@ -35,7 +35,7 @@ const DialogSetup = ({
   isUpdate = false,
 }) => {
   const [loading, setLoading] = useState(false);
-  
+
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [connectionSuccess, setConnectionSuccess] = useState(false); // New state to track connection success
   const pokedData = useSelector((state) => state.auth.pokedData);
@@ -202,6 +202,10 @@ const DialogSetup = ({
                       fullWidth
                       margin="dense"
                       size="small"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setConnectionSuccess(false); // Reset connection success
+                      }}
                       error={!!errors.endpoint}
                       helperText={errors.endpoint?.message}
                     />
@@ -221,6 +225,10 @@ const DialogSetup = ({
                       type="password"
                       margin="dense"
                       size="small"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setConnectionSuccess(false); // Reset connection success
+                      }}
                       error={!!errors.token}
                       helperText={errors.token?.message}
                     />

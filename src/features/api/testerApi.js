@@ -12,7 +12,7 @@ export const testerApi = createApi({
   tagTypes: ["test"],
   endpoints: (builder) => ({
     testConnect: builder.query({
-      query: ({ endpoint, token, params }) => {
+      query: ({ endpoint, token, ...params }) => {
         const queryParams = new URLSearchParams(params).toString(); // Handle dynamic params
         return {
           url: `${endpoint}`, // Append params as query string
