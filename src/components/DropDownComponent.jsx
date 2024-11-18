@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import {
   Button,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -23,14 +24,17 @@ const DropDownComponent = ({
   onHandleSync,
 }) => {
   const [dataa, setDataa] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     handleSubmit,
     control,
 
-    formState: { errors },
+    formState: { errors,isValid },
   } = useForm({
     resolver: yupResolver(systemDateSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
 
   const [triggerFetchSystem, { data: systemData, isSuccess }] =
@@ -42,7 +46,12 @@ const DropDownComponent = ({
 
   const submitHandler = async (formDate) => {
     console.log("Submitted data:", formDate);
-    await onHandleSync();
+    setIsLoading(true);
+    try {
+      await onHandleSync();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,6 +64,7 @@ const DropDownComponent = ({
         <InputLabel id="systemName">System</InputLabel>
         <Select
           fullWidth
+          sx={{ width: "100%" }}
           labelId="systemName"
           id="dynamic-dropdown"
           value={dataa}
@@ -116,15 +126,20 @@ const DropDownComponent = ({
               />
             )}
           />
-        </LocalizationProvider>{" "}
+        </LocalizationProvider>
         <Button
           variant="contained"
           type="submit"
           size="large"
           fullWidth
+          disabled={!isValid || isLoading}
           sx={{ alignItems: "center", marginTop: "30px" }}
         >
-          Sync
+          {isLoading ? (
+            <CircularProgress size={24} color="inherit" /> // Show spinner
+          ) : (
+            "Sync"
+          )}
         </Button>
       </form>
     </>

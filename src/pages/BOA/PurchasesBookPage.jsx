@@ -18,25 +18,18 @@ import {
 } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import useDebounce from "../../components/useDebounce";
-import moment from "moment";
 import dayjs from "dayjs";
-import {
-  ClearRounded,
-  IosShareRounded,
-  SearchRounded,
-} from "@mui/icons-material";
+import { IosShareRounded } from "@mui/icons-material";
 import "../../styles/BoaPage.scss";
 import { info } from "../../schemas/info";
 import {
   useExportVerticalPurchasesBookPerMonthQuery,
   useGenerateVerticalPurchasesBookPerMonthPaginationQuery,
 } from "../../features/api/boaApi";
-
-import BoaFilterComponent from "../../components/BoaFilterComponent";
 import { toast } from "sonner";
 import { Workbook } from "exceljs";
 
-const PurchasesBookPage = () => {
+const PurchasesBookPage = ({ reportData }) => {
   const currentDate = dayjs();
   const [hasDataToExport, setHasDataToExport] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -44,13 +37,9 @@ const PurchasesBookPage = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
   const inputRef = useRef(null);
-  const [reportData, setReportData] = useState({
-    Month: moment(currentDate).format("MMM"),
-    Year: moment(currentDate).format("YYYY"),
-  }); // State to hold fetched data
   const debounceValue = useDebounce(search);
   const headerColumn = info.Purchases_Book;
-
+  console.log("PB Report data:", reportData);
   const { data: exportData, isLoading: isExportLoading } =
     useExportVerticalPurchasesBookPerMonthQuery({
       Month: reportData.Month,
@@ -69,14 +58,14 @@ const PurchasesBookPage = () => {
     PageSize: pageSize,
   });
 
-  // console.log("EBoaData", boaData);
-  // console.log("Export Data", exportData);
+  console.log("EBoaData", boaData);
+  console.log("Export Data", exportData);
 
   // Check if data is available and user has selected a month and year
-  useEffect(() => {
-    const hasData = exportData?.value && exportData.value.length > 0;
-    setHasDataToExport(hasData);
-  }, [exportData]);
+  const hasData = exportData?.value && exportData.value.length > 0;
+  // useEffect(() => {
+  //   setHasDataToExport(hasData);
+  // }, [exportData]);
 
   //Pagination
   const handleChangePage = (event, newPage) => {
@@ -93,13 +82,6 @@ const PurchasesBookPage = () => {
   const handleSearchClick = () => {
     setExpanded(true); // Expand the box
     inputRef.current?.focus(); // Immediately focus the input field
-  };
-
-  // Function to handle data fetched from the Date component
-  const handleFetchData = (data) => {
-    // console.log("DATAAA", data);
-    
-    setReportData(data);
   };
 
   const onExport = async () => {
@@ -257,62 +239,13 @@ const PurchasesBookPage = () => {
   return (
     <>
       <Box className="boa">
-        <Box className="boa__header">
-          <Box className="boa__header__container">
-            <Box className="boa__header__container--filter">
-              <BoaFilterComponent
-                onFetchData={handleFetchData}
-                setReportData={setReportData}
-              />
-            </Box>
-            <Box
-              className={`boa__header__container--search ${
-                expanded ? "expanded" : ""
-              }`}
-              component="form"
-              onClick={() => setExpanded(true)}
-            >
-              <InputBase
-                sx={{ ml: 0.5, flex: 1 }}
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                inputRef={inputRef}
-                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
-              />
-              {search && (
-                <IconButton
-                  color="primary"
-                  type="button"
-                  aria-label="clear"
-                  onClick={() => {
-                    setSearch(""); // Clears the search input
-                    inputRef.current.focus(); // Keeps focus on the input after clearing
-                  }}
-                >
-                  <ClearRounded />
-                </IconButton>
-              )}
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              <IconButton
-                color="primary"
-                type="button"
-                sx={{ p: "10px" }}
-                aria-label="search"
-                onClick={handleSearchClick}
-              >
-                <SearchRounded />
-              </IconButton>
-            </Box>
-          </Box>
-        </Box>
         <Box className="boa__content">
           <Box className="boa__content__table">
             <TableContainer
               component={Paper}
               sx={{ overflow: "auto", height: "100%" }}
             >
-              <Table stickyHeader>
+              <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
                     {headerColumn.map((columnTable) => (
@@ -434,7 +367,7 @@ const PurchasesBookPage = () => {
               variant="contained"
               color="primary"
               onClick={onExport}
-              disabled={!hasDataToExport || isExportLoading}
+              disabled={!hasData || isExportLoading}
               startIcon={
                 isExportLoading ? (
                   <CircularProgress size={20} />

@@ -46,7 +46,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     resolver: yupResolver(userSchema),
     mode: "onChange",
     reValidateMode: "onChange",
-    defaultValues: [defaultValue.userAcc],
+    defaultValues: defaultValue.userAcc,
   });
   const dispatch = useDispatch();
   const [addUser] = useAddUserMutation();
@@ -91,7 +91,7 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
     );
 
     setValue("userRoleId", roleDataValues || "");
-     //console.log("userRole2", pokedData);
+    //console.log("userRole2", pokedData);
     setValue("idPrefix", pokedData?.idPrefix || "");
     setValue("idNumber", pokedData?.idNumber || "");
     setValue("firstName", pokedData?.firstName || "");
@@ -227,9 +227,9 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                         onChange={(e, data) => {
                           handleChangeRegistrationData(data);
                         }}
-                        getOptionLabel={(option) =>
-                          option?.general_info?.full_id_number_full_name || ""
-                        }
+                        getOptionLabel={(option) => {
+                          return `(${option.general_info.full_id_number}) - ${option.general_info.full_name}`;
+                        }}
                         renderInput={(params) => (
                           <TextField
                             {...params}

@@ -69,7 +69,7 @@ export const transformRows = (data) => {
     changedTo: row.changedTo || "",
     reason: row.reason || "",
     checkingRemarks: row.checkingRemarks || "",
-    bankName: row.bankname || "",
+    bankName: row.bankName || "",
     chequeNumber: row.chequeNumber || "",
     chequeVoucherNumber: row.chequeVoucherNumber || "",
     boA2: row.boA2 || "",

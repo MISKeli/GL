@@ -16,37 +16,23 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useDebounce from "../../components/useDebounce";
-import moment from "moment";
-import dayjs from "dayjs";
-import {
-  ClearRounded,
-  IosShareRounded,
-  SearchRounded,
-} from "@mui/icons-material";
+import { IosShareRounded } from "@mui/icons-material";
 import "../../styles/BoaPage.scss";
 import { info } from "../../schemas/info";
 import {
   useExportVerticalCashDisbursementBookPerMonthQuery,
   useGenerateVerticalCashDisbursementBookPerMonthQuery,
 } from "../../features/api/boaApi";
-import BoaFilterComponent from "../../components/BoaFilterComponent";
 import { toast } from "sonner";
 import { Workbook } from "exceljs";
-const CashDisbursementBookPage = () => {
-  const currentDate = dayjs();
+const CashDisbursementBookPage = ({ reportData }) => {
   const [hasDataToExport, setHasDataToExport] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const inputRef = useRef(null);
-  const [reportData, setReportData] = useState({
-    Month: moment(currentDate).format("MMM"),
-    System: "",
-    Year: moment(currentDate).format("YYYY"),
-  }); // State to hold fetched data
+
   const debounceValue = useDebounce(search);
   const headerColumn = info.cash_disbursement_book;
 
@@ -69,7 +55,7 @@ const CashDisbursementBookPage = () => {
     Month: reportData.Month,
     Year: reportData.Year,
   });
-  //console.log("CDB", boaData);
+  console.log("CDB", boaData);
 
   useEffect(() => {
     const hasData = exportData?.value && exportData.value.length > 0;
@@ -85,19 +71,6 @@ const CashDisbursementBookPage = () => {
     const selectedValue = parseInt(event.target.value, 25);
     setPageSize(selectedValue); // Directly set the selected value
     setPage(0); // Reset to first page
-  };
-
-  // SEARCH
-  const handleSearchClick = () => {
-    setExpanded(true); // Expand the box
-    inputRef.current?.focus(); // Immediately focus the input field
-  };
-
-  // Function to handle data fetched from the Date component
-  const handleFetchData = (data) => {
-    //.log("DATAAA", data);
-    
-    setReportData(data);
   };
 
   const onExport = async () => {
@@ -127,7 +100,6 @@ const CashDisbursementBookPage = () => {
 
       const workbook = new Workbook();
       const mainSheet = workbook.addWorksheet("sheet1");
-
       mainSheet.getCell("A1").value = "RDF Feed Livestock & Foods Inc.";
       mainSheet.getCell("A2").value = "Cash Disbursement Book";
       mainSheet.getCell("A3").value = extraSentence;
@@ -201,7 +173,7 @@ const CashDisbursementBookPage = () => {
           cell.fill = {
             type: "pattern",
             pattern: "solid",
-            fgColor: { argb: "#95b3d7" },
+            fgColor: { argb: "95b3d7" },
           };
           cell.font = {
             color: { argb: "000000" },
@@ -254,68 +226,21 @@ const CashDisbursementBookPage = () => {
   return (
     <>
       <Box className="boa">
-        <Box className="boa__header">
-          <Box className="boa__header__container">
-            <Box className="boa__header__container--filter">
-              <BoaFilterComponent
-                onFetchData={handleFetchData}
-                setReportData={setReportData}
-              />
-            </Box>
-            <Box
-              className={`boa__header__container--search ${
-                expanded ? "expanded" : ""
-              }`}
-              component="form"
-              onClick={() => setExpanded(true)}
-            >
-              <InputBase
-                sx={{ ml: 0.5, flex: 1 }}
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                inputRef={inputRef}
-                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
-              />
-              {search && (
-                <IconButton
-                  color="primary"
-                  type="button"
-                  aria-label="clear"
-                  onClick={() => {
-                    setSearch(""); // Clears the search input
-                    inputRef.current.focus(); // Keeps focus on the input after clearing
-                  }}
-                >
-                  <ClearRounded />
-                </IconButton>
-              )}
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              <IconButton
-                color="primary"
-                type="button"
-                sx={{ p: "10px" }}
-                aria-label="search"
-                onClick={handleSearchClick}
-              >
-                <SearchRounded />
-              </IconButton>
-            </Box>
-          </Box>
-        </Box>
+        <Box className="boa__header"></Box>
         <Box className="boa__content">
           <Box className="boa__content__table">
             <TableContainer
               component={Paper}
               sx={{ overflow: "auto", height: "100%" }}
             >
-              <Table stickyHeader>
+              <Table stickyHeader size="small" >
                 <TableHead>
-                  <TableRow>
+                  <TableRow >
                     {headerColumn.map((columnTable) => (
                       <TableCell
                         key={columnTable.id}
                         sx={{
+                          
                           textAlign: columnTable.subItems ? "center" : "",
                         }}
                       >
@@ -331,6 +256,7 @@ const CashDisbursementBookPage = () => {
                               <TableCell
                                 key={subItems.id}
                                 sx={{
+                                  
                                   textAlign: subItems.credit ? "left" : "", // Center subItems text
                                   borderBottom: 0,
                                   padding: "5px", // Ensure proper padding for aesthetics

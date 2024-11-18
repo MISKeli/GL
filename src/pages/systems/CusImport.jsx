@@ -23,7 +23,11 @@ import "../../styles/CusImport.scss";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { info } from "../../schemas/info";
-import { Close, SyncRounded, SystemUpdateAltRounded } from "@mui/icons-material";
+import {
+  Close,
+  SyncRounded,
+  SystemUpdateAltRounded,
+} from "@mui/icons-material";
 import { useImportReportsMutation } from "../../features/api/importReportApi";
 import moment from "moment";
 import { useLazyTestConnectQuery } from "../../features/api/testerApi";
@@ -277,7 +281,7 @@ const CusImport = ({ open, onClose }) => {
 
       toast.success("Establishing Connection Successfully.");
     } catch (error) {
-      // toast.error(error?.message || "Error establishing connection");
+       toast.error(error?.message || "Error establishing connection");
     }
   };
 
@@ -294,25 +298,31 @@ const CusImport = ({ open, onClose }) => {
         open={open}
         fullWidth // Disable full width stretching
       >
-        <DialogTitle className="customimport__header--title" >
-        <Tabs value={activeTab} onChange={handleTabChange} >
-            <Tab sx={{fontWeight:"900", fontSize:"13px"}} icon={<SystemUpdateAltRounded />} iconPosition="start" label="Import" />
-            <Tab sx={{fontWeight:"900", fontSize:"13px"}} icon={<SyncRounded />} iconPosition="start" label="Sync" />
+        <DialogTitle className="customimport__header--title">
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab
+              sx={{ fontWeight: "900", fontSize: "13px" }}
+              icon={<SystemUpdateAltRounded />}
+              iconPosition="start"
+              label="Import"
+            />
+            <Tab
+              sx={{ fontWeight: "900", fontSize: "13px" }}
+              icon={<SyncRounded />}
+              iconPosition="start"
+              label="Sync"
+            />
           </Tabs>
-          
-         
-          <Divider className="customimport__divider--horizontal" />
-            <Stack>
-              <IconButton onClick={onClose}>
-                <Close />
-              </IconButton>
-            </Stack>
-            
-        </DialogTitle>
-        
-        <DialogContent>
-          
 
+          <Divider className="customimport__divider--horizontal" />
+          <Stack>
+            <IconButton onClick={onClose}>
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent>
           <Box className="customimport__dialog">
             {activeTab === 0 && (
               <Box className="customimport__dialog__import">
@@ -418,7 +428,11 @@ const CusImport = ({ open, onClose }) => {
             variant="h5"
             color={roundedTotal !== 0 ? "error" : "textPrimary"}
           >
-            Line Amount: {roundedTotal}
+            Line Amount: ₱
+            {roundedTotal.toLocaleString("en-PH", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </Typography>
           <Box>
             <Button

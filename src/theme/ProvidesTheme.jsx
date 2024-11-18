@@ -1,7 +1,6 @@
 import { createTheme, Paper, ThemeProvider } from "@mui/material";
 import { paletteSchema } from "../schemas/paletteSchema";
-import { red } from "@mui/material/colors";
-import { Padding } from "@mui/icons-material";
+import { BorderColor } from "@mui/icons-material";
 
 console.log("palette", paletteSchema);
 const ProvidesTheme = ({ children }) => {
@@ -48,14 +47,37 @@ const ProvidesTheme = ({ children }) => {
           },
         },
       },
-      MuiDataGrid:{
-        styleOverrides:{
-          root:{
-            "& .MuiDataGrid-scrollbar": {
-          ariaHidden: "false", // Override if possible
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            fontWeight: 600,
+            minWidth: "230px",
+            width: "250px",
+            borderRadius: "10px",
+            backgroundColor: paletteSchema.background.header,
+          },
         },
-          }
-        }
+      },
+      MuiDatePicker: {
+        styleOverrides: {
+          MuiOutlinedInput: {
+            root: {
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#348632", // Outline color when focused
+                borderRadius: "10px",
+              },
+            },
+          },
+        },
+      },
+      MuiDataGrid: {
+        styleOverrides: {
+          root: {
+            "& .MuiDataGrid-scrollbar": {
+              ariaHidden: "false", // Override if possible
+            },
+          },
+        },
       },
       MuiTablePagination: {
         styleOverrides: {
@@ -173,18 +195,16 @@ const ProvidesTheme = ({ children }) => {
         root: {
           fontFamily: "Lato, sans-serif",
           fontWeight: 600,
-          
         },
       },
     },
     MuiTab: {
       styleOverrides: {
         root: {
-          "& .MuiTab-root":{
+          "& .MuiTab-root": {
             fontWeight: 900,
           },
           fontFamily: "Lato, sans-serif",
-          
         },
       },
     },

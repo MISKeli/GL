@@ -2,9 +2,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Divider,
-  IconButton,
-  InputBase,
   Paper,
   Skeleton,
   Table,
@@ -18,20 +15,15 @@ import {
 } from "@mui/material";
 import React, { useRef, useState, useEffect } from "react";
 import useDebounce from "../../components/useDebounce";
-import moment from "moment";
-import {
-  ClearRounded,
-  IosShareRounded,
-  SearchRounded,
-} from "@mui/icons-material";
+
+import { IosShareRounded } from "@mui/icons-material";
 import "../../styles/BoaPage.scss";
 import { info } from "../../schemas/info";
 import {
   useExportVerticalCashDisbursementBookPerMonthQuery,
   useGenerateHorizontalPurchasesBookPerMonthQuery,
 } from "../../features/api/boaApi";
-import BoaFilterComponent from "../../components/BoaFilterComponent";
-const HorizontalPurchasesBookPage = () => {
+const HorizontalPurchasesBookPage = ({ reportData }) => {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [hasDataToExport, setHasDataToExport] = useState(false);
@@ -40,10 +32,6 @@ const HorizontalPurchasesBookPage = () => {
   const [cdbHeader, setCdbHeader] = useState(info.Purchases_Book_horizontal);
   const [transformedData, setTransformedData] = useState([]);
   const inputRef = useRef(null);
-  const [reportData, setReportData] = useState({
-    DateFrom: moment().format("YYYY-MM-DD"),
-    DateTo: moment().format("YYYY-MM-DD"),
-  }); // State to hold fetched data
   const debounceValue = useDebounce(search);
   const seenIds = new Set();
   const joinedCdbHeader = cdbHeader
@@ -163,72 +151,17 @@ const HorizontalPurchasesBookPage = () => {
     inputRef.current?.focus(); // Immediately focus the input field
   };
 
-  // Function to handle data fetched from the Date component
-  const handleFetchData = (data) => {
-    //console.log("DATAAA", data);
-
-    setReportData(data);
-  };
-
   return (
     <>
       <Box className="boa">
-        <Box className="boa__header">
-          <Box className="boa__header__container">
-            <Box className="boa__header__container--filter">
-              <BoaFilterComponent
-                onFetchData={handleFetchData}
-                setReportData={setReportData}
-              />
-            </Box>
-            <Box
-              className={`boa__header__container--search ${
-                expanded ? "expanded" : ""
-              }`}
-              component="form"
-              onClick={() => setExpanded(true)}
-            >
-              <InputBase
-                sx={{ ml: 0.5, flex: 1 }}
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                inputRef={inputRef}
-                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
-              />
-              {search && (
-                <IconButton
-                  color="primary"
-                  type="button"
-                  aria-label="clear"
-                  onClick={() => {
-                    setSearch(""); // Clears the search input
-                    inputRef.current.focus(); // Keeps focus on the input after clearing
-                  }}
-                >
-                  <ClearRounded />
-                </IconButton>
-              )}
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              <IconButton
-                color="primary"
-                type="button"
-                sx={{ p: "10px" }}
-                aria-label="search"
-                onClick={handleSearchClick}
-              >
-                <SearchRounded />
-              </IconButton>
-            </Box>
-          </Box>
-        </Box>
+        <Box className="boa__header"></Box>
         <Box className="boa__content">
           <Box className="boa__content__table">
             <TableContainer
               component={Paper}
               sx={{ overflow: "auto", height: "100%" }}
             >
-              <Table stickyHeader>
+              <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
                     {headerColumn?.map((columnTable) => (

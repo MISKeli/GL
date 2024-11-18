@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import {
   Button,
@@ -9,6 +9,9 @@ import {
   CircularProgress,
   Box,
   Select,
+  InputBase,
+  Divider,
+  Tooltip,
 } from "@mui/material";
 import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
 import dayjs from "dayjs";
@@ -18,13 +21,21 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { boaSchema } from "../schemas/validation";
-import { useLazyGetAllSystemsAsyncQuery } from "../features/api/systemApi";
+//import { useLazyGetAllSystemsAsyncQuery } from "../features/api/systemApi";
+import {
+  AlignHorizontalLeftRounded,
+  AlignVerticalTopRounded,
+  ClearRounded,
+  SearchRounded,
+} from "@mui/icons-material";
 
-const BoaFilterComponent = ({ setReportData }) => {
+const BoaFilterComponent = ({ setReportData, onViewChange }) => {
   const currentDate = dayjs();
 
-  const [anchorEl, setAnchorEl] = useState(null);
-
+  const inputRef = useRef(null);
+  const [expanded, setExpanded] = useState(false);
+  const [search, setSearch] = useState("");
+  const [isHorizontalView, setIsHorizontalView] = useState(true);
   const {
     reset,
     handleSubmit,
@@ -34,140 +45,113 @@ const BoaFilterComponent = ({ setReportData }) => {
     resolver: yupResolver(boaSchema),
     defaultValues: {
       selectedDate: currentDate, // Set default date
-      
     },
   });
 
-  console.log(errors);
-  // Lazy query to fetch systems
-  const [getSystems, { data: systemsData, isLoading: isSystemsLoading }] =
-    useLazyGetAllSystemsAsyncQuery();
-
-  // Fetch systems on component mount
-  useEffect(() => {
-    getSystems(); // Fetch systems
-  }, [getSystems]);
-
-  const submitHandler = (formData) => {
-    const selectedDate = dayjs(formData.selectedDate);
-    const month = selectedDate.format("MMM"); // Extract month (e.g., "Jan")
-    const year = selectedDate.format("YYYY"); // Extract year (e.g., "2024")
-
-    console.log("Month:", month, "Year:", year); // Log to check values
+  // Updates report data when the date is changed
+  const handleDateChange = (selectedDate) => {
+    const month = selectedDate.format("MMM");
+    const year = selectedDate.format("YYYY");
 
     setReportData({
       Month: month,
       Year: year,
-      System: formData.System,
+      Search: search,
     });
   };
 
-  const clearDate = () => {
-    reset({
-      selectedDate: currentDate, // Reset to current date
-      System: "",
+  // SEARCH
+  const handleSearchClick = () => {
+    setExpanded(true); // Expand the box
+    inputRef.current?.focus(); // Immediately focus the input field
+  };
+
+  const tooltipTitle = isHorizontalView ? "Horizontal View" : "Vertical View";
+
+  const toggleViewFormat = () => {
+    setIsHorizontalView((prevFormat) => {
+      const newFormat = !prevFormat;
+      onViewChange(newFormat);
+      return newFormat;
     });
-  };
-
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
   };
 
   return (
     <div className="filter">
-      <IconButton onClick={handleMenuOpen} className="filter__icon">
-        <FilterListRoundedIcon color="primary" />
-      </IconButton>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        className="filter__menu"
+      <Tooltip title={tooltipTitle} placement="left" arrow>
+        <IconButton onClick={toggleViewFormat}>
+          {isHorizontalView ? (
+            <AlignHorizontalLeftRounded color="primary" />
+          ) : (
+            <AlignVerticalTopRounded color="primary" />
+          )}
+        </IconButton>
+      </Tooltip>
+
+      <Box
+        className={`filter__search ${expanded ? "expanded" : ""}`}
+        component="form"
+        onClick={() => setExpanded(true)}
       >
-        <form
-          onSubmit={handleSubmit(submitHandler)}
-          className="filter__menu__content"
+        <InputBase
+          sx={{ ml: 0.5, flex: 1 }}
+          placeholder="Search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          inputRef={inputRef}
+          onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
+        />
+        {search && (
+          <IconButton
+            color="primary"
+            type="button"
+            aria-label="clear"
+            onClick={() => {
+              setSearch(""); // Clears the search input
+              inputRef.current.focus(); // Keeps focus on the input after clearing
+            }}
+          >
+            <ClearRounded />
+          </IconButton>
+        )}
+        {/* <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" /> */}
+        <IconButton
+          color="primary"
+          type="button"
+          sx={{ p: "10px" }}
+          aria-label="search"
+          onClick={handleSearchClick}
         >
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <MenuItem>
-              <Controller
-                name="selectedDate"
-                control={control}
-                render={({ field }) => (
-                  <DatePicker
-                    views={["month", "year"]}
-                    label="Month and Year"
-                    value={field.value ? dayjs(field.value) : null}
-                    onChange={field.onChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        helperText={errors.selectedDate?.message}
-                        error={!!errors.selectedDate}
-                      />
-                    )}
-                  />
-                )}
-              />
-            </MenuItem>
-            {/* <MenuItem>
-              <Controller
-                name="System"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    sx={{ borderRadius: "10px" }}
-                    variant="outlined"
-                    displayEmpty
-                    inputProps={{ "aria-label": "Select System" }}
-                    className="systems__header__container1--dropdown"
-                  >
-                    <MenuItem value="" disabled>
-                      Select a System
-                    </MenuItem>
-                    {systemsData?.result.map((system) => (
-                      <MenuItem key={system.id} value={system.systemName}>
-                        {system.systemName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
-            </MenuItem> */}
-          </LocalizationProvider>
-          <Box className="filter__menu__content__buttons">
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              onClick={() => {
-                handleMenuClose();
+          <SearchRounded />
+        </IconButton>
+      </Box>
+
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Controller
+          name="selectedDate"
+          control={control}
+          render={({ field }) => (
+            <DatePicker
+              views={["month", "year"]}
+              label="Month and Year"
+              value={field.value ? dayjs(field.value) : null}
+              onChange={(date) => {
+                field.onChange(date);
+                handleDateChange(date);
               }}
-              // disabled={isPurchasesBookLoading || isSystemsLoading}
-              // startIcon={
-              //   isPurchasesBookLoading ? <CircularProgress size={20} /> : null
-              // }
-            >
-              Submit
-              {/* {isPurchasesBookLoading ? "Fetching..." : "Submit"} */}
-            </Button>{" "}
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => {
-                clearDate();
-              }}
-            >
-              Clear
-            </Button>
-          </Box>
-        </form>
-      </Menu>
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  helperText={errors.selectedDate?.message}
+                  error={!!errors.selectedDate}
+                />
+              )}
+            />
+          )}
+        />
+      </LocalizationProvider>
+
+     
     </div>
   );
 };
