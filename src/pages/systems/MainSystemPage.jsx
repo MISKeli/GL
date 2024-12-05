@@ -31,22 +31,21 @@ import {
 import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
 import useDebounce from "../../components/useDebounce";
 import FilterComponent from "../../components/FilterComponent";
-import dayjs from "dayjs";
 import moment from "moment";
 import { useLazyGetAllSystemsAsyncQuery } from "../../features/api/systemApi";
 
 import CusImport from "../../pages/systems/CusImport";
 function MainSystemPage() {
-  const currentDate = dayjs();
+  const [selectedSystem, setSelectedSystem] = useState(""); // State for selected system
   const [reportData, setReportData] = useState({
-    DateFrom: moment(currentDate).format("YYYY-MM-DD"),
-    DateTo: moment(currentDate).format("YYYY-MM-DD"),
+    Month: moment().format("MMM"),
+    Year: moment().format("YYYY"),
+    System: selectedSystem,
   }); // State to hold fetched data
   const [anchorEl, setAnchorEl] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [selectedSystem, setSelectedSystem] = useState(""); // State for selected system
 
   const [pageSize, setPageSize] = useState(25);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -75,8 +74,8 @@ function MainSystemPage() {
     PageNumber: page + 1,
     PageSize: pageSize,
     System: selectedSystem,
-    DateFrom: reportData.DateFrom,
-    DateTo: reportData.DateTo,
+    Month: reportData.Month,
+    Year: reportData.Year,
   });
 
   // SEARCH
@@ -85,12 +84,6 @@ function MainSystemPage() {
     inputRef.current?.focus(); // Immediately focus the input field
   };
 
-  // Function to handle data fetched from the Date component
-  const handleFetchData = (data) => {
-    console.log("DATAAA", data);
-    console.log("Received DateFrom:", data.dateFrom, "DateTo:", data.dateTo); // Debugging
-    setReportData(data);
-  };
   const handlePopOverClose = () => {
     setAnchorEl(null);
   };
@@ -99,7 +92,7 @@ function MainSystemPage() {
   };
 
   const handleChangeRowsPerPage = (event) => {
-    const selectedValue = parseInt(event.target.value, 25);
+    const selectedValue = parseInt(event.target.value, 10);
     setPageSize(selectedValue); // Directly set the selected value
     setPage(0); // Reset to first page
   };
@@ -125,7 +118,6 @@ function MainSystemPage() {
           <Box className="systems__header__container1">
             {/* Dropdown to select system */}
             <Select
-              sx={{ borderRadius: "10px" }}
               variant="outlined"
               value={selectedSystem || ""} // Ensure value is defined
               onChange={handleSystemChange}
@@ -136,6 +128,8 @@ function MainSystemPage() {
               <MenuItem value="" disabled>
                 Select a System
               </MenuItem>
+              <MenuItem value="">ALL</MenuItem>
+              <MenuItem value="IMPORTED">IMPORTED</MenuItem>
               {systemsData?.result.map((system) => (
                 <MenuItem key={system.id} value={system.systemName}>
                   {system.systemName}
@@ -153,50 +147,7 @@ function MainSystemPage() {
           </Box>
           <Box className="systems__header__container2">
             <Box className="masterlist__header__con2--date-picker">
-              <FilterComponent
-                color="primary"
-                onFetchData={handleFetchData}
-                setReportData={setReportData}
-              />
-            </Box>
-            <Box
-              className={`systems__header__container2--search ${
-                expanded ? "expanded" : ""
-              }`}
-              component="form"
-              onClick={() => setExpanded(true)}
-            >
-              <InputBase
-                sx={{ ml: 0.5, flex: 1 }}
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                inputRef={inputRef}
-                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
-              />
-              {search && (
-                <IconButton
-                  color="primary"
-                  type="button"
-                  aria-label="clear"
-                  onClick={() => {
-                    setSearch(""); // Clears the search input
-                    inputRef.current.focus(); // Keeps focus on the input after clearing
-                  }}
-                >
-                  <ClearRounded />
-                </IconButton>
-              )}
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              <IconButton
-                color="primary"
-                type="button"
-                sx={{ p: "10px" }}
-                aria-label="search"
-                onClick={handleSearchClick}
-              >
-                <SearchRounded />
-              </IconButton>
+              <FilterComponent color="primary" setReportData={setReportData} />
             </Box>
           </Box>
         </Box>

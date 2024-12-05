@@ -1,3 +1,4 @@
+import { IosShareRounded } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -13,25 +14,30 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import useDebounce from "../../components/useDebounce";
-
-import { IosShareRounded } from "@mui/icons-material";
-import "../../styles/BoaPage.scss";
-import { info } from "../../schemas/info";
 import {
   useExportVerticalCashDisbursementBookPerMonthQuery,
-  useGenerateHorizontalPurchasesBookPerMonthQuery,
+  useGenerateHorizontalCashDisbursementBookPerMonthQuery,
 } from "../../features/api/boaApi";
-const HorizontalPurchasesBookPage = ({ reportData }) => {
+import { info } from "../../schemas/info";
+import "../../styles/SystemFolder.scss";
+
+const FolderCDBHorizontal = () => {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
-  const [hasDataToExport, setHasDataToExport] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const [cdbHeader, setCdbHeader] = useState(info.Purchases_Book_horizontal);
+  const [hasDataToExport, setHasDataToExport] = useState(false);
+  const [cdbHeader, setCdbHeader] = useState(
+    info.cash_disbursement_book_horizontal
+  );
+
+  const params = useParams();
+  const { year, month } = params;
+
   const [transformedData, setTransformedData] = useState([]);
-  const inputRef = useRef(null);
   const debounceValue = useDebounce(search);
   const seenIds = new Set();
   const joinedCdbHeader = cdbHeader
@@ -48,50 +54,31 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
     });
 
   const headerColumn = joinedCdbHeader;
+
   const { data: exportData, isLoading: isExportLoading } =
     useExportVerticalCashDisbursementBookPerMonthQuery({
-      Month: reportData.Month,
-      Year: reportData.Year,
+      Month: month,
+      Year: year,
     });
-
   const {
     data: boaData,
     isLoading: isboaloading,
     isFetching: isboaFetching,
 
     isSuccess,
-  } = useGenerateHorizontalPurchasesBookPerMonthQuery({
+  } = useGenerateHorizontalCashDisbursementBookPerMonthQuery({
     Search: debounceValue,
     PageNumber: page + 1,
     PageSize: pageSize,
-    Month: reportData.Month,
-    Year: reportData.Year,
+    Month: month,
+    Year: year,
   });
-  // console.log("horizontalPB", boaData);
-  // console.log("headerPB", cdbHeader);
+  // console.log("horizontalCDB", boaData);
 
   //Pagination
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-  useEffect(() => {
-    if (isSuccess) {
-      const extraHeaders = boaData?.value?.purchasesBook?.flatMap((item) =>
-        item.accountName?.map((headeritem) => ({
-          id: headeritem.nameOfAccount,
-          name: headeritem.nameOfAccount.toUpperCase(),
-          subItems: [
-            { id: "debit", name: "DEBIT" },
-            { id: "credit", name: "CREDIT" },
-          ],
-        }))
-      );
-      const newSetHeaders = [...new Set(extraHeaders)];
-      // console.log({ newSetHeaders });
-      // console.log({ extraHeaders });
-      setCdbHeader([...info.Purchases_Book_horizontal, ...newSetHeaders]);
-    }
-  }, [isSuccess, boaData?.value]);
 
   // for comma
   const formatNumber = (number) => {
@@ -101,22 +88,46 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
   };
 
   useEffect(() => {
+    if (isSuccess) {
+      const extraHeaders = boaData?.value?.cashDisbursementBook?.flatMap(
+        (item) =>
+          item.accountName?.map((headeritem) => ({
+            id: headeritem.nameOfAccount,
+            name: headeritem.nameOfAccount.toUpperCase(),
+            subItems: [
+              { id: "debit", name: "DEBIT" },
+              { id: "credit", name: "CREDIT" },
+            ],
+          }))
+      );
+      const newSetHeaders = [...new Set(extraHeaders)];
+      //console.log({ newSetHeaders });
+      //.log({ extraHeaders });
+      setCdbHeader([
+        ...info.cash_disbursement_book_horizontal,
+        ...newSetHeaders,
+      ]);
+    }
+  }, [isSuccess, boaData?.value]);
+
+  //console.log("ww", boaData?.value?.cashDisbursementBook);
+
+  useEffect(() => {
     // Simulating API data fetch
-    const apiData = boaData?.value?.purchasesBook || [];
+    const apiData = boaData?.value?.cashDisbursementBook || [];
 
     // Transform the data
     const newData = apiData.map((entry) => {
       // Destructure existing fields
       const {
-        glDate,
-        transactionDate,
-        nameOfSupplier,
+        chequeDate,
+        bank,
+        cvNumber,
+        chequeNumber,
+        payee,
         description,
-        poNumber,
-        rrNumber,
-        apv,
-        receiptNumber,
-        amount,
+        tagNumber,
+        apvNumber,
         accountName,
       } = entry;
 
@@ -129,15 +140,14 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
 
       // Combine all fields into one object
       return {
-        glDate,
-        transactionDate,
-        nameOfSupplier,
+        chequeDate,
+        bank,
+        cvNumber,
+        chequeNumber,
+        payee,
         description,
-        poNumber,
-        rrNumber,
-        apv,
-        receiptNumber,
-        amount: formatNumber(amount),
+        tagNumber,
+        apvNumber,
         ...accounts,
       };
     });
@@ -146,27 +156,27 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
     setTransformedData(newData);
   }, [boaData]);
 
+  //console.log("NEW DATA:", transformedData);
+
+  //.log("DATA: ", cdbHeader);
+
   const handleChangeRowsPerPage = (event) => {
     const selectedValue = parseInt(event.target.value, 10);
     setPageSize(selectedValue); // Directly set the selected value
     setPage(0); // Reset to first page
   };
 
-  // SEARCH
-  const handleSearchClick = () => {
-    setExpanded(true); // Expand the box
-    inputRef.current?.focus(); // Immediately focus the input field
-  };
-
   return (
     <>
-      <Box className="boa">
-        <Box className="boa__header"></Box>
-        <Box className="boa__content">
-          <Box className="boa__content__table">
+      <Box className="boaFolder">
+        <Box className="boaFolder__content">
+          <Box className="boaFolder__content__table">
             <TableContainer
               component={Paper}
-              sx={{ overflow: "auto", height: "100%" }}
+              sx={{
+                overflow: "auto",
+                maxHeight: "calc(100vh - <offset>)", // Adjust offset based on header/footer
+              }}
             >
               <Table stickyHeader size="small">
                 <TableHead>
@@ -188,15 +198,15 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
                                   justifyContent: "space-between",
                                 }}
                               >
-                                {columnTable.subItems.map((subItems) => (
+                                {columnTable.subItems.map((subItem) => (
                                   <TableCell
-                                    key={subItems.id}
+                                    key={subItem.id}
                                     sx={{
                                       border: "none",
                                       padding: "5px",
                                     }}
                                   >
-                                    {subItems.name}
+                                    {subItem.name}
                                   </TableCell>
                                 ))}
                               </TableRow>
@@ -228,7 +238,6 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
                         {headerColumn.map((column) => {
                           const value = row[column.id];
                           const isNegative = value < 0; // Check if the number is negative
-
                           return (
                             <TableCell
                               key={column.id}
@@ -292,7 +301,7 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
             </TableContainer>
           </Box>
         </Box>
-        <Box className="boa__footer">
+        <Box className="boaFolder__footer">
           <Box>
             <Button
               variant="contained"
@@ -330,4 +339,4 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
   );
 };
 
-export default HorizontalPurchasesBookPage;
+export default FolderCDBHorizontal;

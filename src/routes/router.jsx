@@ -19,6 +19,12 @@ import SystemSetupPage from "../pages/systemSetup/SystemSetupPage";
 import SystemPage from "../pages/SystemPage";
 import BoaPage from "../pages/BOA/BoaPage";
 import MainSystemPage from "../pages/systems/MainSystemPage";
+import TrialBalancePage from "../pages/TrialBalancePage";
+import SystemPage2 from "../pages/SystemPage2";
+import YearPage from "../pages/Foldering/YearPage";
+import SystemFilepage from "../pages/Foldering/SystemFilePage";
+import MonthsPage from "../pages/Foldering/MonthPage";
+import SystemNames from "../pages/Foldering/SystemNames";
 
 export const router = createBrowserRouter([
   {
@@ -64,24 +70,41 @@ export const router = createBrowserRouter([
           },
           {
             path: "boa",
-            element: <BoaPage />
-             
+            element: <BoaPage />,
           },
           {
             path: "system",
-            element: 
-                <SystemPage />
-              
+            element: <SystemPage2 />,
+            children: [
+              {
+                path: "",
+                element: <YearPage />,
+              },
+              {
+                path: ":year",
+                element: <SystemFilepage />,
+              },
+              {
+                path: ":year/:boaName/",
+                element: <MonthsPage />,
+              },
+              {
+                path: ":year/:boaName/:month",
+                element: <SystemNames />,
+              },
+            ],
           },
           {
             path: "main_system",
-            element: 
-                <MainSystemPage />
-              
+            element: <MainSystemPage />,
           },
           {
             path: "import",
             element: <ImportPage />,
+          },
+          {
+            path: "trial_balance",
+            element: <TrialBalancePage />,
           },
           {
             path: "systems",

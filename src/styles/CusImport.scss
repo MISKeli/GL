@@ -15,8 +15,8 @@
     //margin-bottom: 10px; // Space below the title
 
     .MuiIconButton-root {
-        color: $primary-main; // Set close button color to white
-      }
+      color: $primary-main; // Set close button color to white
+    }
   }
 
   &__separator {
@@ -24,27 +24,20 @@
     justify-content: center;
     align-items: center;
     padding: 0 20px;
-
   }
 
   &__dialog {
     display: flex; // Make the dialog a flex container
-    width: 100%;; // Set a width for the dialog
+    width: 100%; // Set a width for the dialog
     padding: 20px; // Add some padding
     overflow: hidden;
     margin: auto;
-
-   
-
-    
 
     &__import {
       flex: 1; // Allow the import section to take up available space
       //margin-right: 10px; // Space between import and syncing sections
 
       &__content {
-        
-
         &__dropzone {
           border: 3px dashed $text-hint; // Style for the dropzone
           padding: 53px; // Padding inside the dropzone
@@ -61,8 +54,6 @@
             //font-weight: bold;
           }
         }
-
-      
       }
     }
   }
@@ -70,7 +61,6 @@
     //margin-left: 10px; // Space between import and syncing sections
     flex: 1; // Allow the syncing section to take up available space
     &__form {
-      
       margin-top: 25px; // Space above the form
     }
   }
@@ -86,11 +76,14 @@
       color: $primary-main;
     }
     &--content {
+      .MuiDataGrid-row {
+        background-color: $background-header;
+        pointer-events: fill;
+      }
       height: 500px;
       overflow-y: auto;
     }
     &--actions {
     }
   }
-  
 }

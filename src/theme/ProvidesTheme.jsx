@@ -21,10 +21,20 @@ const ProvidesTheme = ({ children }) => {
       },
     },
     components: {
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+          
+            borderRight: "1px solid",
+            borderRightColor: paletteSchema.background.header,
+          },
+        },
+      },
       MuiTableHead: {
         styleOverrides: {
           root: {
             "& .MuiTableCell-root": {
+              borderColor: paletteSchema.primary.main,
               whiteSpace: "nowrap",
               backgroundColor: paletteSchema.primary.main,
               fontSize: 13,
@@ -37,6 +47,7 @@ const ProvidesTheme = ({ children }) => {
       MuiTableBody: {
         styleOverrides: {
           root: {
+            
             whiteSpace: "nowrap", // so the tableBody single line
             "& .MuiTableRow-root": {
               transition: "background-color 0.3s ease",
@@ -47,6 +58,7 @@ const ProvidesTheme = ({ children }) => {
           },
         },
       },
+      
       MuiSelect: {
         styleOverrides: {
           root: {
@@ -58,21 +70,26 @@ const ProvidesTheme = ({ children }) => {
           },
         },
       },
-      MuiDatePicker: {
+      MuiInputLabel: {
         styleOverrides: {
-          MuiOutlinedInput: {
-            root: {
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#348632", // Outline color when focused
-                borderRadius: "10px",
-              },
-            },
+          root: {
+            //  color: paletteSchema.secondary.light,
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          notchedOutline: {
+            borderColor: paletteSchema.primary.main,
+            borderRadius: "10px",
+            borderWidth: "2px",
           },
         },
       },
       MuiDataGrid: {
         styleOverrides: {
           root: {
+            
             "& .MuiDataGrid-scrollbar": {
               ariaHidden: "false", // Override if possible
             },
@@ -99,23 +116,6 @@ const ProvidesTheme = ({ children }) => {
               //fontWeight: 400,
             },
           },
-          // select: {
-          //   backgroundColor: paletteSchema.primary.main,
-          //   color: paletteSchema.primary.contrastText,
-          //   borderRadius: 10,
-          //   fontWeight: 400,
-          //   ":active": {
-          //     backgroundColor: paletteSchema.primary.main,
-          //   },
-          // },
-          // selectIcon: {
-          //   color: paletteSchema.primary.contrastText,
-          // },
-          // actions: {
-          //   "& .MuiIconButton-root": {
-          //     color: paletteSchema.primary.dark,
-          //   },
-          // },
         },
       },
       MuiButton: {

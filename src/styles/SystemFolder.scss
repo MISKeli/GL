@@ -1,0 +1,78 @@
+@import "__palette.module";
+.folder {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  padding: 0 10px;
+
+  &__breadcrumbs {
+    a {
+      text-decoration: none;
+      color: #808080; // Default text color
+      font-size: 18px; // Adjust the font size as needed
+
+      &:hover {
+        //text-decoration: underline;
+      }
+    }
+    .active {
+      color: #0033cc;
+    }
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    &--title {
+      color: $primary-main;
+    }
+    &__paper {
+      width: 100%;
+      height: 100%;
+
+      //   border-radius: 20px;
+
+      &__outlet {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        white-space: nowrap;
+        background-color: aqua;
+      }
+    }
+  }
+}
+.boaName {
+  display: flex;
+}
+
+.boaTable {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+}
+
+.boaFolder {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+
+  width: 100%;
+  overflow: auto;
+
+  &__content {
+    height: 100%;
+    flex: 1;
+    &__table {
+      height: 100%;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

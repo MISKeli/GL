@@ -1,10 +1,8 @@
+import { IosShareRounded } from "@mui/icons-material";
 import {
   Box,
   Button,
   CircularProgress,
-  Divider,
-  IconButton,
-  InputBase,
   Paper,
   Skeleton,
   Table,
@@ -16,31 +14,33 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { Workbook } from "exceljs";
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 import useDebounce from "../../components/useDebounce";
-import { IosShareRounded } from "@mui/icons-material";
-import "../../styles/BoaPage.scss";
-import { info } from "../../schemas/info";
 import {
   useExportVerticalCashDisbursementBookPerMonthQuery,
   useGenerateVerticalCashDisbursementBookPerMonthQuery,
 } from "../../features/api/boaApi";
-import { toast } from "sonner";
-import { Workbook } from "exceljs";
-const CashDisbursementBookPage = ({ reportData }) => {
+import { info } from "../../schemas/info";
+import "../../styles/SystemFolder.scss";
+const FolderCDB = () => {
   const [hasDataToExport, setHasDataToExport] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
+  const params = useParams();
+  const { year, month } = params;
 
   const debounceValue = useDebounce(search);
   const headerColumn = info.cash_disbursement_book;
 
   const { data: exportData, isLoading: isExportLoading } =
     useExportVerticalCashDisbursementBookPerMonthQuery({
-      Month: reportData.Month,
+      Month: month,
       System: "Fisto",
-      Year: reportData.Year,
+      Year: year,
     });
 
   const {
@@ -52,8 +52,8 @@ const CashDisbursementBookPage = ({ reportData }) => {
     PageNumber: page + 1,
     PageSize: pageSize,
     System: "Fisto",
-    Month: reportData.Month,
-    Year: reportData.Year,
+    Month: month,
+    Year: year,
   });
   console.log("CDB", boaData);
 
@@ -86,7 +86,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
       if (!data || data.length === 0) {
         throw new Error("No data available to export.");
       }
-      const extraSentence = `For the month of ${reportData.Month} ${reportData.Year}`;
+      const extraSentence = `For the month of ${month} ${year}`;
 
       const processedData = data.map((item) => ({
         id: item.chequeDate,
@@ -218,7 +218,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
       link.href = url;
       link.setAttribute(
         "download",
-        `CashDisbursementBook-${reportData.Month}-${reportData.Year}.xlsx`
+        `CashDisbursementBook-${month}-${year}.xlsx`
       );
       document.body.appendChild(link);
       link.click();
@@ -232,10 +232,9 @@ const CashDisbursementBookPage = ({ reportData }) => {
 
   return (
     <>
-      <Box className="boa">
-        <Box className="boa__header"></Box>
-        <Box className="boa__content">
-          <Box className="boa__content__table">
+      <Box className="boaFolder">
+        <Box className="boaFolder__content">
+          <Box className="boaFolder__content__table">
             <TableContainer
               component={Paper}
               sx={{ overflow: "auto", height: "100%" }}
@@ -347,7 +346,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
             </TableContainer>
           </Box>
         </Box>
-        <Box className="boa__footer">
+        <Box className="boaFolder__footer">
           <Box>
             <Button
               variant="contained"
@@ -385,4 +384,4 @@ const CashDisbursementBookPage = ({ reportData }) => {
   );
 };
 
-export default CashDisbursementBookPage;
+export default FolderCDB;

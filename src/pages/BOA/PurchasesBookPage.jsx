@@ -2,9 +2,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Divider,
-  IconButton,
-  InputBase,
   Paper,
   Skeleton,
   Table,
@@ -16,7 +13,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import useDebounce from "../../components/useDebounce";
 import dayjs from "dayjs";
 import { IosShareRounded } from "@mui/icons-material";
@@ -30,7 +27,6 @@ import { toast } from "sonner";
 import { Workbook } from "exceljs";
 
 const PurchasesBookPage = ({ reportData }) => {
-  const currentDate = dayjs();
   const [hasDataToExport, setHasDataToExport] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -73,9 +69,14 @@ const PurchasesBookPage = ({ reportData }) => {
   };
 
   const handleChangeRowsPerPage = (event) => {
-    const selectedValue = parseInt(event.target.value, 25);
-    setPageSize(selectedValue); // Directly set the selected value
-    setPage(0); // Reset to first page
+    setPageSize(parseInt(event.target.value, 10)); // Directly set the selected value
+    setPage(0);
+  };
+  // for comma
+  const formatNumber = (number) => {
+    return Math.abs(number)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   // SEARCH
@@ -267,9 +268,8 @@ const PurchasesBookPage = ({ reportData }) => {
                               <TableCell
                                 key={subItems.id}
                                 sx={{
-                                  textAlign: subItems.credit ? "left" : "", // Center subItems text
-                                  borderBottom: 0,
-                                  padding: "5px", // Ensure proper padding for aesthetics
+                                  border: "none",
+                                  //padding: "5px", // Ensure proper padding for aesthetics
                                 }}
                               >
                                 {subItems.name}
@@ -303,10 +303,7 @@ const PurchasesBookPage = ({ reportData }) => {
                           <React.Fragment key={col.id}>
                             {/* Check if the column is "rawMaterials" and has subItems (debit and credit) */}
                             {col.id === "rawMaterials" && col.subItems ? (
-                              <TableCell
-                                align="center"
-                                colSpan={col.subItems.length}
-                              >
+                              <TableCell align="center">
                                 <TableRow
                                   style={{
                                     display: "flex",
@@ -314,33 +311,49 @@ const PurchasesBookPage = ({ reportData }) => {
                                   }}
                                 >
                                   {/* Iterate over subItems for debit and credit */}
-                                  {col.subItems.map((subItem) => (
-                                    <TableCell
-                                      key={subItem.id}
-                                      sx={{
-                                        textAlign:
-                                          subItem.id === "debit"
-                                            ? "left"
-                                            : "right",
-                                        borderBottom: 0,
-                                        padding: "5px",
-                                      }}
-                                    >
-                                      {subItem.id === "debit" &&
+                                  {col.subItems.map((subItem) => {
+                                    const amountValue =
+                                      subItem.id === "debit" &&
                                       row.drCr === "Debit"
                                         ? row.amount
                                         : subItem.id === "credit" &&
                                           row.drCr === "Credit"
                                         ? row.amount
-                                        : "—"}
-                                    </TableCell>
-                                  ))}
+                                        : null;
+
+                                    const isNegative = amountValue < 0;
+
+                                    return (
+                                      <TableCell
+                                        key={subItem.id}
+                                        sx={{
+                                          border: "none",
+                                          color: isNegative ? "red" : "inherit",
+                                        }}
+                                      >
+                                        {amountValue !== null
+                                          ? formatNumber(amountValue)
+                                          : "0"}
+                                      </TableCell>
+                                    );
+                                  })}
                                 </TableRow>
                               </TableCell>
                             ) : (
                               // For columns without subItems
-                              <TableCell>
-                                {row[col.id] ? row[col.id] : "—"}
+                              <TableCell
+                                sx={{
+                                  color:
+                                    col.id === "amount" && row[col.id] < 0
+                                      ? "red"
+                                      : "inherit",
+                                }}
+                              >
+                                {row[col.id]
+                                  ? col.id === "amount"
+                                    ? formatNumber(row[col.id]) // Format amount column
+                                    : row[col.id]
+                                  : "—"}
                               </TableCell>
                             )}
                           </React.Fragment>
@@ -382,7 +395,7 @@ const PurchasesBookPage = ({ reportData }) => {
 
           <TablePagination
             component="div"
-            count={boaData?.value?.totalCount || 0}
+            count={boaData?.value.totalCount || 0}
             page={page}
             rowsPerPage={pageSize}
             onPageChange={handleChangePage}

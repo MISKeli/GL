@@ -81,11 +81,11 @@ const LoginPage = () => {
     }
   };
 
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     navigate("/");
-  //   }
-  // }, [isAuthenticated, navigate]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <Box className="login-page">

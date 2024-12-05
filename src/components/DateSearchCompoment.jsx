@@ -1,6 +1,18 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { IconButton, TextField, Box, InputBase, Tooltip } from "@mui/material";
+import {
+  Button,
+  Menu,
+  MenuItem,
+  IconButton,
+  TextField,
+  CircularProgress,
+  Box,
+  Select,
+  InputBase,
+  Divider,
+  Tooltip,
+} from "@mui/material";
 
 import dayjs from "dayjs";
 import "../styles/FilterComponent.scss";
@@ -9,15 +21,25 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { boaSchema } from "../schemas/validation";
-//import { useLazyGetAllSystemsAsyncQuery } from "../features/api/systemApi";
-import { ClearRounded, SearchRounded } from "@mui/icons-material";
+import {
+  AlignHorizontalLeftRounded,
+  AlignVerticalTopRounded,
+  ClearRounded,
+  SearchRounded,
+} from "@mui/icons-material";
 
-const FilterComponent = ({ setReportData }) => {
+const DateSearchCompoment = ({
+  setReportData,
+  hasDate = true,
+  onViewChange,
+  hasViewChange = false,
+}) => {
   const currentDate = dayjs();
 
   const inputRef = useRef(null);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
+  const [isHorizontalView, setIsHorizontalView] = useState(false);
   const {
     control,
     formState: { errors },
@@ -44,6 +66,16 @@ const FilterComponent = ({ setReportData }) => {
   const handleSearchClick = () => {
     setExpanded(true); // Expand the box
     inputRef.current?.focus(); // Immediately focus the input field
+  };
+
+  const tooltipTitle = isHorizontalView ? "Horizontal View" : "Vertical View";
+
+  const toggleViewFormat = () => {
+    setIsHorizontalView((prevFormat) => {
+      const newFormat = !prevFormat;
+      onViewChange(newFormat);
+      return newFormat;
+    });
   };
 
   return (
@@ -85,33 +117,45 @@ const FilterComponent = ({ setReportData }) => {
           <SearchRounded />
         </IconButton>
       </Box>
-
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Controller
-          name="selectedDate"
-          control={control}
-          render={({ field }) => (
-            <DatePicker
-              views={["month", "year"]}
-              label="Month and Year"
-              value={field.value ? dayjs(field.value) : null}
-              onChange={(date) => {
-                field.onChange(date);
-                handleDateChange(date);
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  helperText={errors.selectedDate?.message}
-                  error={!!errors.selectedDate}
-                />
-              )}
-            />
-          )}
-        />
-      </LocalizationProvider>
+      {hasViewChange && (
+        <Tooltip title={tooltipTitle} placement="left" arrow>
+          <IconButton onClick={toggleViewFormat}>
+            {isHorizontalView ? (
+              <AlignHorizontalLeftRounded color="primary" />
+            ) : (
+              <AlignVerticalTopRounded color="primary" />
+            )}
+          </IconButton>
+        </Tooltip>
+      )}
+      {hasDate && (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Controller
+            name="selectedDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                views={["month", "year"]}
+                label="Month and Year"
+                value={field.value ? dayjs(field.value) : null}
+                onChange={(date) => {
+                  field.onChange(date);
+                  handleDateChange(date);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    helperText={errors.selectedDate?.message}
+                    error={!!errors.selectedDate}
+                  />
+                )}
+              />
+            )}
+          />
+        </LocalizationProvider>
+      )}
     </div>
   );
 };
 
-export default FilterComponent;
+export default DateSearchCompoment;

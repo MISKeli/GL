@@ -1,4 +1,11 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "../../styles/layout/SideBar.scss";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -24,6 +31,7 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+  const AccessPermission = user.permission || [];
 
   const updateStepHeight = () => {
     if (sidebarRef.current) {
@@ -46,10 +54,12 @@ const Sidebar = () => {
     };
   }, []);
 
-  const AccessPermission = user.permission || [];
-  const navsModule = moduleSchema
-    ?.filter((module) => module.subCategory || module.name)
-    ?.filter((item) => AccessPermission.includes(item.name));
+  // Memoize filtered module schema for better performance
+  const navsModule = useMemo(() => {
+    return moduleSchema
+      ?.filter((module) => module.subCategory || module.name)
+      ?.filter((item) => AccessPermission.includes(item.name));
+  }, [AccessPermission]);
 
   useEffect(() => {
     const curPath = location.pathname.split("/")[1];
@@ -63,21 +73,34 @@ const Sidebar = () => {
     setActiveSubIndex(subPath ? activeSubItem : null);
   }, [location]);
 
-  const handleMainCatClick = (item, index) => {
-    setIsDrawerOpen(true);
-    if (item.subCategory) {
-      // If there are subcategories
-      setActiveIndex(index);
-      setActiveSubIndex(null); // Reset subcategory when mainCat is clicked
-    } else {
-      // Navigate to the main category's path if there are no subcategories
-      navigate(item.to || "");
-    }
-  };
+  const handleMainCatClick = useCallback(
+    (item, index) => {
+      setIsDrawerOpen(true);
+      if (item.subCategory) {
+        setActiveIndex(index);
+        setActiveSubIndex(null);
+      } else {
+        navigate(item.to || "");
+      }
+    },
+    [navigate]
+  );
 
   const handleSubCatClick = (subIndex) => {
     setActiveSubIndex(subIndex); // Set active subcategory on click
   };
+
+  const popperModifiers = useMemo(
+    () => [
+      {
+        name: "offset",
+        options: {
+          offset: [0, 30],
+        },
+      },
+    ],
+    []
+  );
 
   return (
     <Box className="side" data-active={isDrawerOpen}>
@@ -125,6 +148,9 @@ const Sidebar = () => {
                         arrow
                         TransitionComponent={Zoom}
                         disableHoverListener={isDrawerOpen}
+                        slotProps={{
+                          popper: { modifiers: popperModifiers },
+                        }}
                       >
                         <Box className="side__sub-item--icon">
                           {activeIndex === index ? (

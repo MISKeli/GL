@@ -1,19 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import {
-  Button,
-  Menu,
-  MenuItem,
-  IconButton,
-  TextField,
-  CircularProgress,
-  Box,
-  Select,
-  InputBase,
-  Divider,
-  Tooltip,
-} from "@mui/material";
-import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
+import { IconButton, TextField, Box, InputBase, Tooltip } from "@mui/material";
+
 import dayjs from "dayjs";
 import "../styles/FilterComponent.scss";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -150,8 +138,6 @@ const BoaFilterComponent = ({ setReportData, onViewChange }) => {
           )}
         />
       </LocalizationProvider>
-
-     
     </div>
   );
 };

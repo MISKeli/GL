@@ -26,7 +26,7 @@ import {
   useGenerateHorizontalCashDisbursementBookPerMonthQuery,
 } from "../../features/api/boaApi";
 
-const HorizontalCashDisbursementBookPage = ({ reportData }) => {
+const  HorizontalCashDisbursementBookPage = ({ reportData }) => {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -77,6 +77,14 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+
+  // for comma
+  const formatNumber = (number) => {
+    return Math.abs(number)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   useEffect(() => {
     if (isSuccess) {
       const extraHeaders = boaData?.value?.cashDisbursementBook?.flatMap(
@@ -151,7 +159,7 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
   //.log("DATA: ", cdbHeader);
 
   const handleChangeRowsPerPage = (event) => {
-    const selectedValue = parseInt(event.target.value, 25);
+    const selectedValue = parseInt(event.target.value, 10);
     setPageSize(selectedValue); // Directly set the selected value
     setPage(0); // Reset to first page
   };
@@ -184,15 +192,17 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
                         {columnTable.subItems && (
                           <Table>
                             <TableHead>
-                              <TableRow>
+                              <TableRow
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
                                 {columnTable.subItems.map((subItem) => (
                                   <TableCell
                                     key={subItem.id}
                                     sx={{
-                                      textAlign: subItem.credit
-                                        ? "left"
-                                        : "center",
-                                      borderBottom: 0,
+                                      border: "none",
                                       padding: "5px",
                                     }}
                                   >
@@ -227,29 +237,44 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
                       <TableRow key={rowIndex}>
                         {headerColumn.map((column) => {
                           const value = row[column.id];
+                          const isNegative = value < 0; // Check if the number is negative
                           return (
-                            <TableCell key={column.id}>
+                            <TableCell
+                              key={column.id}
+                              sx={{
+                                color: isNegative ? "red" : "inherit", // Red for negative numbers
+                              }}
+                            >
                               {value && typeof value === "object" ? (
                                 <Table>
                                   <TableBody>
-                                    <TableRow>
+                                    <TableRow
+                                      style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
-                                          textAlign: "center",
+                                          border: "none",
                                           padding: "5px",
-                                          borderBottom: 0,
+                                          color:
+                                            value.debit < 0 ? "red" : "inherit",
                                         }}
                                       >
-                                        {value.debit}
+                                        {formatNumber(value.debit)}
                                       </TableCell>
                                       <TableCell
                                         sx={{
-                                          textAlign: "center",
+                                          border: "none",
                                           padding: "5px",
-                                          borderBottom: 0,
+                                          color:
+                                            value.credit < 0
+                                              ? "red"
+                                              : "inherit",
                                         }}
                                       >
-                                        {value.credit}
+                                        {formatNumber(value.credit)}
                                       </TableCell>
                                     </TableRow>
                                   </TableBody>

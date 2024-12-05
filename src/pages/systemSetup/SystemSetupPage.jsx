@@ -85,7 +85,7 @@ const SystemSetupPage = () => {
     PageNumber: params.page + 1,
     PageSize: params.PageSize,
   });
-  console.log("apple", systemData);
+  //console.log("apple", systemData);
 
   const changeStatus = (data) =>
     setParams((currentValue) => ({
@@ -177,7 +177,7 @@ const SystemSetupPage = () => {
         setOpenArchiveDialog(false);
       })
       .catch((error) => {
-        console.log({ error });
+        //console.log({ error });
         toast.error(error?.message);
       });
   };
@@ -263,83 +263,73 @@ const SystemSetupPage = () => {
         </Box>
         <Box className="setup__content">
           <Box className="setup__content__table">
-            <TableContainer
-              component={Paper}
-              sx={{ overflow: "auto", height: "100%" }}
+          <TableContainer component={Paper} sx={{ overflow: "auto", height: "100%" }}>
+  <Table stickyHeader>
+    <TableHead>
+      <TableRow>
+        {headerColumn.map((column) => (
+          <TableCell key={column.id}>{column.name}</TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {isSystemLoading || isSystemFetching
+        ? Array.from({ length: pageSize }).map((_, index) => (
+            <TableRow key={index}>
+              {headerColumn.map((column) => (
+                <TableCell key={column.id}>
+                  <Skeleton variant="text" animation="wave" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        : systemData?.result.map((row) => (
+            <TableRow
+              key={row.id}
+              className={activeRow === row.id ? "active" : ""}
             >
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {headerColumn.map((column) => (
-                      <TableCell key={column}>{column.name}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {isSystemLoading || isSystemFetching
-                    ? Array.from({ length: pageSize }).map((_, index) => (
-                        <TableRow key={index}>
-                          {headerColumn.map((column) => (
-                            <TableCell key={column.id}>
-                              <Skeleton variant="text" animation="wave" />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    : systemData?.result.map((headerColumn) => (
-                        <TableRow
-                          key={headerColumn.id}
-                          className={
-                            activeRow === headerColumn.id ? "active" : ""
-                          }
-                        >
-                          <TableCell>{headerColumn.systemName}</TableCell>
-                          <TableCell>{headerColumn.endpoint}</TableCell>
-                          <TableCell>
-                            <Tooltip
-                              TransitionComponent={Zoom}
-                              arrow
-                              title={headerColumn.token || "No token available"}
-                              className="setup__content__table__tooltip"
-                            >
-                              <IconButton>
-                                <PreviewRounded />
-                              </IconButton>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              variant="filled"
-                              label={
-                                params.status === "active"
-                                  ? "active"
-                                  : "inactive"
-                              }
-                              color={
-                                params.status === "active" ? "success" : "error"
-                              }
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <IconButton
-                              onClick={(event) => {
-                                handlePopOverOpen(event, headerColumn);
-                              }}
-                            >
-                              <MoreVertOutlined />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                </TableBody>
-              </Table>
-              {systemData?.result && systemData.result.length === 0 ? (
-                <Box className="setup__content__table--norecords">
-                  <img src={noRecordsFound} alt="No Records Found" />
-                </Box>
-              ) : null}
-            </TableContainer>
+              <TableCell>{row.systemName}</TableCell>
+              <TableCell>{row.endpoint}</TableCell>
+              <TableCell>
+                <Tooltip
+                  TransitionComponent={Zoom}
+                  arrow
+                  title={row.token || "No token available"}
+                  className="setup__content__table__tooltip"
+                >
+                  <IconButton>
+                    <PreviewRounded />
+                  </IconButton>
+                </Tooltip>
+              </TableCell>
+              <TableCell>
+                <Chip
+                  variant="filled"
+                  label={
+                    params.status === "active" ? "active" : "inactive"
+                  }
+                  color={params.status === "active" ? "success" : "error"}
+                  size="small"
+                />
+              </TableCell>
+              <TableCell>
+                <IconButton
+                  onClick={(event) => handlePopOverOpen(event, row)}
+                >
+                  <MoreVertOutlined />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+    </TableBody>
+  </Table>
+  {systemData?.result && systemData.result.length === 0 ? (
+    <Box className="setup__content__table--norecords">
+      <img src={noRecordsFound} alt="No Records Found" />
+    </Box>
+  ) : null}
+</TableContainer>
+
           </Box>
         </Box>
         <Box className="setup__footer">

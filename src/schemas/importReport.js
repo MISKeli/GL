@@ -29,7 +29,9 @@ export const transformRows = (data) => {
     locationCode: row.locationCode || "",
     location: row.location || "",
     poNumber: row.poNumber || "",
-    rrNumber: row.rrNumber || "",
+    rrNumber: Array.isArray(row.rrNumber)
+      ? row.rrNumber.join(", ") // Convert to a comma-separated string
+      : row.rrNumber || "",
     referenceNo: row.referenceNo ? row.referenceNo.toString() : "",
     itemCode: row.itemCode || "",
     itemDescription: row.itemDescription || "",

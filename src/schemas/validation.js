@@ -33,7 +33,6 @@ export const reportSchema = yup.object().shape({
 
 export const boaSchema = yup.object().shape({
   selectedDate: yup.date().required("Date is required"),
-  //System: yup.string().required("System is required."),
 });
 
 export const systemSchema = yup.object().shape({
@@ -47,7 +46,7 @@ export const systemDateSchema = yup.object().shape({
 });
 
 export const importSchema = yup.object().shape({
-  syncId: yup.string().required("Sync Id is required."),
+  syncId: yup.string().nullable(),
   mark1: yup.string().nullable(),
   mark2: yup.string().nullable(),
   assetCIP: yup.string().nullable(),

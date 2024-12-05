@@ -32,6 +32,7 @@ import FilterComponent from "../components/FilterComponent";
 import dayjs from "dayjs";
 import moment from "moment";
 import { useLazyGetAllSystemsAsyncQuery } from "../features/api/systemApi";
+import { Outlet } from "react-router-dom";
 
 function SystemPage() {
   const currentDate = dayjs();
@@ -71,9 +72,11 @@ function SystemPage() {
     PageNumber: page + 1,
     PageSize: pageSize,
     System: selectedSystem,
-    DateFrom: reportData.DateFrom,
-    DateTo: reportData.DateTo,
+    Month: reportData.Month,
+    Year: reportData.Year,
   });
+
+  console.log("systemData", systemData);
 
   // SEARCH
   const handleSearchClick = () => {
@@ -95,7 +98,7 @@ function SystemPage() {
   };
 
   const handleChangeRowsPerPage = (event) => {
-    const selectedValue = parseInt(event.target.value, 25);
+    const selectedValue = parseInt(event.target.value, 10);
     setPageSize(selectedValue); // Directly set the selected value
     setPage(0); // Reset to first page
   };
@@ -106,12 +109,13 @@ function SystemPage() {
   };
   return (
     <>
+      <Outlet />
       <Box className="systems">
         <Box className="systems__header">
           <Box className="systems__header__container1">
             {/* Dropdown to select system */}
             <Select
-            sx={{ borderRadius: "10px"}}
+              sx={{ borderRadius: "10px" }}
               //color="primary"
               variant="outlined"
               value={selectedSystem}
@@ -132,50 +136,7 @@ function SystemPage() {
           </Box>
           <Box className="systems__header__container2">
             <Box className="masterlist__header__con2--date-picker">
-              <FilterComponent
-                color="primary"
-                onFetchData={handleFetchData}
-                setReportData={setReportData}
-              />
-            </Box>
-            <Box
-              className={`systems__header__container2--search ${
-                expanded ? "expanded" : ""
-              }`}
-              component="form"
-              onClick={() => setExpanded(true)}
-            >
-              <InputBase
-                sx={{ ml: 0.5, flex: 1 }}
-                placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                inputRef={inputRef}
-                onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
-              />
-              {search && (
-                <IconButton
-                  color="primary"
-                  type="button"
-                  aria-label="clear"
-                  onClick={() => {
-                    setSearch(""); // Clears the search input
-                    inputRef.current.focus(); // Keeps focus on the input after clearing
-                  }}
-                >
-                  <ClearRounded />
-                </IconButton>
-              )}
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-              <IconButton
-                color="primary"
-                type="button"
-                sx={{ p: "10px" }}
-                aria-label="search"
-                onClick={handleSearchClick}
-              >
-                <SearchRounded />
-              </IconButton>
+              <FilterComponent color="primary" setReportData={setReportData} />
             </Box>
           </Box>
         </Box>

@@ -1,4 +1,6 @@
 import {
+  AccountBalanceWalletOutlined,
+  AccountBalanceWalletRounded,
   CollectionsBookmarkOutlined,
   CollectionsBookmarkRounded,
   DashboardOutlined,
@@ -99,6 +101,14 @@ export const moduleSchema = [
     icon: CollectionsBookmarkOutlined,
     iconOn: CollectionsBookmarkRounded,
     to: "/boa",
+    subCategory: null,
+  },
+  {
+    name: "Trail Balance",
+    section: "trial_balance",
+    icon: AccountBalanceWalletOutlined,
+    iconOn: AccountBalanceWalletRounded,
+    to: "/trial_balance",
     subCategory: null,
   },
   {

@@ -53,7 +53,7 @@ const CusImport = ({ open, onClose }) => {
     adjustment_month: null,
   });
 
-  console.log({ params });
+  //console.log({ params });
   const { setValue } = useForm({
     defaultValues: {
       addedBy: 0,
@@ -62,6 +62,7 @@ const CusImport = ({ open, onClose }) => {
     resolver: yupResolver(importSchema),
   });
   const [importData, { isFetching }] = useImportReportsMutation();
+
   const createHeader = () => {
     if (data.length === 0) return [];
     const columnToHide = "syncId";
@@ -81,7 +82,7 @@ const CusImport = ({ open, onClose }) => {
         field: key,
         headerName: key,
         width: 150,
-        editable: !nonEditableColumns.includes(key),
+        editable: false, // !nonEditableColumns.includes(key),
       }));
   };
 
@@ -104,7 +105,7 @@ const CusImport = ({ open, onClose }) => {
   }, 0);
 
   const roundedTotal = Math.round(lineAmountTotal);
-  //console.log("lineAmountTotal", roundedTotal);
+  console.log("lineAmountTotal", roundedTotal);
 
   //IMPORT
   const onDrop = (acceptedFiles, fileRejections) => {
@@ -238,7 +239,7 @@ const CusImport = ({ open, onClose }) => {
 
       // Check for duplicates in the error response
 
-      setErrorReports(error?.data?.value.duplicateReports || []);
+      setErrorReports(error?.data?.value?.duplicateReports || []);
       setIsDuplicateDialogOpen(true); // Open duplicate dialog
     } finally {
       setIsDataGridOpen(false);
@@ -254,12 +255,12 @@ const CusImport = ({ open, onClose }) => {
     setSelectedValue(data);
 
     try {
-      console.log({ data });
+      //console.log({ data });
       const response = await triggerTestSystem({
         endpoint: `${params.endpoint}/${params.adjustment_month}`,
         token: data.token,
       }).unwrap();
-      console.log({ response });
+      //console.log({ response });
 
       toast.success("Establishing Connection Successfully.");
     } catch (error) {
@@ -270,9 +271,9 @@ const CusImport = ({ open, onClose }) => {
   // Define onHandleSync function
   const onHandleSync = async () => {
     try {
-      console.log({ data });
+      //console.log({ data });
       const response = await triggerTestSystem(params).unwrap();
-      console.log({ response });
+      // console.log({ response });
       // handleChange(response);
 
       setData(response);
@@ -281,7 +282,7 @@ const CusImport = ({ open, onClose }) => {
 
       toast.success("Establishing Connection Successfully.");
     } catch (error) {
-       toast.error(error?.message || "Error establishing connection");
+      toast.error(error?.message || "Error establishing connection");
     }
   };
 
@@ -413,10 +414,13 @@ const CusImport = ({ open, onClose }) => {
                 pageSizeOptions={[5, 10, 25, { value: 99, label: "All" }]}
                 //checkboxSelection
                 disableRowSelectionOnClick
-                experimentalFeatures={{ newEditingApi: true }}
+                // experimentalFeatures={{ newEditingApi: true }}
                 sx={{
                   "& .MuiDataGrid-columnHeaderTitle": {
                     fontWeight: "bolder",
+                  },
+                  "& .MuiDataGrid-row": {
+                    backgroundColor: "$background-header",
                   },
                 }}
               />
@@ -432,7 +436,7 @@ const CusImport = ({ open, onClose }) => {
             {roundedTotal.toLocaleString("en-PH", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            })}
+            }) || "--"}
           </Typography>
           <Box>
             <Button

@@ -10,15 +10,23 @@ import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { boaSchema } from "../schemas/validation";
 //import { useLazyGetAllSystemsAsyncQuery } from "../features/api/systemApi";
-import { ClearRounded, SearchRounded } from "@mui/icons-material";
+import {
+  AlignHorizontalLeftRounded,
+  AlignVerticalTopRounded,
+  ClearRounded,
+  SearchRounded,
+} from "@mui/icons-material";
 
-const FilterComponent = ({ setReportData }) => {
+const FolderFilterComponent = ({ setReportData, onViewChange }) => {
   const currentDate = dayjs();
 
   const inputRef = useRef(null);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
+  const [isHorizontalView, setIsHorizontalView] = useState(true);
   const {
+    reset,
+    handleSubmit,
     control,
     formState: { errors },
   } = useForm({
@@ -46,8 +54,28 @@ const FilterComponent = ({ setReportData }) => {
     inputRef.current?.focus(); // Immediately focus the input field
   };
 
+  const tooltipTitle = isHorizontalView ? "Horizontal View" : "Vertical View";
+
+  const toggleViewFormat = () => {
+    setIsHorizontalView((prevFormat) => {
+      const newFormat = !prevFormat;
+      onViewChange(newFormat);
+      return newFormat;
+    });
+  };
+
   return (
     <div className="filter">
+      <Tooltip title={tooltipTitle} placement="left" arrow>
+        <IconButton onClick={toggleViewFormat}>
+          {isHorizontalView ? (
+            <AlignHorizontalLeftRounded color="primary" />
+          ) : (
+            <AlignVerticalTopRounded color="primary" />
+          )}
+        </IconButton>
+      </Tooltip>
+
       <Box
         className={`filter__search ${expanded ? "expanded" : ""}`}
         component="form"
@@ -114,4 +142,4 @@ const FilterComponent = ({ setReportData }) => {
   );
 };
 
-export default FilterComponent;
+export default FolderFilterComponent;

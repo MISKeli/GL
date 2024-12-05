@@ -1,0 +1,43 @@
+@import "__palette.module";
+.trial {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
+  &__header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__content {
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    &__table {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: auto;
+      overflow-x: auto;
+      overflow-y: hidden;
+      &--grandtotal {
+        position: sticky;
+        bottom: 0;
+        background-color: $background-header; // Match your table's background
+        z-index: 2;
+        font-weight: bold;
+      }
+    }
+  }
+&__footer{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+}

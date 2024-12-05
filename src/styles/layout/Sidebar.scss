@@ -70,10 +70,15 @@
   &__icon {
     position: absolute;
     width: 60px;
+    transform: scale(4.1);
   }
 
   &__link {
     display: flex;
+    &:hover:not(.active) {
+      color: $primary-light;
+      font-weight: 600;
+    }
   }
 
   &__item {
@@ -83,10 +88,12 @@
     place-content: flex-start;
     font-weight: 500;
     transition: color 0.3s ease-in-out;
+    cursor: pointer;
 
     &--icon {
       align-items: center;
       margin-right: 1rem;
+      transform: scale(4.1);
     }
 
     &--name {
@@ -103,7 +110,8 @@
     }
 
     &:hover:not(.active) {
-      color: $primary-dark;
+      color: $primary-light;
+      font-weight: 600;
     }
   }
 
@@ -132,16 +140,17 @@
         opacity: 35%; // Your desired opacity
         border-radius: 10px;
         z-index: -1; // Ensure it is behind the text
+        
       }
     }
 
     &:hover:not(.active) {
-      color: $primary-dark;
+      color: $primary-main;
+      font-weight: 900;
       
     }
 
     &--name {
-    
       padding-left: 10px;
       align-self: center;
     }

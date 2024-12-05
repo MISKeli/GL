@@ -95,7 +95,7 @@ const UserAccountPage = () => {
     },
     { refetchOnFocus: true }
   );
-  console.log("appleeee", userData);
+  //console.log("appleeee", userData);
 
   const openPopUp = () => {
     setOpen(true);
@@ -132,7 +132,7 @@ const UserAccountPage = () => {
   };
   const handleChangeRowsPerPage = (event) => {
     setPageSize(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page when rows per page changes
+    setPage(0); 
   };
 
   //Status
@@ -338,9 +338,7 @@ const UserAccountPage = () => {
               rowsPerPageOptions={[5, 10, 25]}
             />
           </Box>
-          <Box className="masterlist__footer">
-          
-          </Box>
+          <Box className="masterlist__footer"></Box>
           <Menu
             open={Boolean(anchorEl)}
             onClose={handlePopOverClose}
