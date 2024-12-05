@@ -2,7 +2,7 @@
 .folder {
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  //overflow: hidden;
   padding: 0 10px;
 
   &__breadcrumbs {
@@ -38,7 +38,7 @@
         flex-wrap: wrap;
         gap: 1rem;
         white-space: nowrap;
-        background-color: aqua;
+        //background-color: aqua;
       }
     }
   }
@@ -56,23 +56,25 @@
 
 .boaFolder {
   display: flex;
-  justify-content: center;
   flex-direction: column;
-
   width: 100%;
-  overflow: auto;
-
-  &__content {
-    height: 100%;
-    flex: 1;
-    &__table {
-      height: 100%;
-    }
-  }
+  height: 100dvh;
+  //   &__content {
+  //     height: 100%;
+  //     flex: 1;
+  //     &__table {
+  //       height: 100%;
+  //     }
+  //   }
 
   &__footer {
+    position: sticky; // Keeps the footer stuck at the bottom of the container
+    bottom: 0; // Stick to the bottom
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    width: 100%;
+    background-color: white; // Add a background to prevent overlap with content
+    border-top: 1px solid #ccc; // Optional styling for a divider
+    padding: 8px 16px;
   }
 }

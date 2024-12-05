@@ -169,138 +169,124 @@ const FolderCDBHorizontal = () => {
   return (
     <>
       <Box className="boaFolder">
-        <Box className="boaFolder__content">
-          <Box className="boaFolder__content__table">
-            <TableContainer
-              component={Paper}
-              sx={{
-                overflow: "auto",
-                maxHeight: "calc(100vh - <offset>)", // Adjust offset based on header/footer
-              }}
-            >
-              <Table stickyHeader size="small">
-                <TableHead>
-                  <TableRow>
-                    {headerColumn?.map((columnTable) => (
-                      <TableCell
-                        key={columnTable.id}
-                        sx={{
-                          textAlign: columnTable.subItems ? "center" : "",
-                        }}
-                      >
-                        {columnTable.name}
-                        {columnTable.subItems && (
-                          <Table>
-                            <TableHead>
-                              <TableRow
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
+        <TableContainer component={Paper}>
+          <Table stickyHeader size="small">
+            <TableHead>
+              <TableRow>
+                {headerColumn?.map((columnTable) => (
+                  <TableCell
+                    key={columnTable.id}
+                    sx={{
+                      textAlign: columnTable.subItems ? "center" : "",
+                    }}
+                  >
+                    {columnTable.name}
+                    {columnTable.subItems && (
+                      <Table>
+                        <TableHead>
+                          <TableRow
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            {columnTable.subItems.map((subItem) => (
+                              <TableCell
+                                key={subItem.id}
+                                sx={{
+                                  border: "none",
+                                  padding: "5px",
                                 }}
                               >
-                                {columnTable.subItems.map((subItem) => (
-                                  <TableCell
-                                    key={subItem.id}
-                                    sx={{
-                                      border: "none",
-                                      padding: "5px",
-                                    }}
-                                  >
-                                    {subItem.name}
-                                  </TableCell>
-                                ))}
-                              </TableRow>
-                            </TableHead>
-                          </Table>
-                        )}
+                                {subItem.name}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                      </Table>
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isboaFetching || isboaloading ? (
+                Array.from({ length: pageSize }).map((_, index) => (
+                  <TableRow key={index}>
+                    {headerColumn.map((col) => (
+                      <TableCell key={col.id}>
+                        <Skeleton
+                          variant="text"
+                          animation="wave"
+                          height={100}
+                        />
                       </TableCell>
                     ))}
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {isboaFetching || isboaloading ? (
-                    Array.from({ length: pageSize }).map((_, index) => (
-                      <TableRow key={index}>
-                        {headerColumn.map((col) => (
-                          <TableCell key={col.id}>
-                            <Skeleton
-                              variant="text"
-                              animation="wave"
-                              height={100}
-                            />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : transformedData.length > 0 ? (
-                    transformedData.map((row, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        {headerColumn.map((column) => {
-                          const value = row[column.id];
-                          const isNegative = value < 0; // Check if the number is negative
-                          return (
-                            <TableCell
-                              key={column.id}
-                              sx={{
-                                color: isNegative ? "red" : "inherit", // Red for negative numbers
-                              }}
-                            >
-                              {value && typeof value === "object" ? (
-                                <Table>
-                                  <TableBody>
-                                    <TableRow
-                                      style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                      }}
-                                    >
-                                      <TableCell
-                                        sx={{
-                                          border: "none",
-                                          padding: "5px",
-                                          color:
-                                            value.debit < 0 ? "red" : "inherit",
-                                        }}
-                                      >
-                                        {formatNumber(value.debit)}
-                                      </TableCell>
-                                      <TableCell
-                                        sx={{
-                                          border: "none",
-                                          padding: "5px",
-                                          color:
-                                            value.credit < 0
-                                              ? "red"
-                                              : "inherit",
-                                        }}
-                                      >
-                                        {formatNumber(value.credit)}
-                                      </TableCell>
-                                    </TableRow>
-                                  </TableBody>
-                                </Table>
-                              ) : (
-                                value || "—"
-                              )}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={headerColumn.length} align="center">
-                        <Typography variant="h6">
-                          {info.system_no_data}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </Box>
+                ))
+              ) : transformedData.length > 0 ? (
+                transformedData.map((row, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {headerColumn.map((column) => {
+                      const value = row[column.id];
+                      const isNegative = value < 0; // Check if the number is negative
+                      return (
+                        <TableCell
+                          key={column.id}
+                          sx={{
+                            color: isNegative ? "red" : "inherit", // Red for negative numbers
+                          }}
+                        >
+                          {value && typeof value === "object" ? (
+                            <Table>
+                              <TableBody>
+                                <TableRow
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                  }}
+                                >
+                                  <TableCell
+                                    sx={{
+                                      border: "none",
+                                      padding: "5px",
+                                      color:
+                                        value.debit < 0 ? "red" : "inherit",
+                                    }}
+                                  >
+                                    {formatNumber(value.debit)}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={{
+                                      border: "none",
+                                      padding: "5px",
+                                      color:
+                                        value.credit < 0 ? "red" : "inherit",
+                                    }}
+                                  >
+                                    {formatNumber(value.credit)}
+                                  </TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          ) : (
+                            value || "—"
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={headerColumn.length} align="center">
+                    <Typography variant="h6">{info.system_no_data}</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <Box className="boaFolder__footer">
           <Box>
             <Button

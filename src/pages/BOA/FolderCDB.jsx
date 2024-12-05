@@ -9,6 +9,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
   TablePagination,
   TableRow,
@@ -233,152 +234,148 @@ const FolderCDB = () => {
   return (
     <>
       <Box className="boaFolder">
-        <Box className="boaFolder__content">
-          <Box className="boaFolder__content__table">
-            <TableContainer
-              component={Paper}
-              sx={{ overflow: "auto", height: "100%" }}
-            >
-              <Table stickyHeader size="small">
-                <TableHead>
-                  <TableRow>
-                    {headerColumn.map((columnTable) => (
-                      <TableCell
-                        key={columnTable.id}
-                        sx={{
-                          textAlign: columnTable.subItems ? "center" : "",
+        <TableContainer
+          component={Paper}
+           sx={{ overflow: "auto", height: "100%" }}
+        >
+          <Table stickyHeader sx={{ height: "100px" }} size="small">
+            <TableHead>
+              <TableRow>
+                {headerColumn.map((columnTable) => (
+                  <TableCell
+                    key={columnTable.id}
+                    sx={{
+                      textAlign: columnTable.subItems ? "center" : "",
+                    }}
+                  >
+                    {columnTable.name}
+                    {columnTable.subItems && (
+                      <TableRow
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
                         }}
                       >
-                        {columnTable.name}
-                        {columnTable.subItems && (
-                          <TableRow
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
+                        {columnTable.subItems.map((subItems) => (
+                          <TableCell
+                            key={subItems.id}
+                            sx={{
+                              border: "none",
+                              //padding: "5px",
                             }}
                           >
-                            {columnTable.subItems.map((subItems) => (
-                              <TableCell
-                                key={subItems.id}
-                                sx={{
-                                  border: "none",
-                                  //padding: "5px",
-                                }}
-                              >
-                                {subItems.name}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {isboaFetching || isboaloading ? (
-                    Array.from({ length: pageSize }).map((_, index) => (
-                      <TableRow key={index}>
-                        {headerColumn.map((col) => (
-                          <TableCell key={col.id}>
-                            <Skeleton
-                              variant="text"
-                              animation="wave"
-                              height={100}
-                            />
+                            {subItems.name}
                           </TableCell>
                         ))}
                       </TableRow>
-                    ))
-                  ) : boaData?.value?.cashDisbursementBook?.length > 0 ? (
-                    boaData?.value?.cashDisbursementBook.map((row, index) => (
-                      <TableRow key={index}>
-                        {headerColumn.map((col) => (
-                          <React.Fragment key={col.id}>
-                            {col.subItems ? (
-                              // If the column has subItems (debit and credit), render them in nested cells
-                              <TableCell align="center">
-                                <TableRow
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                  }}
-                                >
-                                  {col.subItems.map((subItem) => {
-                                    const amountValue = row[subItem.id];
-                                    const isNegative = amountValue < 0;
-                                    return (
-                                      <TableCell
-                                        key={subItem.id}
-                                        sx={{
-                                          border: "none",
-                                          color: isNegative ? "red" : "inherit",
-                                        }}
-                                      >
-                                        {amountValue
-                                          ? formatNumber(amountValue)
-                                          : "0"}
-                                      </TableCell>
-                                    );
-                                  })}
-                                </TableRow>
-                              </TableCell>
-                            ) : (
-                              // For regular columns without subItems
-                              <TableCell>
-                                {row[col.id] ? row[col.id] : "—"}
-                              </TableCell>
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={headerColumn.length} align="center">
-                        <Typography variant="h6">
-                          {info.system_no_data}
-                        </Typography>
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isboaFetching || isboaloading ? (
+                Array.from({ length: pageSize }).map((_, index) => (
+                  <TableRow key={index}>
+                    {headerColumn.map((col) => (
+                      <TableCell key={col.id}>
+                        <Skeleton
+                          variant="text"
+                          animation="wave"
+                          height={100}
+                        />
                       </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </Box>
-        <Box className="boaFolder__footer">
-          <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={onExport}
-              disabled={!hasDataToExport || isExportLoading}
-              startIcon={
-                isExportLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <IosShareRounded />
-                )
-              }
-            >
-              {isExportLoading ? "Exporting..." : "Export"}
-            </Button>
-          </Box>
-          <TablePagination
-            component="div"
-            count={boaData?.value?.totalCount || 0}
-            page={page}
-            rowsPerPage={pageSize}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[
-              25,
-              50,
-              100,
-              { label: "All", value: boaData?.value?.totalCount || 0 },
-            ]}
-          />
-        </Box>
+                    ))}
+                  </TableRow>
+                ))
+              ) : boaData?.value?.cashDisbursementBook?.length > 0 ? (
+                boaData?.value?.cashDisbursementBook.map((row, index) => (
+                  <TableRow key={index}>
+                    {headerColumn.map((col) => (
+                      <React.Fragment key={col.id}>
+                        {col.subItems ? (
+                          // If the column has subItems (debit and credit), render them in nested cells
+                          <TableCell align="center">
+                            <TableRow
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                              }}
+                            >
+                              {col.subItems.map((subItem) => {
+                                const amountValue = row[subItem.id];
+                                const isNegative = amountValue < 0;
+                                return (
+                                  <TableCell
+                                    key={subItem.id}
+                                    sx={{
+                                      border: "none",
+                                      color: isNegative ? "red" : "inherit",
+                                    }}
+                                  >
+                                    {amountValue
+                                      ? formatNumber(amountValue)
+                                      : "0"}
+                                  </TableCell>
+                                );
+                              })}
+                            </TableRow>
+                          </TableCell>
+                        ) : (
+                          // For regular columns without subItems
+                          <TableCell>
+                            {row[col.id] ? row[col.id] : "—"}
+                          </TableCell>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={headerColumn.length} align="center">
+                    <Typography variant="h6">{info.system_no_data}</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+            <TableFooter>
+              <Box className="boaFolder__footer">
+                <Box>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={onExport}
+                    disabled={!hasDataToExport || isExportLoading}
+                    startIcon={
+                      isExportLoading ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <IosShareRounded />
+                      )
+                    }
+                  >
+                    {isExportLoading ? "Exporting..." : "Export"}
+                  </Button>
+                </Box>
+                <TablePagination
+                  component="div"
+                  count={boaData?.value?.totalCount || 0}
+                  page={page}
+                  rowsPerPage={pageSize}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  rowsPerPageOptions={[
+                    25,
+                    50,
+                    100,
+                    { label: "All", value: boaData?.value?.totalCount || 0 },
+                  ]}
+                />
+              </Box>
+            </TableFooter>
+          </Table>
+        </TableContainer>
       </Box>
     </>
   );

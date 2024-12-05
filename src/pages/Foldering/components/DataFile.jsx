@@ -58,10 +58,11 @@ const DataFile = ({ name, onClick, onDoubleClick, variant = "folder" }) => {
 
         <Box
           position={"absolute"}
-         
+          bottom={0}
           width={"130px"}
           display={"flex"}
           justifyContent={"center"}
+          
         >
           <Typography>{name}</Typography>
         </Box>

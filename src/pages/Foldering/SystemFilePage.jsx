@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import "../../styles/SystemFolder.scss";
 
 const boaName = [
-  "Purchases sfpsklpfkspkfpskpsfkspf Book",
+  "Purchases Book",
   "Cash Disbursement Book",
   "Sales Journal Book",
   "Cash Receipt Book",

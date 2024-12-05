@@ -28,8 +28,8 @@ const SystemPage2 = () => {
         </Box>
 
         <Box
-           className="folder__header__paper__outlet"
-          minHeight="50vh"
+          className="folder__header__paper__outlet"
+          minHeight="100vh"
 
           //  width="100%"
         >
