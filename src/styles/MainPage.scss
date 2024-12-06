@@ -14,9 +14,9 @@
     overflow: hidden; // this fixed my problem responsiveness
   }
   &__content-outlet {
-    height: 100%;
-    width: 100%;
     overflow: hidden;
+    // background-color: peachpuff;
+    // display: flex;
     padding: 1rem;
     flex: 1;
   }

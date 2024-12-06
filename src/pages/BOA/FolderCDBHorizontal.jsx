@@ -168,8 +168,22 @@ const FolderCDBHorizontal = () => {
 
   return (
     <>
-      <Box className="boaFolder">
-        <TableContainer component={Paper}>
+      <Box
+        // className="boaFolder"
+        width={100}
+        flex={1}
+        display={"flex"}
+        flexDirection={"column"}
+      >
+        <TableContainer
+          component={Paper}
+          sx={{
+            overflowX: "auto",
+            width: "100%",
+            tableLayout: "fixed",
+            flex: 1,
+          }}
+        >
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
@@ -287,6 +301,7 @@ const FolderCDBHorizontal = () => {
             </TableBody>
           </Table>
         </TableContainer>
+
         <Box className="boaFolder__footer">
           <Box>
             <Button

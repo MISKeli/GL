@@ -233,12 +233,23 @@ const FolderCDB = () => {
 
   return (
     <>
-      <Box className="boaFolder">
+      <Box
+        // className="boaFolder"
+        width={100}
+        flex={1}
+        display={"flex"}
+        flexDirection={"column"}
+      >
         <TableContainer
           component={Paper}
-           sx={{ overflow: "auto", height: "100%" }}
+          sx={{
+            overflowX: "auto",
+            width: "100%",
+            tableLayout: "fixed",
+            flex: 1,
+          }}
         >
-          <Table stickyHeader sx={{ height: "100px" }} size="small">
+          <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
                 {headerColumn.map((columnTable) => (
@@ -339,7 +350,10 @@ const FolderCDB = () => {
                 </TableRow>
               )}
             </TableBody>
-            <TableFooter>
+            
+           
+          </Table>
+        </TableContainer>
               <Box className="boaFolder__footer">
                 <Box>
                   <Button
@@ -373,9 +387,6 @@ const FolderCDB = () => {
                   ]}
                 />
               </Box>
-            </TableFooter>
-          </Table>
-        </TableContainer>
       </Box>
     </>
   );

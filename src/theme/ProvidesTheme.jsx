@@ -24,7 +24,6 @@ const ProvidesTheme = ({ children }) => {
       MuiTableCell: {
         styleOverrides: {
           root: {
-          
             borderRight: "1px solid",
             borderRightColor: paletteSchema.background.header,
           },
@@ -47,7 +46,6 @@ const ProvidesTheme = ({ children }) => {
       MuiTableBody: {
         styleOverrides: {
           root: {
-            
             whiteSpace: "nowrap", // so the tableBody single line
             "& .MuiTableRow-root": {
               transition: "background-color 0.3s ease",
@@ -58,7 +56,7 @@ const ProvidesTheme = ({ children }) => {
           },
         },
       },
-      
+
       MuiSelect: {
         styleOverrides: {
           root: {
@@ -89,7 +87,6 @@ const ProvidesTheme = ({ children }) => {
       MuiDataGrid: {
         styleOverrides: {
           root: {
-            
             "& .MuiDataGrid-scrollbar": {
               ariaHidden: "false", // Override if possible
             },
