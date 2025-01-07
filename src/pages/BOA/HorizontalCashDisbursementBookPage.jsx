@@ -26,7 +26,7 @@ import {
   useGenerateHorizontalCashDisbursementBookPerMonthQuery,
 } from "../../features/api/boaApi";
 
-const  HorizontalCashDisbursementBookPage = ({ reportData }) => {
+const HorizontalCashDisbursementBookPage = ({ reportData }) => {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -53,10 +53,16 @@ const  HorizontalCashDisbursementBookPage = ({ reportData }) => {
 
   const headerColumn = joinedCdbHeader;
 
+  const fillParams = {
+    FromMonth: reportData?.fromMonth || "",
+    ToMonth: reportData?.toMonth || "",
+    ToYear: reportData?.toYear || "",
+    FromYear: reportData?.fromYear || "",
+  };
+
   const { data: exportData, isLoading: isExportLoading } =
     useExportVerticalCashDisbursementBookPerMonthQuery({
-      Month: reportData.Month,
-      Year: reportData.Year,
+      ...fillParams,
     });
   const {
     data: boaData,
@@ -65,11 +71,10 @@ const  HorizontalCashDisbursementBookPage = ({ reportData }) => {
 
     isSuccess,
   } = useGenerateHorizontalCashDisbursementBookPerMonthQuery({
+    ...fillParams,
     Search: debounceValue,
     PageNumber: page + 1,
     PageSize: pageSize,
-    Month: reportData.Month,
-    Year: reportData.Year,
   });
   // console.log("horizontalCDB", boaData);
 
@@ -81,7 +86,7 @@ const  HorizontalCashDisbursementBookPage = ({ reportData }) => {
   // for comma
   const formatNumber = (number) => {
     return Math.abs(number)
-      .toString()
+      .toFixed(2)
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 

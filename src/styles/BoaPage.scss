@@ -4,12 +4,21 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  gap: 0.5rem;
+  padding: 0 10px;
+  
 
   &__container {
-    margin-top: 0.5rem;
+   
+   
     display: flex;
     justify-content: space-between;
+
+    &--select{
+     
+     
+      align-items: center;
+
+    }
   }
   &__table {
     display: flex;
@@ -26,11 +35,14 @@
   flex-direction: column;
   flex: 1;
   height: 100%;
+  
   &__content {
+    
     overflow: hidden;
     flex: 1;
     &__table {
       height: 100%;
+      margin-top: 5px;
       .MuiTableCell-body {
         padding: 10px 16px;
       }

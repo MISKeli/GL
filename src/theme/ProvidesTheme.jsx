@@ -71,6 +71,7 @@ const ProvidesTheme = ({ children }) => {
       MuiInputLabel: {
         styleOverrides: {
           root: {
+            
             //  color: paletteSchema.secondary.light,
           },
         },
@@ -78,6 +79,7 @@ const ProvidesTheme = ({ children }) => {
       MuiOutlinedInput: {
         styleOverrides: {
           notchedOutline: {
+            
             borderColor: paletteSchema.primary.main,
             borderRadius: "10px",
             borderWidth: "2px",
@@ -100,18 +102,7 @@ const ProvidesTheme = ({ children }) => {
             // backgroundColor: paletteSchema.primary.dark,
             color: paletteSchema.primary.dark,
 
-            "& .MuiTablePagination-select": {
-              //backgroundColor: paletteSchema.primary.main,
-              //color: paletteSchema.primary.contrastText,
-              //borderRadius: 10,
-            },
-            "& .MuiTablePagination-selectIcon": {
-              //color: paletteSchema.primary.contrastText,
-            },
-            "& .MuiTablePagination-actions": {
-              //color: paletteSchema.warning.main,
-              //fontWeight: 400,
-            },
+          
           },
         },
       },
@@ -160,6 +151,7 @@ const ProvidesTheme = ({ children }) => {
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
+          
           fontSize: "0.75rem", // Adjust font size if needed
           height: "36px", // Adjust the height
         },
@@ -208,6 +200,7 @@ const ProvidesTheme = ({ children }) => {
     MuiSelect: {
       styleOverrides: {
         root: {
+          
           color: paletteSchema.secondary.main,
         },
       },

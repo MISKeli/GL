@@ -1,38 +1,36 @@
-import React, { useEffect, useRef, useState } from "react";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import {
-  Button,
-  Menu,
-  MenuItem,
-  IconButton,
-  TextField,
-  CircularProgress,
   Box,
-  Select,
+  Button,
+  CircularProgress,
+  IconButton,
   InputBase,
-  Divider,
+  TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import React, { useRef, useState } from "react";
 
-import dayjs from "dayjs";
-import "../styles/FilterComponent.scss";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { boaSchema } from "../schemas/validation";
 import {
   AlignHorizontalLeftRounded,
   AlignVerticalTopRounded,
   ClearRounded,
   SearchRounded,
 } from "@mui/icons-material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import { Controller, useForm } from "react-hook-form";
+import { boaSchema } from "../schemas/validation";
+import "../styles/FilterComponent.scss";
 
 const DateSearchCompoment = ({
   setReportData,
   hasDate = true,
   onViewChange,
   hasViewChange = false,
+  hasImport = false,
 }) => {
   const currentDate = dayjs();
 
@@ -40,6 +38,11 @@ const DateSearchCompoment = ({
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [isHorizontalView, setIsHorizontalView] = useState(false);
+  const [fromDate, setFromDate] = useState(dayjs());
+  const [toDate, setToDate] = useState(dayjs());
+  const [importDate, setImportDate] = useState(dayjs());
+  const [loading, setLoading] = useState(false);
+
   const {
     control,
     formState: { errors },
@@ -50,16 +53,57 @@ const DateSearchCompoment = ({
     },
   });
 
-  // Updates report data when the date is changed
-  const handleDateChange = (selectedDate) => {
-    const month = selectedDate.format("MMM");
-    const year = selectedDate.format("YYYY");
+  const handleDateChange = async () => {
+    setLoading(true); // Start loading
 
-    setReportData({
-      Month: month,
-      Year: year,
-      Search: search,
-    });
+    const fromMonth = fromDate.format("MMM").toString();
+    const fromYear = fromDate.format("YYYY");
+    const toMonth = toDate.format("MMM").toString();
+    const toYear = toDate.format("YYYY");
+
+    const importMonth = hasImport ? importDate.format("MMM") : null;
+    const importYear = hasImport ? importDate.format("YYYY") : null;
+
+    // try {
+    //   await setReportData({
+    //     fromMonth,
+    //     fromYear,
+    //     toMonth,
+    //     toYear,
+    //   });
+    // }
+    try {
+      const reportData = {
+        fromMonth,
+        fromYear,
+        toMonth,
+        toYear,
+      };
+
+      if (hasImport) {
+        reportData.Month = importMonth;
+        reportData.Year = importYear;
+      }
+
+      await setReportData(reportData);
+    } catch (error) {
+      console.error("Error fetching report data:", error);
+    } finally {
+      setLoading(false); // Stop loading after fetching completes
+    }
+  };
+
+  // Updates report data when the date is changed
+  const handleImportDateChange = (selectedDate) => {
+    setImportDate(selectedDate);
+    // const month = selectedDate.format("MMM");
+    // const year = selectedDate.format("YYYY");
+
+    // setReportData({
+    //   Month: month,
+    //   Year: year,
+    //   Search: search,
+    // });
   };
 
   // SEARCH
@@ -68,7 +112,9 @@ const DateSearchCompoment = ({
     inputRef.current?.focus(); // Immediately focus the input field
   };
 
-  const tooltipTitle = isHorizontalView ? "Horizontal View" : "Vertical View";
+  const tooltipTitle = isHorizontalView
+    ? "Change Horizontal View"
+    : "Change Vertical View";
 
   const toggleViewFormat = () => {
     setIsHorizontalView((prevFormat) => {
@@ -78,8 +124,41 @@ const DateSearchCompoment = ({
     });
   };
 
+  const currentYear = dayjs();
+
   return (
     <div className="filter">
+      {hasImport && (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Controller
+            name="selectedDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                views={["month", "year"]}
+                label="Month and Year"
+                value={importDate}
+                onChange={(date) => {
+                  field.onChange(date);
+                  handleImportDateChange(date);
+                }}
+                slotProps={{
+                  textField: {
+                    variant: "standard",
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    helperText={errors.selectedDate?.message}
+                    error={!!errors.selectedDate}
+                  />
+                )}
+              />
+            )}
+          />
+        </LocalizationProvider>
+      )}
       <Box
         className={`filter__search ${expanded ? "expanded" : ""}`}
         component="form"
@@ -110,13 +189,14 @@ const DateSearchCompoment = ({
         <IconButton
           color="primary"
           type="button"
-          sx={{ p: "10px" }}
+          // sx={{ p: "10px" }}
           aria-label="search"
           onClick={handleSearchClick}
         >
           <SearchRounded />
         </IconButton>
       </Box>
+
       {hasViewChange && (
         <Tooltip title={tooltipTitle} placement="left" arrow>
           <IconButton onClick={toggleViewFormat}>
@@ -128,31 +208,62 @@ const DateSearchCompoment = ({
           </IconButton>
         </Tooltip>
       )}
+
+      {/* DatePicker */}
       {hasDate && (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Controller
-            name="selectedDate"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                views={["month", "year"]}
-                label="Month and Year"
-                value={field.value ? dayjs(field.value) : null}
-                onChange={(date) => {
-                  field.onChange(date);
-                  handleDateChange(date);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    helperText={errors.selectedDate?.message}
-                    error={!!errors.selectedDate}
-                  />
-                )}
-              />
-            )}
+          <DatePicker
+            views={["month", "year"]}
+            label="From (Month and Year)"
+            value={fromDate}
+            // minDate={pastYear}
+            //maxDate={currentYear}
+            slotProps={{
+              textField: {
+                variant: "standard",
+              },
+            }}
+            onChange={(date) => {
+              setFromDate(date);
+              // handleDateChange(date, toDate);
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+          <Typography className="filter__dash" fontWeight={600}>
+            {" "}
+            _{" "}
+          </Typography>
+          <DatePicker
+            views={["month", "year"]}
+            label="To (Month and Year)"
+            value={toDate}
+            minDate={fromDate}
+            slotProps={{
+              textField: {
+                variant: "standard",
+              },
+            }}
+            onChange={(date) => {
+              setToDate(date);
+              //handleDateChange(fromDate, date);
+            }}
+            renderInput={(params) => <TextField {...params} />}
           />
         </LocalizationProvider>
+      )}
+      {/* Submit Button with Loading */}
+      {(hasDate || hasImport) && (
+        <Box className="filter__submit">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleDateChange}
+            disabled={loading || toDate.isBefore(fromDate, "month")} // Disable button when loading
+            startIcon={loading && <CircularProgress size={16} />} // Show loading spinner
+          >
+            {loading ? "Submitting..." : "Submit"}
+          </Button>
+        </Box>
       )}
     </div>
   );

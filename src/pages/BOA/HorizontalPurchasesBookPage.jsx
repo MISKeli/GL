@@ -33,6 +33,12 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
   const [transformedData, setTransformedData] = useState([]);
   const inputRef = useRef(null);
   const debounceValue = useDebounce(search);
+  const fillParams = {
+    FromMonth: reportData?.fromMonth || "",
+    ToMonth: reportData?.toMonth || "",
+    ToYear: reportData?.toYear || "",
+    FromYear: reportData?.fromYear || "",
+  };
   const seenIds = new Set();
   const joinedCdbHeader = cdbHeader
     .map((item) => ({
@@ -50,8 +56,7 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
   const headerColumn = joinedCdbHeader;
   const { data: exportData, isLoading: isExportLoading } =
     useExportVerticalCashDisbursementBookPerMonthQuery({
-      Month: reportData.Month,
-      Year: reportData.Year,
+      ...fillParams,
     });
 
   const {
@@ -61,11 +66,10 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
 
     isSuccess,
   } = useGenerateHorizontalPurchasesBookPerMonthQuery({
+    ...fillParams,
     Search: debounceValue,
     PageNumber: page + 1,
     PageSize: pageSize,
-    Month: reportData.Month,
-    Year: reportData.Year,
   });
   // console.log("horizontalPB", boaData);
   // console.log("headerPB", cdbHeader);
@@ -96,7 +100,7 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
   // for comma
   const formatNumber = (number) => {
     return Math.abs(number)
-      .toString()
+      .toFixed(2)
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 

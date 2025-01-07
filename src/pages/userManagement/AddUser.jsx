@@ -228,7 +228,12 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
                           handleChangeRegistrationData(data);
                         }}
                         getOptionLabel={(option) => {
-                          return `(${option.general_info.full_id_number}) - ${option.general_info.full_name}`;
+                          if (!option.general_info) return "Unknown Employee";
+                          const { full_id_number, full_name } =
+                            option.general_info;
+                          return `(${full_id_number || "N/A"}) - ${
+                            full_name || "Unknown"
+                          }`;
                         }}
                         renderInput={(params) => (
                           <TextField

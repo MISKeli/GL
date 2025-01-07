@@ -2,49 +2,34 @@
 .filter {
   position: relative;
   display: flex;
-
+  gap: 1rem;
   &__icon {
     cursor: pointer;
   }
 
-  &__menu {
-    padding: 16px;
-
-    &__content {
-      display: flex;
-      flex-direction: column;
-
-      .MuiMenuItem-root {
-        display: flex;
-        flex-direction: column;
-        //margin-bottom: 16px;
-
-        .MuiTextField-root {
-          //margin-bottom: 16px;
-        }
-      }
-
-      &__buttons {
-        // display: flex;
-        // justify-content: end;
-        margin-left: 15px;
-      }
-    }
-  }
   &__search {
     display: flex;
-        align-items: center;
-        width: 50px;
-        border: none;
-        border-radius: 10px;
-        padding: 2px 4px;
-        margin: 5px;
-        transition: width 0.3s ease-in-out;
+    align-items: center;
+    width: 50px;
+    border: none;
+    border-radius: 10px;
+    padding: 2px 4px;
+    margin: 5px;
+    transition: width 0.3s ease-in-out;
 
-        // Expanded state when focused
-        &.expanded {
-          width: 300px;
-          border: 1px solid $primary-main;
-        }
+    // Expanded state when focused
+    &.expanded {
+      width: 300px;
+      border: 1px solid $primary-main;
+    }
+  }
+
+  &__dash {
+    padding-top: 15px;
+  }
+
+  &__submit {
+    align-items: center;
+    margin-top: 0.5rem;
   }
 }

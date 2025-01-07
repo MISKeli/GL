@@ -23,11 +23,7 @@ import {
 } from "@mui/material";
 import { info } from "../../schemas/info";
 
-import {
-  ClearRounded,
-  LibraryAddRounded,
-  SearchRounded,
-} from "@mui/icons-material";
+import { LibraryAddRounded } from "@mui/icons-material";
 import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
 import useDebounce from "../../components/useDebounce";
 import FilterComponent from "../../components/FilterComponent";
@@ -35,6 +31,7 @@ import moment from "moment";
 import { useLazyGetAllSystemsAsyncQuery } from "../../features/api/systemApi";
 
 import CusImport from "../../pages/systems/CusImport";
+import DateSearchCompoment from "../../components/DateSearchCompoment";
 function MainSystemPage() {
   const [selectedSystem, setSelectedSystem] = useState(""); // State for selected system
   const [reportData, setReportData] = useState({
@@ -43,13 +40,12 @@ function MainSystemPage() {
     System: selectedSystem,
   }); // State to hold fetched data
   const [anchorEl, setAnchorEl] = useState(null);
-  const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
   const [pageSize, setPageSize] = useState(25);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const inputRef = useRef(null); // Create a ref for InputBase
+
   const debounceValue = useDebounce(search);
   const headerColumn = info.report_import_table_columns.map((col) => ({
     ...col,
@@ -57,8 +53,7 @@ function MainSystemPage() {
   }));
 
   // Lazy query to fetch systems
-  const [getSystems, { data: systemsData, isLoading: isSystemsLoading }] =
-    useLazyGetAllSystemsAsyncQuery();
+  const [getSystems, { data: systemsData }] = useLazyGetAllSystemsAsyncQuery();
 
   // Fetch systems on component mount
   useEffect(() => {
@@ -77,12 +72,6 @@ function MainSystemPage() {
     Month: reportData.Month,
     Year: reportData.Year,
   });
-
-  // SEARCH
-  const handleSearchClick = () => {
-    setExpanded(true); // Expand the box
-    inputRef.current?.focus(); // Immediately focus the input field
-  };
 
   const handlePopOverClose = () => {
     setAnchorEl(null);
@@ -116,9 +105,23 @@ function MainSystemPage() {
         />
         <Box className="systems__header">
           <Box className="systems__header__container1">
+            <Typography>Hello World</Typography>
             {/* Dropdown to select system */}
-            <Select
-              variant="outlined"
+            
+            
+            <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+            <Button
+              startIcon={<LibraryAddRounded />}
+              variant="contained"
+              onClick={handleDialogOpen}
+            >
+              {info.system_import_button}
+            </Button>
+            
+          </Box>
+          <Box className="systems__header__container2">
+          <Select
+              variant="standard"
               value={selectedSystem || ""} // Ensure value is defined
               onChange={handleSystemChange}
               displayEmpty
@@ -129,7 +132,7 @@ function MainSystemPage() {
                 Select a System
               </MenuItem>
               <MenuItem value="">ALL</MenuItem>
-              <MenuItem value="IMPORTED">IMPORTED</MenuItem>
+              <MenuItem value="MANUAL">MANUAL</MenuItem>
               {systemsData?.result.map((system) => (
                 <MenuItem key={system.id} value={system.systemName}>
                   {system.systemName}
@@ -137,18 +140,16 @@ function MainSystemPage() {
               ))}
             </Select>
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-            <Button
-              startIcon={<LibraryAddRounded />}
-              variant="contained"
-              onClick={handleDialogOpen}
-            >
-              {info.system_import_button}
-            </Button>
-          </Box>
-          <Box className="systems__header__container2">
+
             <Box className="masterlist__header__con2--date-picker">
-              <FilterComponent color="primary" setReportData={setReportData} />
+              <DateSearchCompoment
+                color="primary"
+                hasDate={false}
+                hasImport={true}
+                setReportData={setReportData}
+              />
             </Box>
+            
           </Box>
         </Box>
 
@@ -178,7 +179,7 @@ function MainSystemPage() {
                 </TableHead>
                 <TableBody>
                   {isSystemFetching || isSystemloading ? (
-                    Array.from({ length: pageSize }).map((_, index) => (
+                    Array.from({ length: 5 }).map((_, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
                           <TableCell key={col.id}>

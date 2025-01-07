@@ -19,13 +19,13 @@ import { usePostLoginMutation } from "../../features/api/loginApi";
 import { Controller, useForm } from "react-hook-form";
 import { loginSchema } from "../../schemas/validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch} from "react-redux";
 import { encrypt } from "../../utils/encrypt";
 import { loginSlice } from "../../features/slice/authSlice";
 import { toast } from "sonner";
 import {
   AccountCircle,
-  Lock,
+  Lock, 
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
@@ -55,7 +55,6 @@ const LoginPage = () => {
   });
 
   const [login] = usePostLoginMutation();
-  const isAuthenticated = useSelector((state) => state.auth.token);
 
   const loginHandler = async (data) => {
     setLoading(true);
@@ -80,13 +79,6 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
-
   return (
     <Box className="login-page">
       <Box className="login-page__container">

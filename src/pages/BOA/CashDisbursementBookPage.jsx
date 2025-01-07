@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   Box,
   Button,
@@ -27,6 +28,8 @@ import {
 } from "../../features/api/boaApi";
 import { toast } from "sonner";
 import { Workbook } from "exceljs";
+import moment from "moment";
+import { formatMonth, formatYear } from "../../utils/dataFormat";
 const CashDisbursementBookPage = ({ reportData }) => {
   const [hasDataToExport, setHasDataToExport] = useState(false);
   const [search, setSearch] = useState("");
@@ -34,13 +37,19 @@ const CashDisbursementBookPage = ({ reportData }) => {
   const [pageSize, setPageSize] = useState(25);
 
   const debounceValue = useDebounce(search);
+
+  const fillParams = {
+    FromMonth: reportData?.fromMonth || "",
+    ToMonth: reportData?.toMonth || "",
+    ToYear: reportData?.toYear || "",
+    FromYear: reportData?.fromYear || "",
+  };
   const headerColumn = info.cash_disbursement_book;
 
   const { data: exportData, isLoading: isExportLoading } =
     useExportVerticalCashDisbursementBookPerMonthQuery({
-      Month: reportData.Month,
+      ...fillParams,
       System: "Fisto",
-      Year: reportData.Year,
     });
 
   const {
@@ -48,14 +57,15 @@ const CashDisbursementBookPage = ({ reportData }) => {
     isLoading: isboaloading,
     isFetching: isboaFetching,
   } = useGenerateVerticalCashDisbursementBookPerMonthQuery({
+    ...fillParams,
     Search: debounceValue,
     PageNumber: page + 1,
     PageSize: pageSize,
     System: "Fisto",
-    Month: reportData.Month,
-    Year: reportData.Year,
   });
   console.log("CDB", boaData);
+  console.log("CDBExport", exportData);
+  console.log("pere", fillParams);
 
   useEffect(() => {
     const hasData = exportData?.value && exportData.value.length > 0;
@@ -69,9 +79,14 @@ const CashDisbursementBookPage = ({ reportData }) => {
 
   // for comma
   const formatNumber = (number) => {
-    return Math.abs(number)
-      .toString()
+    const isNegative = number < 0;
+    const formattedNumber = Math.abs(number)
+      .toFixed(2)
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return {
+      formattedNumber,
+      color: isNegative ? "red" : "inherit", // Use "red" for negative numbers
+    };
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -80,13 +95,29 @@ const CashDisbursementBookPage = ({ reportData }) => {
     setPage(0); // Reset to first page
   };
 
+  const cashDisburstmentTotalData = exportData?.value || [];
+
+  const grandTotal = {
+    debit: cashDisburstmentTotalData
+      .reduce((sum, row) => sum + parseFloat(row.debitAmount || 0), 0)
+      .toFixed(2),
+    credit: cashDisburstmentTotalData
+      .reduce((sum, row) => sum + parseFloat(row.creditAmount || 0), 0)
+      .toFixed(2),
+  };
+
+  const fromMonth = formatMonth(fillParams.FromMonth);
+  const toMonth = formatMonth(fillParams.ToMonth);
+  const fromYear = formatYear(fillParams.FromYear);
+  const toYear = formatYear(fillParams.ToYear);
+
   const onExport = async () => {
     const { value: data } = exportData || {};
     try {
       if (!data || data.length === 0) {
         throw new Error("No data available to export.");
       }
-      const extraSentence = `For the month of ${reportData.Month} ${reportData.Year}`;
+      const extraSentence = `For the month of ${fromMonth},${fromYear} to ${toMonth},${toYear}`;
 
       const processedData = data.map((item) => ({
         id: item.chequeDate,
@@ -155,23 +186,61 @@ const CashDisbursementBookPage = ({ reportData }) => {
         mainSheet.getColumn(index + 1).width = minWidth;
       });
 
-      // data
+      // Add data rows with formatting
       processedData.forEach((item) => {
-        const row = [];
-        row.push(item.chequeDate);
-        row.push(item.bank);
-        row.push(item.cvNumber);
-        row.push(item.chequeNumber);
-        row.push(item.payee);
-        row.push(item.description);
-        row.push(item.tagNumber);
-        row.push(item.apvNumber);
-        row.push(item.accountName);
-        row.push(item.debitAmount);
-        row.push(item.creditAmount);
+        const row = mainSheet.addRow([
+          item.chequeDate,
+          item.bank,
+          item.cvNumber,
+          item.chequeNumber,
+          item.payee,
+          item.description,
+          item.tagNumber,
+          item.apvNumber,
+          item.accountName,
+          item.debitAmount || 0,
+          item.creditAmount || 0,
+        ]);
 
-        mainSheet.addRow(row);
+        const debitCell = row.getCell(10);
+        const creditCell = row.getCell(11);
+
+        debitCell.numFmt = "#,##0.00;#,##0.00";
+        creditCell.numFmt = "#,##0.00;#,##0.00";
+
+        if (item.debitAmount < 0) {
+          // debitCell.value = Math.abs(item.debitAmount);
+          debitCell.font = { color: { argb: "FF0000" } };
+        }
+        if (item.creditAmount < 0) {
+          creditCell.font = { color: { argb: "FF0000" } };
+        }
       });
+
+      const totalDebit = processedData.reduce(
+        (sum, item) => sum + (item.debitAmount || 0),
+        0
+      );
+      const totalCredit = processedData.reduce(
+        (sum, item) => sum + (item.creditAmount || 0),
+        0
+      );
+      // const BlankRow = mainSheet.addRow([""]);
+      // BlankRow.font = { bold: false };
+
+      const totalsRow = mainSheet.addRow([
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        totalDebit,
+        totalCredit,
+      ]);
 
       // style Header
       for (let row = 6; row <= 7; row++) {
@@ -208,6 +277,24 @@ const CashDisbursementBookPage = ({ reportData }) => {
         }
       }
 
+      totalsRow.font = { bold: true };
+      totalsRow.eachCell((cell, colIndex) => {
+        cell.numFmt = "#,##0.00;#,##0.00";
+        cell.border = {
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+        };
+        if (
+          (colIndex === 10 && totalDebit < 0) ||
+          (colIndex === 11 && totalCredit < 0)
+        ) {
+          // cell.value = Math.abs(cell.value);
+          cell.font = { color: { argb: "FF0000" }, bold: true };
+        }
+      });
+
       //save excel
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], {
@@ -218,7 +305,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
       link.href = url;
       link.setAttribute(
         "download",
-        `CashDisbursementBook-${reportData.Month}-${reportData.Year}.xlsx`
+        `CashDisbursementBook-${fromMonth},${fromYear} to ${toMonth},${toYear}.xlsx`
       );
       document.body.appendChild(link);
       link.click();
@@ -277,6 +364,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
                 </TableHead>
                 <TableBody>
                   {isboaFetching || isboaloading ? (
+                    // Show skeleton loaders when fetching or loading
                     Array.from({ length: pageSize }).map((_, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
@@ -291,48 +379,110 @@ const CashDisbursementBookPage = ({ reportData }) => {
                       </TableRow>
                     ))
                   ) : boaData?.value?.cashDisbursementBook?.length > 0 ? (
-                    boaData?.value?.cashDisbursementBook.map((row, index) => (
-                      <TableRow key={index}>
+                    <>
+                      {boaData?.value?.cashDisbursementBook.map(
+                        (row, index) => (
+                          <TableRow key={index}>
+                            {headerColumn.map((col) => (
+                              <React.Fragment key={col.id}>
+                                {col.subItems ? (
+                                  <TableCell align="center">
+                                    <TableRow
+                                      style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        padding: 0, // Ensure no extra padding for nested rows
+                                      }}
+                                    >
+                                      {col.subItems.map((subItem) => {
+                                        const amountValue = row[subItem.id];
+                                        const { formattedNumber, color } =
+                                          amountValue
+                                            ? formatNumber(amountValue)
+                                            : {
+                                                formattedNumber: "0",
+                                                color: "inherit",
+                                              };
+                                        return (
+                                          <TableCell
+                                            key={subItem.id}
+                                            sx={{
+                                              border: "none",
+                                              color: color, // Apply color to the cell
+                                            }}
+                                          >
+                                            {formattedNumber}
+                                          </TableCell>
+                                        );
+                                      })}
+                                    </TableRow>
+                                  </TableCell>
+                                ) : (
+                                  <TableCell
+                                    sx={{
+                                      color:
+                                        col.id === "amount" && row[col.id] < 0
+                                          ? "red"
+                                          : "inherit",
+                                    }}
+                                  >
+                                    {row[col.id] ? row[col.id] : "—"}
+                                  </TableCell>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </TableRow>
+                        )
+                      )}
+
+                      {/* Grand Total Row */}
+                      <TableRow>
                         {headerColumn.map((col) => (
-                          <React.Fragment key={col.id}>
+                          <TableCell key={col.id} align="center">
                             {col.subItems ? (
-                              // If the column has subItems (debit and credit), render them in nested cells
-                              <TableCell align="center">
-                                <TableRow
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                  }}
-                                >
-                                  {col.subItems.map((subItem) => {
-                                    const amountValue = row[subItem.id];
-                                    const isNegative = amountValue < 0;
-                                    return (
-                                      <TableCell
-                                        key={subItem.id}
-                                        sx={{
-                                          border: "none",
-                                          color: isNegative ? "red" : "inherit",
-                                        }}
-                                      >
-                                        {amountValue
-                                          ? formatNumber(amountValue)
-                                          : "0"}
-                                      </TableCell>
-                                    );
-                                  })}
-                                </TableRow>
-                              </TableCell>
+                              <TableRow
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  padding: 0, // Ensure no extra padding for nested rows
+                                }}
+                              >
+                                {col.subItems.map((subItem) => {
+                                  const value =
+                                    subItem.id === "debitAmount"
+                                      ? grandTotal.debit
+                                      : subItem.id === "creditAmount"
+                                      ? grandTotal.credit
+                                      : 0;
+
+                                  const { formattedNumber, color } =
+                                    formatNumber(value);
+
+                                  return (
+                                    <TableCell
+                                      key={subItem.id}
+                                      sx={{
+                                        border: "none",
+                                        fontWeight: "bold",
+                                        color: color,
+                                      }}
+                                    >
+                                      {subItem.id === "debitAmount"
+                                        ? formattedNumber
+                                        : subItem.id === "creditAmount"
+                                        ? formattedNumber // Credit will appear in red
+                                        : "0"}
+                                    </TableCell>
+                                  );
+                                })}
+                              </TableRow>
                             ) : (
-                              // For regular columns without subItems
-                              <TableCell>
-                                {row[col.id] ? row[col.id] : "—"}
-                              </TableCell>
+                              ""
                             )}
-                          </React.Fragment>
+                          </TableCell>
                         ))}
                       </TableRow>
-                    ))
+                    </>
                   ) : (
                     <TableRow>
                       <TableCell colSpan={headerColumn.length} align="center">

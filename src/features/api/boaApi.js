@@ -4,14 +4,6 @@ const boaApi = indexApi
   .enhanceEndpoints({ addTagTypes: ["boa"] })
   .injectEndpoints({
     endpoints: (builder) => ({
-      GenerateSaleJournalBookPerMonth: builder.query({
-        query: (params) => ({
-          url: `/bookofaccounts/salejournal`,
-          method: "GET",
-          params,
-        }),
-        providesTags: ["boa"],
-      }),
       GenerateHorizontalPurchasesBookPerMonth: builder.query({
         //for viewing horizontal
         query: (params) => ({
@@ -53,6 +45,14 @@ const boaApi = indexApi
       GenerateSaleJournalBookPerMonthPagination: builder.query({
         query: (params) => ({
           url: `/bookofaccounts/salesjournal/page`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["boa"],
+      }),
+      ExportGenerateSaleJournalBookPerMonth: builder.query({
+        query: (params) => ({
+          url: `/bookofaccounts/salesjournal`,
           method: "GET",
           params,
         }),
@@ -108,6 +108,7 @@ const boaApi = indexApi
   });
 
 export const {
+  useExportGenerateSaleJournalBookPerMonthQuery,
   useExportGenerateTrialBalancePerMonthQuery,
   useGenerateTrialBalancePerMonthPaginationQuery,
   useExportVerticalCashDisbursementBookPerMonthQuery,

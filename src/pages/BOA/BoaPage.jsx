@@ -8,19 +8,23 @@ import HorizontalCashDisbursementBookPage from "./HorizontalCashDisbursementBook
 
 import SalesJournalPage from "./SalesJournalPage";
 import HorizontalPurchasesBookPage from "./HorizontalPurchasesBookPage";
-import BoaFilterComponent from "../../components/BoaFilterComponent";
 import moment from "moment";
 import PurchasesBookPage from "./PurchasesBookPage";
 import JournalBookPage from "./JournalBookPage";
 import GeneralLedgerBookPage from "./GeneralLedgerBookPage";
 import CashReceiptsBookPage from "./CashReceiptsBookPage";
+import DateSearchCompoment from "../../components/DateSearchCompoment";
 const BoaPage = () => {
-  const [value, setValue] = useState("option6");
+  const [value, setValue] = useState("option2");
   const [isHorizontalView, setIsHorizontalView] = useState(true);
   const [reportData, setReportData] = useState({
-    Month: moment().format("MMM"),
-    Year: moment().format("YYYY"),
+    FromMonth: moment().format("MMM").toString(),
+    ToMonth: moment().format("MMM").toString(),
+    FromYear: moment().format("YYYY"),
+    ToYear: moment().format("YYYY"),
   });
+
+  //console.log("bago", reportData);
 
   const handleViewChange = (newViewFormat) => {
     setIsHorizontalView(newViewFormat);
@@ -30,11 +34,10 @@ const BoaPage = () => {
       <Box className="view">
         <Box className="view__container">
           <Select
+           variant="standard"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            sx={{
-              marginLeft: "10px",
-            }}
+            className="view__container--select"
           >
             <MenuItem value="option1">Cash Disbursement Book</MenuItem>
             <MenuItem value="option2">Purchases Book</MenuItem>
@@ -44,51 +47,52 @@ const BoaPage = () => {
             <MenuItem value="option6">Cash Receipt Book</MenuItem>
           </Select>
 
-          <BoaFilterComponent
+          <DateSearchCompoment
             onViewChange={handleViewChange}
             setReportData={setReportData}
+            hasViewChange="true"
           />
         </Box>
 
         <Box className="view__table">
           {/* Conditionally render the view based on isHorizontalView */}
           {value === "option1" &&
-            (isHorizontalView ? (
+            (!isHorizontalView ? (
               <HorizontalCashDisbursementBookPage reportData={reportData} />
             ) : (
               <CashDisbursementBookPage reportData={reportData} />
             ))}
 
           {value === "option2" &&
-            (isHorizontalView ? (
+            (!isHorizontalView ? (
               <HorizontalPurchasesBookPage reportData={reportData} />
             ) : (
               <PurchasesBookPage reportData={reportData} />
             ))}
 
           {value === "option3" &&
-            (isHorizontalView ? (
+            (!isHorizontalView ? (
               <SalesJournalPage reportData={reportData} />
             ) : (
               <SalesJournalPage reportData={reportData} />
             ))}
 
           {value === "option4" &&
-            (isHorizontalView ? (
+            (!isHorizontalView ? (
               <JournalBookPage reportData={reportData} />
             ) : (
               <JournalBookPage reportData={reportData} />
             ))}
 
           {value === "option5" &&
-            (isHorizontalView ? (
+            (!isHorizontalView ? (
               <GeneralLedgerBookPage reportData={reportData} />
             ) : (
               <GeneralLedgerBookPage reportData={reportData} />
             ))}
 
           {value === "option6" &&
-            (isHorizontalView ? (
+            (!isHorizontalView ? (
               <CashReceiptsBookPage reportData={reportData} />
             ) : (
               <CashReceiptsBookPage reportData={reportData} />

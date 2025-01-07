@@ -28,7 +28,7 @@ import { toast } from "sonner";
 const CustomImport = ({ onDataLoaded, open, onClose, system }) => {
   const [data, setData] = useState([]); // Holds parsed data
   const [isDataGridOpen, setIsDataGridOpen] = useState(false); // For DataGrid dialog
-  const [isFetchingDuplicates, setIsFetchingDuplicates] = useState(false); // Loader state for duplicates
+ // const [isFetchingDuplicates, setIsFetchingDuplicates] = useState(false); // Loader state for duplicates
   const [errorReports, setErrorReports] = useState([]); // Holds error reports for duplicates
   const [isLoading, setIsLoading] = useState(false); // Loading state for the import
   const [importedData, setImportedData] = useState([]); // Holds data after import
@@ -354,7 +354,7 @@ const CustomImport = ({ onDataLoaded, open, onClose, system }) => {
             overflowY: "auto",
           }}
         >
-          {isFetchingDuplicates || isLoading ? (
+          {isLoading ? (
             <CircularProgress />
           ) : (
             errorReports.length > 0 && (

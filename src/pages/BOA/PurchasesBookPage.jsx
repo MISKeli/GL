@@ -13,12 +13,12 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useRef, useState } from "react";
-import useDebounce from "../../components/useDebounce";
-import dayjs from "dayjs";
+import React, { useState } from "react";
+
 import { IosShareRounded } from "@mui/icons-material";
 import "../../styles/BoaPage.scss";
 import { info } from "../../schemas/info";
+import { formatMonth, formatYear } from "../../utils/dataFormat";
 import {
   useExportVerticalPurchasesBookPerMonthQuery,
   useGenerateVerticalPurchasesBookPerMonthPaginationQuery,
@@ -28,34 +28,41 @@ import { Workbook } from "exceljs";
 
 const PurchasesBookPage = ({ reportData }) => {
   const [hasDataToExport, setHasDataToExport] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [search, setSearch] = useState("");
+
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const inputRef = useRef(null);
-  const debounceValue = useDebounce(search);
+
+  const fillParams = {
+    FromMonth: reportData?.fromMonth || "",
+    ToMonth: reportData?.toMonth || "",
+    ToYear: reportData?.toYear || "",
+    FromYear: reportData?.fromYear || "",
+  };
+
   const headerColumn = info.Purchases_Book;
-  console.log("PB Report data:", reportData);
-  const { data: exportData, isLoading: isExportLoading } =
-    useExportVerticalPurchasesBookPerMonthQuery({
-      Month: reportData.Month,
-      Year: reportData.Year,
-    });
+  //console.log("PB Report data:", reportData);
+  const {
+    data: exportData,
+    isLoading: isExportLoading,
+    isFetching: isExportFetching,
+  } = useExportVerticalPurchasesBookPerMonthQuery({
+    ...fillParams,
+  });
 
   const {
     data: boaData,
     isLoading: isboaloading,
     isFetching: isboaFetching,
   } = useGenerateVerticalPurchasesBookPerMonthPaginationQuery({
-    Month: reportData.Month,
-    Year: reportData.Year,
-    search: debounceValue,
+    ...fillParams,
+    search: reportData.Search,
     PageNumber: page + 1,
     PageSize: pageSize,
   });
 
-  console.log("EBoaData", boaData);
-  console.log("Export Data", exportData);
+  // console.log("EBoaData", boaData);
+  // console.log("sdsdsdsd", fillParams);
+  // console.log("Export Data", exportData);
 
   // Check if data is available and user has selected a month and year
   const hasData = exportData?.value && exportData.value.length > 0;
@@ -72,18 +79,34 @@ const PurchasesBookPage = ({ reportData }) => {
     setPageSize(parseInt(event.target.value, 10)); // Directly set the selected value
     setPage(0);
   };
+
   // for comma
   const formatNumber = (number) => {
-    return Math.abs(number)
-      .toString()
+    const isNegative = number < 0;
+    const formattedNumber = Math.abs(number)
+      .toFixed(2)
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return {
+      formattedNumber,
+      color: isNegative ? "red" : "inherit", // Use "red" for negative numbers
+    };
   };
 
-  // SEARCH
-  const handleSearchClick = () => {
-    setExpanded(true); // Expand the box
-    inputRef.current?.focus(); // Immediately focus the input field
+  const purchasesBookTotalData = exportData?.value || [];
+
+  const grandTotal = {
+    debit: purchasesBookTotalData
+      .reduce((sum, row) => sum + parseFloat(row.debit || 0), 0)
+      .toFixed(2),
+    credit: purchasesBookTotalData
+      .reduce((sum, row) => sum + parseFloat(row.credit || 0), 0)
+      .toFixed(2),
   };
+
+  const fromMonth = formatMonth(fillParams.FromMonth);
+  const toMonth = formatMonth(fillParams.ToMonth);
+  const fromYear = formatYear(fillParams.FromYear);
+  const toYear = formatYear(fillParams.ToYear);
 
   const onExport = async () => {
     const { value: data } = exportData || {};
@@ -92,8 +115,9 @@ const PurchasesBookPage = ({ reportData }) => {
         throw new Error("No data available to export.");
       }
 
-      const extraSentence = `For the month of ${reportData.Month} ${reportData.Year}`;
+      const extraSentence = `For the month of ${fromMonth},${fromYear} to ${toMonth},${toYear}`;
 
+      // console.log("exportDate: ", reportData);
       const processedData = data.map((item) => ({
         id: item.glDate,
         glDate: item.glDate,
@@ -102,6 +126,7 @@ const PurchasesBookPage = ({ reportData }) => {
         description: item.description,
         poNumber: item.poNumber,
         rrNumber: item.rrNumber,
+        apv: item.apv,
         receiptNumber: item.receiptNumber,
         amount: item.amount,
         nameOfAccount: item.nameOfAccount,
@@ -197,22 +222,90 @@ const PurchasesBookPage = ({ reportData }) => {
         mainSheet.getColumn(index + 1).width = minWidth;
       });
 
+      // Add data rows with formatting
       processedData.forEach((item) => {
-        const row = [];
-        row.push(item.glDate);
-        row.push(item.transactionDate);
-        row.push(item.nameOfSupplier);
-        row.push(item.description);
-        row.push(item.poNumber);
-        row.push(item.rrNumber);
-        row.push(item.apv);
-        row.push(item.receiptNumber);
-        row.push(item.amount);
-        row.push(item.nameOfAccount);
-        row.push(item.debit);
-        row.push(item.credit);
+        const row = mainSheet.addRow([
+          item.glDate,
+          item.transactionDate,
+          item.nameOfSupplier,
+          item.description,
+          item.poNumber,
+          item.rrNumber,
+          item.apv,
+          item.receiptNumber,
+          item.amount || 0,
+          item.nameOfAccount,
+          item.debit || 0,
+          item.credit || 0,
+        ]);
+        const amountCell = row.getCell(9);
+        const debitCell = row.getCell(11);
+        const creditCell = row.getCell(12);
+        // Apply number format without modifying the value
+        amountCell.numFmt = "#,##0.00;#,##0.00"; // Display positive for negative values
+        debitCell.numFmt = "#,##0.00;#,##0.00";
+        creditCell.numFmt = "#,##0.00;#,##0.00";
 
-        mainSheet.addRow(row);
+        // Highlight negative values in red for clarity
+        if (item.amount < 0) {
+          amountCell.font = { color: { argb: "FF0000" } };
+        }
+        if (item.debit < 0) {
+          debitCell.font = { color: { argb: "FF0000" } };
+        }
+        if (item.credit < 0) {
+          creditCell.font = { color: { argb: "FF0000" } };
+        }
+      });
+
+      // Add totals row with formatting
+      const totalAmount = processedData.reduce(
+        (sum, item) => sum + (item.amount || 0),
+        0
+      );
+      const totalDebit = processedData.reduce(
+        (sum, item) => sum + (item.debit || 0),
+        0
+      );
+      const totalCredit = processedData.reduce(
+        (sum, item) => sum + (item.credit || 0),
+        0
+      );
+      // const BlankRow = mainSheet.addRow([""]);
+      // BlankRow.font = { bold: false };
+
+      const totalsRow = mainSheet.addRow([
+        "Grand Total",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        totalAmount,
+        "",
+        totalDebit,
+        totalCredit,
+      ]);
+
+      totalsRow.font = { bold: true };
+      totalsRow.eachCell((cell, colIndex) => {
+        cell.numFmt = "#,##0.00;#,##0.00";
+        cell.border = {
+          top: { style: "thin" },
+          bottom: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+        };
+        if (
+          (colIndex === 9 && totalAmount < 0) ||
+          (colIndex === 11 && totalDebit < 0) ||
+          (colIndex === 12 && totalCredit < 0)
+        ) {
+          // cell.value = Math.abs(cell.value);
+          cell.font = { color: { argb: "FF0000" }, bold: true };
+        }
       });
 
       //save excel
@@ -225,7 +318,7 @@ const PurchasesBookPage = ({ reportData }) => {
       link.href = url;
       link.setAttribute(
         "download",
-        `PurchasesBook-${reportData.Month}-${reportData.Year}.xlsx`
+        `PurchasesBook-${fromMonth},${fromYear} to ${toMonth},${toYear}.xlsx`
       );
       document.body.appendChild(link);
       link.click();
@@ -283,7 +376,7 @@ const PurchasesBookPage = ({ reportData }) => {
                 </TableHead>
                 <TableBody>
                   {isboaFetching || isboaloading ? (
-                    Array.from({ length: pageSize }).map((_, index) => (
+                    Array.from({ length: 5 }).map((_, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
                           <TableCell key={col.id}>
@@ -297,69 +390,126 @@ const PurchasesBookPage = ({ reportData }) => {
                       </TableRow>
                     ))
                   ) : boaData?.value?.purchasesBook?.length > 0 ? (
-                    boaData?.value?.purchasesBook?.map((row, index) => (
-                      <TableRow key={index}>
-                        {headerColumn.map((col) => (
-                          <React.Fragment key={col.id}>
-                            {/* Check if the column is "rawMaterials" and has subItems (debit and credit) */}
-                            {col.id === "rawMaterials" && col.subItems ? (
-                              <TableCell align="center">
-                                <TableRow
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
+                    <>
+                      {boaData?.value?.purchasesBook?.map((row, index) => (
+                        <TableRow key={index}>
+                          {headerColumn.map((col) => (
+                            <React.Fragment key={col.id}>
+                              {col.id === "rawMaterials" && col.subItems ? (
+                                <TableCell align="center">
+                                  <TableRow
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                    }}
+                                  >
+                                    {col.subItems.map((subItem) => {
+                                      const amountValue =
+                                        subItem.id === "debit" &&
+                                        row.drCr === "Debit"
+                                          ? row.amount
+                                          : subItem.id === "credit" &&
+                                            row.drCr === "Credit"
+                                          ? row.amount
+                                          : null;
+
+                                      const { formattedNumber, color } =
+                                        amountValue
+                                          ? formatNumber(amountValue)
+                                          : {
+                                              formattedNumber: "0",
+                                              color: "inherit",
+                                            };
+
+                                      return (
+                                        <TableCell
+                                          key={subItem.id}
+                                          sx={{
+                                            border: "none",
+                                            color: color,
+                                          }}
+                                        >
+                                          {formattedNumber}
+                                        </TableCell>
+                                      );
+                                    })}
+                                  </TableRow>
+                                </TableCell>
+                              ) : (
+                                <TableCell
+                                  sx={{
+                                    color:
+                                      col.id === "amount" && row[col.id] < 0
+                                        ? "red"
+                                        : "inherit",
                                   }}
                                 >
-                                  {/* Iterate over subItems for debit and credit */}
-                                  {col.subItems.map((subItem) => {
-                                    const amountValue =
-                                      subItem.id === "debit" &&
-                                      row.drCr === "Debit"
-                                        ? row.amount
-                                        : subItem.id === "credit" &&
-                                          row.drCr === "Credit"
-                                        ? row.amount
-                                        : null;
+                                  {row[col.id]
+                                    ? col.id === "amount" // Apply number formatting only for 'amount'
+                                      ? formatNumber(row[col.id])
+                                          .formattedNumber
+                                      : row[col.id]
+                                    : "—"}
+                                </TableCell>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </TableRow>
+                      ))}
 
-                                    const isNegative = amountValue < 0;
-
-                                    return (
-                                      <TableCell
-                                        key={subItem.id}
-                                        sx={{
-                                          border: "none",
-                                          color: isNegative ? "red" : "inherit",
-                                        }}
-                                      >
-                                        {amountValue !== null
-                                          ? formatNumber(amountValue)
-                                          : "0"}
-                                      </TableCell>
-                                    );
-                                  })}
-                                </TableRow>
-                              </TableCell>
-                            ) : (
-                              // For columns without subItems
-                              <TableCell
-                                sx={{
-                                  color:
-                                    col.id === "amount" && row[col.id] < 0
-                                      ? "red"
-                                      : "inherit",
+                      {/* Grand Total Row */}
+                      <TableRow>
+                        {headerColumn.map((col) => (
+                          <TableCell key={col.id} align="center">
+                            {col.id === "rawMaterials" && col.subItems ? (
+                              <TableRow
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
                                 }}
                               >
-                                {row[col.id]
-                                  ? col.id === "amount"
-                                    ? formatNumber(row[col.id]) // Format amount column
-                                    : row[col.id]
-                                  : "—"}
-                              </TableCell>
+                                {col.subItems.map((subItem) => {
+                                  const value =
+                                    subItem.id === "debit"
+                                      ? grandTotal.debit
+                                      : subItem.id === "credit"
+                                      ? grandTotal.credit
+                                      : 0;
+
+                                  const { formattedNumber, color } =
+                                    formatNumber(value);
+
+                                  return (
+                                    <TableCell
+                                      key={subItem.id}
+                                      sx={{
+                                        color: color,
+                                        border: "none",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {formattedNumber}
+                                    </TableCell>
+                                  );
+                                })}
+                              </TableRow>
+                            ) : (
+                              col.id === "amount" && (
+                                <Typography
+                                  variant="subtitle1"
+                                  fontWeight="bold"
+                                >
+                                  {
+                                    formatNumber(grandTotal[col.id] || 0)
+                                      .formattedNumber
+                                  }
+                                </Typography>
+                              )
                             )}
-                          </React.Fragment>
+                          </TableCell>
                         ))}
                       </TableRow>
-                    ))
+                    </>
                   ) : (
                     <TableRow>
                       <TableCell colSpan={headerColumn.length} align="center">
@@ -389,7 +539,11 @@ const PurchasesBookPage = ({ reportData }) => {
                 )
               }
             >
-              {isExportLoading ? "Exporting..." : "Export"}
+              {isExportLoading
+                ? "Loading..."
+                : isExportFetching
+                ? "Exporting..."
+                : "Export"}
             </Button>
           </Box>
 

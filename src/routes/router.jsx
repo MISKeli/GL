@@ -7,16 +7,11 @@ import UserManagementPage from "../pages/userManagement/UserManagementPage";
 import AccessPermission from "../components/AccessPermission";
 import UserAccountPage from "../pages/userManagement/UserAccountPage";
 import RoleManagementPage from "../pages/userManagement/RoleManagemenPage";
-import SystemsPage from "../pages/systems/SystemsPage";
-import ArcanaPage from "../pages/systems/ArcanaPage";
-import UMPage from "../pages/systems/UMPage";
-import YmirPage from "../pages/systems/YmirPage";
-import FistoPage from "../pages/systems/FistoPage";
-import ElixirETDPage from "../pages/systems/ElixirETDPage";
-import ElixirPharmacyPage from "../pages/systems/ElixirPharmacyPage";
-import ImportPage from "../pages/ImportPage";
+// import SystemsPage from "../pages/systems/SystemsPage";
+
+// import ImportPage from "../pages/ImportPage";
 import SystemSetupPage from "../pages/systemSetup/SystemSetupPage";
-import SystemPage from "../pages/SystemPage";
+//import SystemPage from "../pages/SystemPage";
 import BoaPage from "../pages/BOA/BoaPage";
 import MainSystemPage from "../pages/systems/MainSystemPage";
 import TrialBalancePage from "../pages/TrialBalancePage";
@@ -25,11 +20,12 @@ import YearPage from "../pages/Foldering/YearPage";
 import SystemFilepage from "../pages/Foldering/SystemFilePage";
 import MonthsPage from "../pages/Foldering/MonthPage";
 import SystemNames from "../pages/Foldering/SystemNames";
+import { LoginRoutes } from "../pages/login/LoginRoute";
 
 export const router = createBrowserRouter([
   {
     path: "/login",
-    element: <LoginPage />,
+    element: <LoginRoutes />,
   },
   {
     element: <PrivateRoutes />,
@@ -98,44 +94,19 @@ export const router = createBrowserRouter([
             path: "main_system",
             element: <MainSystemPage />,
           },
-          {
-            path: "import",
-            element: <ImportPage />,
-          },
+          // {
+          //   path: "import",
+          //   element: <ImportPage />,
+          // },
           {
             path: "trial_balance",
             element: <TrialBalancePage />,
           },
-          {
-            path: "systems",
-            element: <SystemsPage />,
-            children: [
-              {
-                path: "arcana",
-                element: <ArcanaPage />,
-              },
-              {
-                path: "um",
-                element: <UMPage />,
-              },
-              {
-                path: "elixir_etd",
-                element: <ElixirETDPage />,
-              },
-              {
-                path: "elixir_pharmacy",
-                element: <ElixirPharmacyPage />,
-              },
-              {
-                path: "ymir",
-                element: <YmirPage />,
-              },
-              {
-                path: "fisto",
-                element: <FistoPage />,
-              },
-            ],
-          },
+          // {
+          //   path: "systems",
+          //   element: <SystemsPage />,
+
+          // },
         ],
       },
     ],

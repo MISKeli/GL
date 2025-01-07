@@ -32,40 +32,52 @@ const TrialBalancePage = () => {
   const [search, setSearch] = useState("");
   const debounceValue = useDebounce(search);
   const [reportData, setReportData] = useState({
-    Month: moment().format("MMM"),
-    Year: moment().format("YYYY"),
+    FromMonth: moment().format("MMM"),
+    ToMonth: moment().format("MMM"),
+    FromYear: moment().format("YYYY"),
+    ToYear: moment().format("YYYY"),
   });
 
   const { exportToExcel } = useExportData();
+  const fillParams = {
+    FromMonth: reportData?.fromMonth || "",
+    ToMonth: reportData?.toMonth || "",
+    ToYear: reportData?.toYear || "",
+    FromYear: reportData?.fromYear || "",
+  };
 
   const [params, setParams] = useState({
+    ...fillParams,
     Search: debounceValue,
     page: 0,
     PageSize: 25,
     PageNumber: 1,
-    Month: reportData.Month,
-    Year: reportData.Year,
+    // From: reportData.From,
+    // To: reportData.To,
+    // Year: reportData.Year,
   });
   const headerColumn = info.trial_balance;
-  const { data: exportData, isLoading: isExportLoading } =
-    useExportGenerateTrialBalancePerMonthQuery({
-      Search: debounceValue,
-      Month: reportData.Month,
-      Year: reportData.Year,
-    });
+
+  const {
+    data: exportData,
+    isLoading: isExportLoading,
+    isFetching: isExportFetching,
+  } = useExportGenerateTrialBalancePerMonthQuery({
+    ...fillParams,
+    Search: debounceValue,
+  });
 
   const {
     data: trialData,
     isLoading: isTrialLoading,
     isFetching: isTrialFetching,
   } = useGenerateTrialBalancePerMonthPaginationQuery({
+    ...fillParams,
     Search: debounceValue,
     PageNumber: params.page + 1,
     PageSize: params.PageSize,
-    Month: reportData.Month,
-    Year: reportData.Year,
   });
-  console.log("balance: ", exportData);
+  console.log("balance: ", trialData);
 
   const hasData = exportData?.value && exportData.value.length > 0;
 
@@ -100,7 +112,7 @@ const TrialBalancePage = () => {
       .toFixed(2),
   };
 
-  const headers = info.journal_book_export;
+  const headers = info.trial_balance_export;
 
   const onExport = async () => {
     try {
@@ -112,9 +124,8 @@ const TrialBalancePage = () => {
     }
   };
 
-  console.log("info: ", info);
   console.log("exportData: ", exportData);
-  console.log("reportData: ", reportData);
+  //console.log("reportData: ", reportData);
 
   // for comma
   const formatNumber = (number) => {
@@ -152,7 +163,7 @@ const TrialBalancePage = () => {
               </TableHead>
               <TableBody>
                 {isTrialFetching || isTrialLoading ? (
-                  Array.from({ length: params.PageSize }).map((_, index) => (
+                  Array.from({ length: 12 }).map((_, index) => (
                     <TableRow key={index}>
                       {headerColumn.map((col) => (
                         <TableCell key={col.id}>
@@ -236,19 +247,21 @@ const TrialBalancePage = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => {
-              onExport();
-            }}
+            onClick={onExport}
             disabled={!hasData || isExportLoading}
             startIcon={
-              isTrialLoading ? (
+              isExportLoading ? (
                 <CircularProgress size={20} />
               ) : (
                 <IosShareRounded />
               )
             }
           >
-            {isTrialLoading ? "Exporting..." : "Export"}
+            {isExportLoading
+              ? "Loading..."
+              : isExportFetching
+              ? "Exporting..."
+              : "Export"}
           </Button>
         </Box>
         <TablePagination

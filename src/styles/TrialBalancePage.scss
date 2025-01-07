@@ -4,10 +4,8 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  padding-top: 0;
-  padding-bottom: 0;
-  &__header{
+  padding: 0 10px;
+  &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -35,9 +33,9 @@
       }
     }
   }
-&__footer{
+  &__footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
+  }
 }

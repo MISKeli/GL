@@ -44,7 +44,7 @@ export const defaultValue = {
     lineAmount: 0,
     voucherJournal: null,
     accountType: null,
-    drcp: null,
+    drcr: null,
     assetCode: null,
     asset: null,
     serviceProviderCode: null,
