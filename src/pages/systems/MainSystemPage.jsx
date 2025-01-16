@@ -4,6 +4,7 @@ import "../../styles/SystemsPage.scss";
 import {
   Box,
   Button,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -23,22 +24,25 @@ import {
 } from "@mui/material";
 import { info } from "../../schemas/info";
 
-import { LibraryAddRounded } from "@mui/icons-material";
+import { IosShareRounded, LibraryAddRounded } from "@mui/icons-material";
 import { useGetAllGLReportAsyncQuery } from "../../features/api/importReportApi";
 import useDebounce from "../../components/useDebounce";
-import FilterComponent from "../../components/FilterComponent";
+
 import moment from "moment";
 import { useLazyGetAllSystemsAsyncQuery } from "../../features/api/systemApi";
 
 import CusImport from "../../pages/systems/CusImport";
 import DateSearchCompoment from "../../components/DateSearchCompoment";
+import useExportData from "../../components/hooks/useExportData";
+import { toast } from "sonner";
 function MainSystemPage() {
   const [selectedSystem, setSelectedSystem] = useState(""); // State for selected system
   const [reportData, setReportData] = useState({
-    Month: moment().format("MMM"),
-    Year: moment().format("YYYY"),
+    FromMonth: moment().startOf("month").format("MM/DD/YYYY"),
+    ToMonth: moment().endOf("month").format("MM/DD/YYYY"),
     System: selectedSystem,
   }); // State to hold fetched data
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -69,9 +73,14 @@ function MainSystemPage() {
     PageNumber: page + 1,
     PageSize: pageSize,
     System: selectedSystem,
-    Month: reportData.Month,
-    Year: reportData.Year,
+    FromMonth: reportData.fromMonth,
+    ToMonth: reportData.toMonth,
   });
+
+  const customHeaders = info.custom_header;
+
+  const headers = Object.keys(customHeaders);
+  console.log("😁", reportData);
 
   const handlePopOverClose = () => {
     setAnchorEl(null);
@@ -95,6 +104,17 @@ function MainSystemPage() {
   const handleDialogOpen = () => setIsDialogOpen(true);
   const handleDialogClose = () => setIsDialogOpen(false);
 
+  const { exportImportSystem } = useExportData();
+  const onExport = async () => {
+    try {
+      await exportImportSystem(headers, systemData, reportData, selectedSystem);
+      toast.success("Data exported successfully!");
+    } catch (err) {
+      toast.error(err.message);
+      console.log(err);
+    }
+  };
+
   return (
     <>
       <Box className="systems">
@@ -105,22 +125,25 @@ function MainSystemPage() {
         />
         <Box className="systems__header">
           <Box className="systems__header__container1">
-            <Typography>Hello World</Typography>
+            <Typography
+              variant="h5"
+              className="systems__header__container1--title"
+            >
+              {info.system.title}
+            </Typography>
             {/* Dropdown to select system */}
-            
-            
+
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <Button
               startIcon={<LibraryAddRounded />}
               variant="contained"
               onClick={handleDialogOpen}
             >
-              {info.system_import_button}
+              {info.button.importButton.label}
             </Button>
-            
           </Box>
           <Box className="systems__header__container2">
-          <Select
+            <Select
               variant="standard"
               value={selectedSystem || ""} // Ensure value is defined
               onChange={handleSystemChange}
@@ -144,12 +167,10 @@ function MainSystemPage() {
             <Box className="masterlist__header__con2--date-picker">
               <DateSearchCompoment
                 color="primary"
-                hasDate={false}
-                hasImport={true}
+                hasDate={true}
                 setReportData={setReportData}
               />
             </Box>
-            
           </Box>
         </Box>
 
@@ -165,12 +186,12 @@ function MainSystemPage() {
                     {headerColumn.map((columnTable) => (
                       <TableCell
                         key={columnTable.id}
-                        sx={{
-                          whiteSpace:
-                            columnTable.id === "itemDescription"
-                              ? "nowrap"
-                              : "normal",
-                        }}
+                        // sx={{
+                        //   whiteSpace:
+                        //     columnTable.id === "itemDescription"
+                        //       ? "nowrap"
+                        //       : "normal",
+                        // }}
                       >
                         {columnTable.name}
                       </TableCell>
@@ -205,9 +226,15 @@ function MainSystemPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={headerColumn.length} align="center">
+                      <TableCell
+                        colSpan={headerColumn.length}
+                        align="center"
+                        sx={{ position: "sticky" }}
+                      >
                         <Typography variant="h6">
-                          {info.system_no_data}
+                          <Box sx={{ position: "sticky" }}>
+                            {info.system_no_data}
+                          </Box>
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -226,6 +253,17 @@ function MainSystemPage() {
           <Box></Box>
         </Menu>
         <Box className="systems__footer">
+          <Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={onExport}
+              //disabled
+              startIcon={<IosShareRounded />}
+            >
+              {info.button.exportButton.label}
+            </Button>
+          </Box>
           <TablePagination
             component="div"
             count={systemData?.totalCount || 0}

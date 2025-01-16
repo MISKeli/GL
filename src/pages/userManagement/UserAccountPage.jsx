@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   ArchiveOutlined,
   ArchiveRounded,
@@ -32,7 +33,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/Masterlist.scss";
 import AddUser from "../userManagement/AddUser";
@@ -63,7 +64,7 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
 }));
 
 const UserAccountPage = () => {
-  const TableColumn = info.users_table_columns;
+  const TableColumn = info.users.tableColumns;
 
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
@@ -158,7 +159,7 @@ const UserAccountPage = () => {
       .unwrap()
       .then((res) => {
         console.log(res);
-        toast.success("Reset Password Successfully"); // Updated message
+        toast.success(info.users.messages.passwordSuccess); // Updated message
         setOpenPasswordDialog(false);
       })
       .catch((error) => {
@@ -181,9 +182,9 @@ const UserAccountPage = () => {
       .then((res) => {
         console.log(res);
         if (pokedData.isActive === true) {
-          toast.success("User Archieved Successfully ");
+          toast.success(info.users.messages.archiveSuccess);
         } else {
-          toast.success("User Restored Successfully ");
+          toast.success(info.users.messages.restoreSuccess);
         }
         setOpenArchiveDialog(false);
       })
@@ -199,7 +200,7 @@ const UserAccountPage = () => {
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
-              {info.users_title}
+              {info.users.title}
             </Typography>
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <Button
@@ -210,7 +211,7 @@ const UserAccountPage = () => {
                 dispatch(setPokedData(null));
               }}
             >
-              {info.users_add_button}
+              {info.users.addButton}
             </Button>
           </Box>
           <Box className="masterlist__header__con2">
@@ -410,9 +411,9 @@ const UserAccountPage = () => {
           open={openArchiveDialog}
           onClose={() => setOpenArchiveDialog(false)}
           onYes={handleUserStatus} // Call handleUserStatus on confirmation
-          title={pokedData?.isActive ? "Archive User" : "Restore User"}
+          title={pokedData?.isActive ? info.users.dialogs.achiveUserTitle : info.users.dialogs.restoreUserTitle}
           description={`Are you sure you want to ${
-            pokedData?.isActive ? "ARCHIVE" : "RESTORE"
+            pokedData?.isActive ? info.users.dialogs.achiveTitle.toUpperCase() : info.users.dialogs.restoreTitle.toUpperCase() 
           } ${pokedData?.firstName || "this user"}?`}
         />
       </Box>

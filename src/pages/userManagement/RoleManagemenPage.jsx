@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   Badge,
   Box,
@@ -78,7 +79,7 @@ const RoleManagemenPage = () => {
   const pokedData = useSelector((state) => state.auth.pokedData);
   //console.log("pokeddata", pokedData);
   const debounceValue = useDebounce(search);
-  const TableColumn = info.role_table_columns;
+  const TableColumn = info.role.tableColumns;
 
   const {
     data: roleData,
@@ -123,11 +124,11 @@ const RoleManagemenPage = () => {
   };
 
   // Update Dialog
-  const openDialogForUpdate = (data) => {
+  const openDialogForUpdate = () => {
     setOpen(true);
     setIsUpdate(true);
     setViewOnly(false);
-    setUserPermission(data);
+    //setUserPermission(data);
   };
 
   //Opening Dialog
@@ -152,9 +153,9 @@ const RoleManagemenPage = () => {
       .unwrap()
       .then((res) => {
         if (pokedData.isActive) {
-          toast.success("Role Archived Successfully");
+          toast.success(info.role.messages.archiveSuccess);
         } else {
-          toast.success("Role Restored Successfully");
+          toast.success(info.role.messages.restoreSuccess);
         }
         setOpenArchiveDialog(false);
       })
@@ -178,7 +179,7 @@ const RoleManagemenPage = () => {
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
-              {info.role_title}
+              {info.role.title}
             </Typography>
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <Button
@@ -189,7 +190,7 @@ const RoleManagemenPage = () => {
                 dispatch(setPokedData(null));
               }}
             >
-              {info.role_add_button}
+              {info.role.addButton}
             </Button>
           </Box>
           <Box className="masterlist__header__con2">
@@ -262,7 +263,7 @@ const RoleManagemenPage = () => {
                     : roleData?.value.userRoles.map((userRole) => (
                         <TableRow
                           key={userRole.id}
-                          className={activeRow === userRole.id ? "active" : ""}
+                          // className={activeRow === userRole.id ? "active" : ""}
                         >
                           <TableCell>{userRole.roleName}</TableCell>
                           <TableCell
@@ -276,11 +277,6 @@ const RoleManagemenPage = () => {
                               badgeContent={userRole?.permissions?.length}
                               color="error"
                               overlap="circular"
-                              sx={{
-                                "& .MuiBadge-dot": {
-                                  backgroundColor: "#3259c4",
-                                },
-                              }}
                             >
                               <IconButton>
                                 <AccountTreeOutlined />
@@ -293,7 +289,6 @@ const RoleManagemenPage = () => {
                             <IconButton
                               onClick={(event) => {
                                 handlePopOverOpen(event, userRole);
-                                
                               }}
                             >
                               <MoreVertOutlined />
@@ -347,7 +342,9 @@ const RoleManagemenPage = () => {
             )}
           </ListItemIcon>
           <ListItemText>
-            {pokedData?.isActive ? "Archive" : "Restore"}
+            {pokedData?.isActive
+              ? info.role.dialogs.achiveTitle
+              : info.role.dialogs.restoreTitle}
           </ListItemText>
         </MenuItem>
       </Menu>
@@ -355,9 +352,15 @@ const RoleManagemenPage = () => {
         open={openArchiveDialog}
         onClose={() => setOpenArchiveDialog(false)}
         onYes={handleUserRoleStatus} // Call handleUserStatus on confirmation
-        title={pokedData?.isActive ? "Archive Role" : "Restore Role"}
+        title={
+          pokedData?.isActive
+            ? info.role.dialogs.archiveRoleTitle
+            : info.role.dialogs.restoreRoleTitle
+        }
         description={`Are you sure you want to ${
-          pokedData?.isActive ? "ARCHIVE" : "RESTORE"
+          pokedData?.isActive
+            ? info.role.dialogs.achiveTitle.toUpperCase()
+            : info.role.dialogs.restoreTitle.toUpperCase()
         } ${pokedData?.roleName || "this role"}?`}
       />
     </>

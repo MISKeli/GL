@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   Box,
   Button,
@@ -56,33 +57,29 @@ const DateSearchCompoment = ({
   const handleDateChange = async () => {
     setLoading(true); // Start loading
 
-    const fromMonth = fromDate.format("MMM").toString();
-    const fromYear = fromDate.format("YYYY");
-    const toMonth = toDate.format("MMM").toString();
-    const toYear = toDate.format("YYYY");
+   
 
-    const importMonth = hasImport ? importDate.format("MMM") : null;
-    const importYear = hasImport ? importDate.format("YYYY") : null;
+    const fromMonth = fromDate.startOf("month").format("MM/DD/YYYY").toString();
+    const toMonth = toDate.endOf("month").format("MM/DD/YYYY").toString();
 
-    // try {
-    //   await setReportData({
-    //     fromMonth,
-    //     fromYear,
-    //     toMonth,
-    //     toYear,
-    //   });
-    // }
+    const importMonth = hasImport
+      ? importDate.startOf("month").format("MM/DD/YYYY")
+      : null;
+    const importYear = hasImport
+      ? importDate.endOf("month").format("MM/DD/YYYY")
+      : null;
+   
     try {
       const reportData = {
         fromMonth,
-        fromYear,
+        // fromYear,
         toMonth,
-        toYear,
+        //toYear,
       };
 
       if (hasImport) {
-        reportData.Month = importMonth;
-        reportData.Year = importYear;
+        reportData.fromMonth = importMonth;
+        reportData.toMonth = importYear;
       }
 
       await setReportData(reportData);
@@ -96,14 +93,7 @@ const DateSearchCompoment = ({
   // Updates report data when the date is changed
   const handleImportDateChange = (selectedDate) => {
     setImportDate(selectedDate);
-    // const month = selectedDate.format("MMM");
-    // const year = selectedDate.format("YYYY");
-
-    // setReportData({
-    //   Month: month,
-    //   Year: year,
-    //   Search: search,
-    // });
+  
   };
 
   // SEARCH

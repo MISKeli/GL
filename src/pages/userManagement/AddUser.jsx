@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { yupResolver } from "@hookform/resolvers/yup";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -186,8 +187,8 @@ const AddUser = ({ open = false, closeHandler, data, isUpdate = false }) => {
       >
         <DialogTitle fontWeight={600} className="add-user__header">
           {isUpdate
-            ? info.users_dialog_update_title
-            : info.users_dialog_add_title}
+            ? info.users.dialogs.updateTitle
+            : info.users.dialogs.addTitle}
           <Stack>
             <IconButton onClick={handleClose}>
               <Close />

@@ -5,19 +5,13 @@
   height: 100%;
   overflow: hidden;
   padding: 0 10px;
-  
 
   &__container {
-   
-   
     display: flex;
     justify-content: space-between;
 
-    &--select{
-     
-     
+    &--select {
       align-items: center;
-
     }
   }
   &__table {
@@ -35,9 +29,8 @@
   flex-direction: column;
   flex: 1;
   height: 100%;
-  
+
   &__content {
-    
     overflow: hidden;
     flex: 1;
     &__table {
@@ -45,6 +38,15 @@
       margin-top: 5px;
       .MuiTableCell-body {
         padding: 10px 16px;
+      }
+
+      &--grandtotal {
+        position: sticky;
+        background-color: $background-header;
+        z-index: 2;
+        bottom: 0;
+        font-weight: bold;
+        
       }
     }
   }

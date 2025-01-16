@@ -67,24 +67,6 @@ const boaApi = indexApi
         }),
         providesTags: ["boa"],
       }),
-      ExportGenerateTrialBalancePerMonth: builder.query({
-        // for Export vertical
-        query: (params) => ({
-          url: `/bookofaccounts/trialbalance`,
-          method: "GET",
-          params,
-        }),
-        providesTags: ["boa"],
-      }),
-      ExportVerticalPurchasesBookPerMonth: builder.query({
-        // for eXPORT vertical
-        query: (params) => ({
-          url: `/book-of-accounts/purchases-book`,
-          method: "GET",
-          params,
-        }),
-        providesTags: ["boa"],
-      }),
 
       GenerateVerticalCashDisbursementBookPerMonth: builder.query({
         // for viewing vertical
@@ -95,10 +77,11 @@ const boaApi = indexApi
         }),
         providesTags: ["boa"],
       }),
-      ExportVerticalCashDisbursementBookPerMonth: builder.query({
-        // for eXPORT vertical
+
+      GenerateVerticalPurchasesBookPerMonthPaginationVersion2: builder.query({
+        //for viewing vertical
         query: (params) => ({
-          url: `/book-of-accounts/cash-disbursement-book/vertical`,
+          url: `/book-of-accounts/purchases-book-version2/page`,
           method: "GET",
           params,
         }),
@@ -108,6 +91,7 @@ const boaApi = indexApi
   });
 
 export const {
+  useGenerateVerticalPurchasesBookPerMonthPaginationVersion2Query,
   useExportGenerateSaleJournalBookPerMonthQuery,
   useExportGenerateTrialBalancePerMonthQuery,
   useGenerateTrialBalancePerMonthPaginationQuery,

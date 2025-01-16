@@ -18,13 +18,11 @@ const BoaPage = () => {
   const [value, setValue] = useState("option2");
   const [isHorizontalView, setIsHorizontalView] = useState(true);
   const [reportData, setReportData] = useState({
-    FromMonth: moment().format("MMM").toString(),
-    ToMonth: moment().format("MMM").toString(),
-    FromYear: moment().format("YYYY"),
-    ToYear: moment().format("YYYY"),
+    FromMonth: moment().startOf("month").format("MM-DD-YYYY").toString(),
+    ToMonth: moment().endOf("month").format("MM-DD-YYYY").toString(),
   });
 
-  //console.log("bago", reportData);
+  console.log("bago", reportData);
 
   const handleViewChange = (newViewFormat) => {
     setIsHorizontalView(newViewFormat);
@@ -34,7 +32,7 @@ const BoaPage = () => {
       <Box className="view">
         <Box className="view__container">
           <Select
-           variant="standard"
+            variant="standard"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             className="view__container--select"

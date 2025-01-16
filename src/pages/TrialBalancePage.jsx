@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   Box,
   Button,
@@ -16,34 +17,26 @@ import {
 import React, { useState } from "react";
 import "../styles/TrialBalancePage.scss";
 import { info } from "../schemas/info";
-import {
-  useExportGenerateTrialBalancePerMonthQuery,
-  useGenerateTrialBalancePerMonthPaginationQuery,
-} from "../features/api/boaApi";
+import { useGenerateTrialBalancePerMonthPaginationQuery } from "../features/api/boaApi";
 import useDebounce from "../components/useDebounce";
 import DateSearchCompoment from "../components/DateSearchCompoment";
 import moment from "moment";
 import { IosShareRounded } from "@mui/icons-material";
 import { toast } from "sonner";
-import { Workbook } from "exceljs";
 import useExportData from "../components/hooks/useExportData";
 
 const TrialBalancePage = () => {
   const [search, setSearch] = useState("");
   const debounceValue = useDebounce(search);
   const [reportData, setReportData] = useState({
-    FromMonth: moment().format("MMM"),
-    ToMonth: moment().format("MMM"),
-    FromYear: moment().format("YYYY"),
-    ToYear: moment().format("YYYY"),
+    FromMonth: moment().startOf("month").format("MM-DD-YYYY").toString(),
+    ToMonth: moment().endOf("month").format("MM-DD-YYYY").toString(),
   });
 
   const { exportToExcel } = useExportData();
   const fillParams = {
     FromMonth: reportData?.fromMonth || "",
     ToMonth: reportData?.toMonth || "",
-    ToYear: reportData?.toYear || "",
-    FromYear: reportData?.fromYear || "",
   };
 
   const [params, setParams] = useState({
@@ -52,21 +45,10 @@ const TrialBalancePage = () => {
     page: 0,
     PageSize: 25,
     PageNumber: 1,
-    // From: reportData.From,
-    // To: reportData.To,
-    // Year: reportData.Year,
   });
   const headerColumn = info.trial_balance;
 
-  const {
-    data: exportData,
-    isLoading: isExportLoading,
-    isFetching: isExportFetching,
-  } = useExportGenerateTrialBalancePerMonthQuery({
-    ...fillParams,
-    Search: debounceValue,
-  });
-
+  //viewing
   const {
     data: trialData,
     isLoading: isTrialLoading,
@@ -75,11 +57,23 @@ const TrialBalancePage = () => {
     ...fillParams,
     Search: debounceValue,
     PageNumber: params.page + 1,
+    UsePagination: true,
     PageSize: params.PageSize,
   });
-  console.log("balance: ", trialData);
+  console.log("🚀 ~ TrialBalancePage ~ trialData:", trialData);
 
-  const hasData = exportData?.value && exportData.value.length > 0;
+  //export
+  const {
+    data: exportData,
+    isLoading: isExportLoading,
+    isFetching: isExportFetching,
+  } = useGenerateTrialBalancePerMonthPaginationQuery({
+    ...fillParams,
+    UsePagination: false,
+  });
+
+  const hasData =
+    exportData?.value.trialBalance && exportData.value.trialBalance.length > 0;
 
   // Handle page change
   const handleChangePage = (event, newPage) => {
@@ -101,22 +95,18 @@ const TrialBalancePage = () => {
     }));
   };
   const trailBalanceData = trialData?.value?.trialBalance || [];
-  const trailBalanceTotalData = exportData?.value || [];
+  console.log("🚀 ~ TrialBalancePage ~ trialData:", trialData);
 
-  const grandTotal = {
-    debit: trailBalanceTotalData
-      .reduce((sum, row) => sum + parseFloat(row.debit || 0), 0)
-      .toFixed(2),
-    credit: trailBalanceTotalData
-      .reduce((sum, row) => sum + parseFloat(row.credit || 0), 0)
-      .toFixed(2),
-  };
+  const trailBalanceDebitTotalData =
+    trialData?.value?.lineAmount?.lineAmountDebit || 0;
+  const trailBalanceCreditTotalData =
+    trialData?.value?.lineAmount?.lineAmountCredit || 0;
 
   const headers = info.trial_balance_export;
 
   const onExport = async () => {
     try {
-      await exportToExcel(headers, exportData, reportData);
+      exportToExcel(headers, exportData.value.trialBalance, reportData);
       toast.success("Data exported successfully!");
     } catch (err) {
       toast.error(err.message);
@@ -205,9 +195,10 @@ const TrialBalancePage = () => {
                           style={{
                             color:
                               col.id === "debit"
-                                ? formatNumber(grandTotal.debit).color
+                                ? formatNumber(trailBalanceDebitTotalData).color
                                 : col.id === "credit"
-                                ? formatNumber(grandTotal.credit).color
+                                ? formatNumber(trailBalanceCreditTotalData)
+                                    .color
                                 : "inherit",
                             fontWeight:
                               col.id === "debit" ||
@@ -218,9 +209,11 @@ const TrialBalancePage = () => {
                           }}
                         >
                           {col.id === "debit"
-                            ? formatNumber(grandTotal.debit).formattedNumber
+                            ? formatNumber(trailBalanceDebitTotalData)
+                                .formattedNumber
                             : col.id === "credit"
-                            ? formatNumber(grandTotal.credit).formattedNumber
+                            ? formatNumber(trailBalanceCreditTotalData)
+                                .formattedNumber
                             : col.id === "chartOfAccount"
                             ? "Grand Total"
                             : ""}
@@ -248,7 +241,7 @@ const TrialBalancePage = () => {
             variant="contained"
             color="primary"
             onClick={onExport}
-            disabled={!hasData || isExportLoading}
+            disabled={!hasData || isExportLoading || isExportFetching}
             startIcon={
               isExportLoading ? (
                 <CircularProgress size={20} />

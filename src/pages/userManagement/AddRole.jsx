@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from "react";
 import {
   useAddRoleMutation,
@@ -182,10 +183,10 @@ const AddRole = ({
     try {
       if (isUpdate) {
         await updateRole(roleData).unwrap();
-        toast.success("Role updated successfully.");
+        toast.success(info.role.messages.updateSuccess);
       } else {
         await addRole(roleData).unwrap();
-        toast.success("Role added successfully.");
+        toast.success(info.role.messages.addedSuccess);
       }
       handleClose(); // Close the dialog on success
     } catch (error) {
@@ -199,7 +200,7 @@ const AddRole = ({
     const isSubcategoryValid = validateSubcategories(roleData.permissions);
 
     if (!isSubcategoryValid) {
-      toast.error(info.role_error_massage_response);
+      toast.error(info.role.messages.error);
       return;
     }
 
@@ -228,10 +229,10 @@ const AddRole = ({
       <Dialog open={open} fullWidth className="role">
         <DialogTitle className="role__header" fontWeight={600}>
           {isUpdate
-            ? info.role_dialog_update_title
+            ? info.role.dialogs.updateTitle
             : isViewOnly
-            ? info.role_dialog_permission_title
-            : info.role_dialog_add_title}
+            ? info.role.dialogs.permissionTitle
+            : info.role.dialogs.addTitle}
           <Stack>
             <IconButton onClick={handleClose}>
               <Close />
@@ -275,7 +276,7 @@ const AddRole = ({
                   }}
                 >
                   <FormLabel component="legend" sx={{ padding: "0 20px" }}>
-                    Permissions
+                    {info.role.dialogs.permissionTitle}
                   </FormLabel>
                   <FormGroup>
                     <Stack direction="row" flexWrap="wrap">
@@ -381,8 +382,8 @@ const AddRole = ({
       <ConfirmedDialog
         open={showConfirmDialog}
         onClose={() => setShowConfirmDialog(false)}
-        title="Update Role"
-        description="Are you sure you want to update this role?"
+        title={info.role.dialogs.updateTitle}
+        description={info.role.dialogs.updateDescription}
         onYes={handleYes}
       />
     </>
