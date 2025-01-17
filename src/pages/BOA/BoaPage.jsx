@@ -15,7 +15,7 @@ import GeneralLedgerBookPage from "./GeneralLedgerBookPage";
 import CashReceiptsBookPage from "./CashReceiptsBookPage";
 import DateSearchCompoment from "../../components/DateSearchCompoment";
 const BoaPage = () => {
-  const [value, setValue] = useState("option2");
+  const [value, setValue] = useState("option6");
   const [isHorizontalView, setIsHorizontalView] = useState(true);
   const [reportData, setReportData] = useState({
     FromMonth: moment().startOf("month").format("MM-DD-YYYY").toString(),

@@ -77,11 +77,10 @@ const boaApi = indexApi
         }),
         providesTags: ["boa"],
       }),
-
-      GenerateVerticalPurchasesBookPerMonthPaginationVersion2: builder.query({
-        //for viewing vertical
+      GenerateVerticalCashReceiptBookPerMonthPagination: builder.query({
+        // for viewing vertical
         query: (params) => ({
-          url: `/book-of-accounts/purchases-book-version2/page`,
+          url: `/book-of-accounts/cash-receipt-book/vertical/page`,
           method: "GET",
           params,
         }),
@@ -91,7 +90,7 @@ const boaApi = indexApi
   });
 
 export const {
-  useGenerateVerticalPurchasesBookPerMonthPaginationVersion2Query,
+  useGenerateVerticalCashReceiptBookPerMonthPaginationQuery,
   useExportGenerateSaleJournalBookPerMonthQuery,
   useExportGenerateTrialBalancePerMonthQuery,
   useGenerateTrialBalancePerMonthPaginationQuery,

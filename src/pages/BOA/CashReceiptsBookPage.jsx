@@ -2,32 +2,40 @@ import React, { useState } from "react";
 import useDebounce from "../../components/useDebounce";
 import { info } from "../../schemas/info";
 import "../../styles/BoaPage.scss";
-import { useGenerateTrialBalancePerMonthPaginationQuery } from "../../features/api/boaApi";
+import { useGenerateVerticalCashReceiptBookPerMonthPaginationQuery } from "../../features/api/boaApi";
 import {
   Box,
   Button,
   CircularProgress,
   Paper,
+  Skeleton,
   Table,
+  TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TablePagination,
   TableRow,
+  Typography,
 } from "@mui/material";
 import { IosShareRounded } from "@mui/icons-material";
 
 const CashReceiptsBookPage = ({ reportData }) => {
   const [search, setSearch] = useState("");
   const debounceValue = useDebounce(search);
+  
+  const fillParams = {
+    FromMonth: reportData?.fromMonth || "",
+    ToMonth: reportData?.toMonth || "",
+  };
+  console.log("🚀 ~ CashReceiptsBookPage ~ fillParams:", fillParams);
 
   const [params, setParams] = useState({
+    ...fillParams,
     Search: debounceValue,
     page: 0,
     PageSize: 25,
     PageNumber: 1,
-    Month: reportData.Month,
-    Year: reportData.Year,
   });
 
   const headerColumn = info.cash_receipts_book;
@@ -36,15 +44,16 @@ const CashReceiptsBookPage = ({ reportData }) => {
     data: boaData,
     isLoading: isBoaLoading,
     isFetching: isBoaFetching,
-  } = useGenerateTrialBalancePerMonthPaginationQuery({
+  } = useGenerateVerticalCashReceiptBookPerMonthPaginationQuery({
     Search: debounceValue,
     PageNumber: params.page + 1,
     PageSize: params.PageSize,
-    Month: reportData.Month,
-    Year: reportData.Year,
+    UsePagination: true,
+    ...fillParams,
   });
+  console.log("🚀 ~ CashReceiptsBookPage ~ boaData:", boaData);
 
-  const bodyData = boaData?.value?.cashReceiptsBook || [];
+  const bodyData = boaData?.value?.cashReceiptJournal || [];
 
   // Handle page change
   const handleChangePage = (event, newPage) => {
@@ -122,16 +131,162 @@ const CashReceiptsBookPage = ({ reportData }) => {
                     ))}
                   </TableRow>
                 </TableHead>
+                <TableBody>
+                  {isBoaFetching || isBoaLoading ? (
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <TableRow key={index}>
+                        {headerColumn.map((col) => (
+                          <TableCell key={col.id}>
+                            <Skeleton
+                              variant="text"
+                              animation="wave"
+                              height={100}
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : bodyData?.length > 0 ? (
+                    <>
+                      {bodyData?.map((row, index) => (
+                        <TableRow key={index}>
+                          {headerColumn.map((col) => (
+                            <React.Fragment key={col.id}>
+                              {col.id === "rawMaterials" && col.subItems ? (
+                                <TableCell align="center">
+                                  <TableRow
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                    }}
+                                  >
+                                    {col.subItems.map((subItem) => {
+                                      const amountValue =
+                                        subItem.id === "debit" &&
+                                        row.drCr === "Debit"
+                                          ? row.amount
+                                          : subItem.id === "credit" &&
+                                            row.drCr === "Credit"
+                                          ? row.amount
+                                          : null;
+
+                                      const { formattedNumber, color } =
+                                        amountValue
+                                          ? formatNumber(amountValue)
+                                          : {
+                                              formattedNumber: "0",
+                                              color: "inherit",
+                                            };
+
+                                      return (
+                                        <TableCell
+                                          key={subItem.id}
+                                          sx={{
+                                            border: "none",
+                                            color: color,
+                                          }}
+                                        >
+                                          {formattedNumber}
+                                        </TableCell>
+                                      );
+                                    })}
+                                  </TableRow>
+                                </TableCell>
+                              ) : (
+                                <TableCell
+                                  sx={{
+                                    color:
+                                      col.id === "amount" && row[col.id] < 0
+                                        ? "red"
+                                        : "inherit",
+                                  }}
+                                >
+                                  {row[col.id]
+                                    ? col.id === "amount" // Apply number formatting only for 'amount'
+                                      ? formatNumber(row[col.id])
+                                          .formattedNumber
+                                      : row[col.id]
+                                    : "—"}
+                                </TableCell>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </TableRow>
+                      ))}
+
+                      {/* Grand Total Row */}
+                      <TableRow>
+                        {headerColumn.map((col) => (
+                          <TableCell
+                            key={col.id}
+                            className="boa__content__table--grandtotal"
+                          >
+                            {col.id === "rawMaterials" && col.subItems ? (
+                              <TableRow
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                {col.subItems.map((subItem) => {
+                                  const value =
+                                    subItem.id === "debit"
+                                      ? purchasesBookDebitTotalData
+                                      : subItem.id === "credit"
+                                      ? purchasesBookCreditTotalData
+                                      : 0;
+
+                                  const { formattedNumber, color } =
+                                    formatNumber(value);
+
+                                  return (
+                                    <TableCell
+                                      key={subItem.id}
+                                      sx={{
+                                        color: color,
+                                        border: "none",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {formattedNumber}
+                                    </TableCell>
+                                  );
+                                })}
+                              </TableRow>
+                            ) : (
+                              col.id === "amount" && (
+                                <Typography
+                                  variant="subtitle1"
+                                  fontWeight="bold"
+                                >
+                                  {/* {formatNumber(grandTotal).formattedNumber} */}hey
+                                </Typography>
+                              )
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </>
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={headerColumn.length} align="center">
+                        <Typography variant="h6">
+                          {info.system_no_data}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
               </Table>
             </TableContainer>
           </Box>
         </Box>
         <Box className="boa__footer">
-        <Box>
+          <Box>
             <Button
               variant="contained"
               color="primary"
-             // onClick={onExport}
+              // onClick={onExport}
               disabled
               startIcon={
                 isBoaLoading ? (

@@ -25,6 +25,7 @@ import {
   useExportVerticalCashDisbursementBookPerMonthQuery,
   useGenerateHorizontalCashDisbursementBookPerMonthQuery,
 } from "../../features/api/boaApi";
+import usePagination from "@mui/material/usePagination/usePagination";
 
 const HorizontalCashDisbursementBookPage = ({ reportData }) => {
   const [expanded, setExpanded] = useState(false);
@@ -60,10 +61,11 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
     FromYear: reportData?.fromYear || "",
   };
 
-  const { data: exportData, isLoading: isExportLoading } =
-    useExportVerticalCashDisbursementBookPerMonthQuery({
-      ...fillParams,
-    });
+  // const { data: exportData, isLoading: isExportLoading } =
+  //   useExportVerticalCashDisbursementBookPerMonthQuery({
+  //     ...fillParams,
+  //   });
+
   const {
     data: boaData,
     isLoading: isboaloading,
@@ -73,6 +75,7 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
   } = useGenerateHorizontalCashDisbursementBookPerMonthQuery({
     ...fillParams,
     Search: debounceValue,
+    UsePagination: true,
     PageNumber: page + 1,
     PageSize: pageSize,
   });
@@ -308,7 +311,7 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
         </Box>
         <Box className="boa__footer">
           <Box>
-            <Button
+            {/* <Button
               variant="contained"
               color="primary"
               //onClick={onExport}
@@ -322,6 +325,10 @@ const HorizontalCashDisbursementBookPage = ({ reportData }) => {
               }
             >
               {isExportLoading ? "Exporting..." : "Export"}
+            </Button> */}
+
+            <Button variant="contained" color="primary" disabled>
+              Export
             </Button>
           </Box>
           <TablePagination

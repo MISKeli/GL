@@ -383,7 +383,7 @@ export const info = {
     { id: "date", name: "DATE" },
     { id: "particulars", name: "PARTICULAR" },
     { id: "tin", name: "TIN" },
-    { id: "referenceNumber", name: "REF NO." },
+    { id: "reference", name: "REF NO." },
     {
       id: "cash",
       name: "CASH",
@@ -393,7 +393,7 @@ export const info = {
       ],
     },
 
-    { id: "accountReceivable", name: "ACCOUNT RECEIVABLE" },
+    { id: "accountReceivables", name: "ACCOUNT RECEIVABLE" },
     {
       id: "sales",
       name: "SALES",

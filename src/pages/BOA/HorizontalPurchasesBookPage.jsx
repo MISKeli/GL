@@ -54,10 +54,10 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
     });
 
   const headerColumn = joinedCdbHeader;
-  const { data: exportData, isLoading: isExportLoading } =
-    useExportVerticalCashDisbursementBookPerMonthQuery({
-      ...fillParams,
-    });
+  // const { data: exportData, isLoading: isExportLoading } =
+  //   useExportVerticalCashDisbursementBookPerMonthQuery({
+  //     ...fillParams,
+  //   });
 
   const {
     data: boaData,
@@ -68,6 +68,7 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
   } = useGenerateHorizontalPurchasesBookPerMonthQuery({
     ...fillParams,
     Search: debounceValue,
+    UsePagination: true,
     PageNumber: page + 1,
     PageSize: pageSize,
   });
@@ -298,7 +299,10 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
         </Box>
         <Box className="boa__footer">
           <Box>
-            <Button
+            <Button variant="contained" color="primary" disabled>
+              Export
+            </Button>
+            {/* <Button
               variant="contained"
               color="primary"
               //onClick={onExport}
@@ -312,7 +316,7 @@ const HorizontalPurchasesBookPage = ({ reportData }) => {
               }
             >
               {isExportLoading ? "Exporting..." : "Export"}
-            </Button>
+            </Button> */}
           </Box>
           <TablePagination
             component="div"
