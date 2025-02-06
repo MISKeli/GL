@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+/* eslint-disable react/prop-types */
+import React, { useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 import { defaultValue } from "../../schemas/defaultValue";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { importSchema } from "../../schemas/validation";
@@ -38,14 +39,11 @@ import useExportData from "../../components/hooks/useExportData";
 
 const CusImport = ({ open, onClose }) => {
   const [data, setData] = useState([]); // Holds parsed data
-  const [system, setSystem] = useState(null);
   const [importedData, setImportedData] = useState([]); // Holds data after import
   const [dialogTitle, setDialogTitle] = useState("Review Imported Data");
   const [isDataGridOpen, setIsDataGridOpen] = useState(false); // For DataGrid dialog
   const [errorReports, setErrorReports] = useState([]); // Holds error reports for duplicates
-  const [selectedValue, setSelectedValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingDuplicates, setIsFetchingDuplicates] = useState(false); // Loader state for duplicates
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false); // For duplicate dialog
 
   const [params, setParams] = useState({
@@ -55,19 +53,25 @@ const CusImport = ({ open, onClose }) => {
   });
 
   //console.log({ params });
-  const { setValue } = useForm({
+  const {
+    setValue
+  } = useForm({
     defaultValues: {
       addedBy: 0,
       reports: [defaultValue.report],
     },
     resolver: yupResolver(importSchema),
   });
+  
+
+
+ 
+
   const [importData, { isFetching }] = useImportReportsMutation();
 
   const createHeader = () => {
     if (data.length === 0) return [];
     const columnToHide = "syncId";
-    const nonEditableColumns = ["syncId", "system", "drcp", "lineAmount"];
 
     // Get all unique keys across all rows
     const allKeys = data.reduce((keys, row) => {
@@ -83,13 +87,14 @@ const CusImport = ({ open, onClose }) => {
         field: key,
         headerName: key,
         width: 150,
-        editable: false, // !nonEditableColumns.includes(key),
+        editable: false,
       }));
   };
 
   const columns = createHeader();
   //transformRows is a schema
   const rows = transformRows(data);
+ 
 
   const createHeaderDuplicate = () => {
     if (errorReports.length === 0) return [];
@@ -106,7 +111,7 @@ const CusImport = ({ open, onClose }) => {
   }, 0);
 
   const roundedTotal = Math.round(lineAmountTotal);
-  // console.log("lineAmountTotal", roundedTotal);
+
   const { exportSystem } = useExportData();
 
   // Define your custom headers mapping
@@ -116,7 +121,7 @@ const CusImport = ({ open, onClose }) => {
   const onExport = async () => {
     try {
       await exportSystem(headers);
-      console.log({ exportSystem });
+      // console.log({ exportSystem });
       toast.success("Data exported successfully!");
     } catch (err) {
       toast.error(err.message);
@@ -131,63 +136,73 @@ const CusImport = ({ open, onClose }) => {
       return;
     }
     if (fileRejections.length > 0) {
-      // Show error toast if there are any rejected files
       toast.error("Submitting file is invalid.");
       return;
     }
-    // console.log("Accepted File:", acceptedFiles[0]);
+
+    setIsLoading(true); // Start loading
 
     const reader = new FileReader();
     reader.readAsBinaryString(acceptedFiles[0]);
     reader.onload = (e) => {
-      const fileData = e.target.result;
-      const workbook = XLSX.read(fileData, { type: "binary" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-
-      // Parse data from the sheet
-      let parsedData = XLSX.utils.sheet_to_json(sheet);
-
-      // Define your custom headers mapping
-      const customHeaders = info.custom_header;
-
-      //const headers = Object.keys(customHeaders);
-
-      // Map the parsed data to use custom headers and handle null values
-      parsedData = parsedData.map((row) => {
-        const newRow = {};
-        for (const key in row) {
-          if (customHeaders[key]) {
-            newRow[customHeaders[key]] = row[key]
-              ? row[key]
-              : typeof row[key] === "number"
-              ? 0
-              : null; // Return null if value is empty
-          } else {
-            newRow[key] = row[key]
-              ? row[key]
-              : typeof row[key] === "number"
-              ? 0
-              : null; // Return null if value is empty
-          }
-        }
-        return newRow;
-      });
-
-      setData(parsedData);
-      setDialogTitle("Review Imported Data");
-      // Use setValue to update the form with parsed data
-      parsedData.forEach((report, index) => {
-        Object.keys(report).forEach((key) => {
-          // Update the form for each report, assuming the reports are in an array
-          setValue(`reports[${index}].${key}`, report[key]);
+      try {
+        const fileData = e.target.result;
+        const workbook = XLSX.read(fileData, {
+          type: "binary",
+          dateNF: "YYYY-MM-DD",
+          cellDates: true,
         });
-      });
-      // Close the first dialog and open the second dialog for review
-      setIsDataGridOpen(true); // Open DataGrid dialog for review
-      onClose();
+
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        let parsedData = XLSX.utils.sheet_to_json(sheet);
+        console.log("🚀 ~ onDrop ~ parsedData:", parsedData);
+
+        const customHeaders = info.custom_header;
+
+        parsedData = parsedData.map((row) => {
+          const newRow = {};
+
+          for (const key in row) {
+            if (customHeaders[key]) {
+              newRow[customHeaders[key]] = row[key]
+                ? row[key]
+                : typeof row[key] === "number"
+                ? 0
+                : null;
+            } else {
+              newRow[key] = row[key]
+                ? row[key]
+                : typeof row[key] === "number"
+                ? 0
+                : null;
+            }
+          }
+          return newRow;
+        });
+
+        setData(parsedData);
+        setDialogTitle("Review Imported Data");
+
+        parsedData.forEach((report, index) => {
+          Object.keys(report).forEach((key) => {
+            setValue(`reports[${index}].${key}`, report[key]);
+          });
+        });
+       
+
+        setIsDataGridOpen(true);
+        onClose();
+      } catch (error) {
+        toast.error("Error processing file.");
+        console.error("File processing error:", error);
+      } finally {
+        setIsLoading(false); // Stop loading
+      }
     };
   };
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
@@ -201,11 +216,12 @@ const CusImport = ({ open, onClose }) => {
 
   const processRowUpdate = (newRow) => {
     const originalRow = data[newRow.id];
+    console.log("🚀 ~ processRowUpdate ~ originalRow:", originalRow);
     const updatedRow = {
       ...originalRow,
       ...newRow,
       transactionDate: newRow.transactionDate
-        ? moment(newRow.transactionDate).utc().toISOString()
+        ? moment(newRow.transactionDate).format("YYYY-MM-DD").toString()
         : originalRow.transactionDate,
     };
 
@@ -228,38 +244,22 @@ const CusImport = ({ open, onClose }) => {
     ...row,
     id: row.id || index, // Unique identifier
     accountingTag: row.accountingTag?.toString(),
-    transactionDate: moment(row.transactionDate, "MM/DD/YYYY")
-      .utc()
-      .toISOString(),
+    transactionDate: moment(row.transactionDate)
+      .format("MM/DD/YYYY")
+      .toString(),
   }));
-
   const columnsDuplicate = createHeaderDuplicate();
 
   const handleImport = async () => {
-    if (isHeaderMismatch) {
-      toast.error(
-        "Kindly ensure header columns from your file match our format",
-        {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        }
-      );
-      return; // Stop further execution if headers don't match
-    }
     const transformedRows = rows.map((row) => ({
       ...row,
       transactionDate: row.transactionDate
-        ? moment(row.transactionDate).utc().toISOString()
+        ? moment(row.transactionDate).format("YYYY-MM-DD").toString()
         : moment().utc().toISOString(),
     }));
     //setIsDataGridOpen(false); // Close DataGrid dialog
 
-    // console.log("TRansformerrrrrr", transformedRows);
+    //console.log("TRansformerrrrrr", transformedRows);
 
     try {
       setIsLoading(true); // Start loading
@@ -288,7 +288,7 @@ const CusImport = ({ open, onClose }) => {
   const [triggerTestSystem] = useLazyTestConnectQuery();
 
   const handleChange = async (data) => {
-    setSelectedValue(data);
+    // setSelectedValue(data);
 
     try {
       // console.log({ data });
@@ -307,9 +307,7 @@ const CusImport = ({ open, onClose }) => {
   // Define onHandleSync function
   const onHandleSync = async () => {
     try {
-      //console.log({ data });
       const response = await triggerTestSystem(params).unwrap();
-      // handleChange(response);
 
       setData(response);
       setDialogTitle("Review Synced Data");
@@ -330,27 +328,6 @@ const CusImport = ({ open, onClose }) => {
   const isHeaderMismatch = columns.some(
     (col) => !Object.values(info.custom_header)?.includes(col.field)
   );
-
-  const handleSubmit = () => {
-    if (isHeaderMismatch) {
-      toast.error(
-        "Kindly ensure header columns from your file match our format",
-        {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        }
-      );
-      return; // Prevent submission if there's a mismatch
-    }
-
-    // Proceed with submission logic
-    console.log("Form submitted successfully!");
-  };
 
   return (
     <>
@@ -406,7 +383,7 @@ const CusImport = ({ open, onClose }) => {
                   {...getRootProps()}
                   className="customimport__dialog__import__content__dropzone"
                 >
-                  <input {...getInputProps()} multiple />
+                  <input {...getInputProps()} disabled={isLoading} />
                   <Typography className="customimport__dialog__import__content__dropzone--title">
                     Drop a CSV/XLSX file
                   </Typography>
@@ -418,9 +395,16 @@ const CusImport = ({ open, onClose }) => {
                     variant="contained"
                     color="success"
                     size="medium"
+                    disabled={isLoading || isFetching}
                     className="customimport__dialog__import__content__dropzone--button"
+                    startIcon={
+                      isLoading ||
+                      (isFetching && (
+                        <CircularProgress size={20} color="inherit" />
+                      ))
+                    }
                   >
-                    Upload File
+                    {isLoading || isFetching ? "Processing..." : "Upload File"}
                   </Button>
                 </Box>
               </Box>
@@ -474,7 +458,7 @@ const CusImport = ({ open, onClose }) => {
               <DataGrid
                 rows={rows}
                 columns={columns.map((col) => {
-                  console.log("🚀 ~ columns={columns.map ~ col:", col);
+                  // console.log("🚀 ~ columns={columns.map ~ col:", col);
                   return {
                     ...col,
                     renderHeader: () =>
@@ -573,7 +557,7 @@ const CusImport = ({ open, onClose }) => {
           Error Data Found
         </DialogTitle>
         <DialogContent className="customimport__content__dialog--content">
-          {isFetchingDuplicates || isLoading ? (
+          {isLoading ? (
             <CircularProgress />
           ) : (
             errorReports.length > 0 && (
@@ -592,7 +576,6 @@ const CusImport = ({ open, onClose }) => {
                   },
                 }}
                 disableRowSelectionOnClick
-                //experimentalFeatures={{ newEditingApi: true }}
                 sx={{
                   "& .MuiDataGrid-columnHeaderTitle": {
                     fontWeight: "bold",

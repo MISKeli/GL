@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useState } from "react";
 import useDebounce from "../../components/useDebounce";
 import { info } from "../../schemas/info";
@@ -51,7 +52,7 @@ const CashReceiptsBookPage = ({ reportData }) => {
     UsePagination: true,
     ...fillParams,
   });
-  console.log("🚀 ~ CashReceiptsBookPage ~ boaData:", boaData);
+  // console.log("🚀 ~ CashReceiptsBookPage ~ boaData:", boaData);
 
   const bodyData = boaData?.value?.cashReceiptJournal || [];
 
@@ -90,7 +91,6 @@ const CashReceiptsBookPage = ({ reportData }) => {
   return (
     <>
       <Box className="boa">
-        <Box className="boa__header"></Box>
         <Box className="boa__content">
           <Box className="boa__content__table">
             <TableContainer

@@ -16,8 +16,15 @@
 
   &__menu {
     //Profile Settings
+
+    &__profile{
+      padding: 5px;
+    }
      &--title {
-       padding: 5px;
+      text-align: center;
+      background-color: $primary-main;
+       padding: 5px 0px;
+       margin: 0px;
    
 
      }

@@ -7,11 +7,7 @@ import UserManagementPage from "../pages/userManagement/UserManagementPage";
 import AccessPermission from "../components/AccessPermission";
 import UserAccountPage from "../pages/userManagement/UserAccountPage";
 import RoleManagementPage from "../pages/userManagement/RoleManagemenPage";
-// import SystemsPage from "../pages/systems/SystemsPage";
-
-// import ImportPage from "../pages/ImportPage";
 import SystemSetupPage from "../pages/systemSetup/SystemSetupPage";
-//import SystemPage from "../pages/SystemPage";
 import BoaPage from "../pages/BOA/BoaPage";
 import MainSystemPage from "../pages/systems/MainSystemPage";
 import TrialBalancePage from "../pages/TrialBalancePage";
@@ -69,7 +65,7 @@ export const router = createBrowserRouter([
             element: <BoaPage />,
           },
           {
-            path: "system",
+            path: "boa_file_manager",
             element: <SystemPage2 />,
             children: [
               {
@@ -78,14 +74,14 @@ export const router = createBrowserRouter([
               },
               {
                 path: ":year",
-                element: <SystemFilepage />,
-              },
-              {
-                path: ":year/:boaName/",
                 element: <MonthsPage />,
               },
               {
-                path: ":year/:boaName/:month",
+                path: ":year/:month",
+                element: <SystemFilepage />,
+              },
+              {
+                path: ":year/:month/:boaName",
                 element: <SystemNames />,
               },
             ],

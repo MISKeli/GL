@@ -58,7 +58,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
 
     UsePagination: false,
   });
-  console.log("CDB", boaData);
+ 
 
   const hasData =
     exportData?.value?.cashDisbursementBook &&
@@ -229,7 +229,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
                       {/* Grand Total Row */}
                       <TableRow>
                         {headerColumn.map((col) => (
-                          <TableCell key={col.id} align="center">
+                          <TableCell key={col.id} className="boa__content__table--grandtotal">
                             {col.subItems ? (
                               <TableRow
                                 style={{

@@ -9,7 +9,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import React, { useRef, useState } from "react";
 
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,12 +18,11 @@ import {
   ClearRounded,
   SearchRounded,
 } from "@mui/icons-material";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import { boaSchema } from "../schemas/validation";
 import "../styles/FilterComponent.scss";
+import { DatePicker } from "@mui/x-date-pickers";
 
 const DateSearchCompoment = ({
   setReportData,
@@ -55,12 +53,13 @@ const DateSearchCompoment = ({
   });
 
   const handleDateChange = async () => {
+    console.log("triggering");
     setLoading(true); // Start loading
 
-   
-
     const fromMonth = fromDate.startOf("month").format("MM/DD/YYYY").toString();
+    console.log("🚀 ~ handleDateChange ~ fromMonth:", fromMonth);
     const toMonth = toDate.endOf("month").format("MM/DD/YYYY").toString();
+    console.log("🚀 ~ handleDateChange ~ toMonth:", toMonth);
 
     const importMonth = hasImport
       ? importDate.startOf("month").format("MM/DD/YYYY")
@@ -68,7 +67,7 @@ const DateSearchCompoment = ({
     const importYear = hasImport
       ? importDate.endOf("month").format("MM/DD/YYYY")
       : null;
-   
+
     try {
       const reportData = {
         fromMonth,
@@ -93,7 +92,6 @@ const DateSearchCompoment = ({
   // Updates report data when the date is changed
   const handleImportDateChange = (selectedDate) => {
     setImportDate(selectedDate);
-  
   };
 
   // SEARCH
@@ -119,35 +117,33 @@ const DateSearchCompoment = ({
   return (
     <div className="filter">
       {hasImport && (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Controller
-            name="selectedDate"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                views={["month", "year"]}
-                label="Month and Year"
-                value={importDate}
-                onChange={(date) => {
-                  field.onChange(date);
-                  handleImportDateChange(date);
-                }}
-                slotProps={{
-                  textField: {
-                    variant: "standard",
-                  },
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    helperText={errors.selectedDate?.message}
-                    error={!!errors.selectedDate}
-                  />
-                )}
-              />
-            )}
-          />
-        </LocalizationProvider>
+        <Controller
+          name="selectedDate"
+          control={control}
+          render={({ field }) => (
+            <DatePicker
+              views={["month", "year"]}
+              label="Month and Year"
+              value={importDate}
+              onChange={(date) => {
+                field.onChange(date);
+                handleImportDateChange(date);
+              }}
+              slotProps={{
+                textField: {
+                  variant: "standard",
+                },
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  helperText={errors.selectedDate?.message}
+                  error={!!errors.selectedDate}
+                />
+              )}
+            />
+          )}
+        />
       )}
       <Box
         className={`filter__search ${expanded ? "expanded" : ""}`}
@@ -201,7 +197,7 @@ const DateSearchCompoment = ({
 
       {/* DatePicker */}
       {hasDate && (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <>
           <DatePicker
             views={["month", "year"]}
             label="From (Month and Year)"
@@ -228,6 +224,7 @@ const DateSearchCompoment = ({
             label="To (Month and Year)"
             value={toDate}
             minDate={fromDate}
+            //maxDate={currentYear}
             slotProps={{
               textField: {
                 variant: "standard",
@@ -239,7 +236,7 @@ const DateSearchCompoment = ({
             }}
             renderInput={(params) => <TextField {...params} />}
           />
-        </LocalizationProvider>
+        </>
       )}
       {/* Submit Button with Loading */}
       {(hasDate || hasImport) && (

@@ -4,9 +4,9 @@ const reportApi = indexApi
   .enhanceEndpoints({ addTagTypes: ["report"] })
   .injectEndpoints({
     endpoints: (builder) => ({
-      GetAllGLReportAsync: builder.query({
+      GenerateGLReportPage: builder.query({
         query: (params) => ({
-          url: `/report/general-ledger`,
+          url: `/report/general-ledger-report`,
           method: "GET",
           params,
         }),
@@ -15,4 +15,7 @@ const reportApi = indexApi
     }),
   });
 
-export const { useGetAllGLReportAsyncQuery, useLazyGetAllGLReportAsyncQuery } = reportApi;
+export const {
+  useGenerateGLReportPageQuery,
+  useLazyGenerateGLReportPageQuery,
+} = reportApi;

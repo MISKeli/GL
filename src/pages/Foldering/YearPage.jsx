@@ -1,26 +1,54 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DataFile from "./components/DataFile";
-import { Box } from "@mui/material";
-import { Link } from "react-router-dom";
 
-const years = ["2024", "2025", "2026", "2027"];
+import { useNavigate } from "react-router-dom";
+import { useGenerateSystemFolderStructurePageQuery } from "../../features/api/folderStructureApi";
+import { Box } from "@mui/material";
 
 const YearPage = () => {
+  const [selectedItem, setSelectedItem] = useState(null);
+  const containerRef = useRef(null);
+
+  const { data: folderData } = useGenerateSystemFolderStructurePageQuery({
+    Year: "",
+  });
+  const years = folderData?.value?.years;
+
+  const navigate = useNavigate();
+  
+  const handleDoubleClick = (year) => {
+    navigate(`./${year}`);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setSelectedItem(null); // Deselect when clicking outside
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
-      {years.map((year) => (
-        <Link
-          to={`./${year}`}
-          key={year}
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-            height: "fit-content",
-          }}
-        >
-          <DataFile name={year} />
-        </Link>
-      ))}
+      <Box ref={containerRef} display={"flex"}>
+        {years?.map((year) => (
+          <DataFile
+            isSelected={selectedItem === year}
+            onClick={() => setSelectedItem(year)}
+            key={year}
+            name={year}
+            onDoubleClick={() => handleDoubleClick(year)}
+          />
+        ))}
+      </Box>
     </>
   );
 };

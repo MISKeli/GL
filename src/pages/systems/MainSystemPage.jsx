@@ -35,6 +35,11 @@ import CusImport from "../../pages/systems/CusImport";
 import DateSearchCompoment from "../../components/DateSearchCompoment";
 import useExportData from "../../components/hooks/useExportData";
 import { toast } from "sonner";
+import {
+  useGenerateGLReportPageQuery,
+  useLazyGenerateGLReportPageQuery,
+
+} from "../../features/api/reportApi";
 function MainSystemPage() {
   const [selectedSystem, setSelectedSystem] = useState(""); // State for selected system
   const [reportData, setReportData] = useState({
@@ -68,19 +73,20 @@ function MainSystemPage() {
     data: systemData,
     isLoading: isSystemloading,
     isFetching: isSystemFetching,
-  } = useGetAllGLReportAsyncQuery({
+  } = useGenerateGLReportPageQuery({
     Search: debounceValue,
     PageNumber: page + 1,
     PageSize: pageSize,
+    UsePagination: true,
     System: selectedSystem,
     FromMonth: reportData.fromMonth,
     ToMonth: reportData.toMonth,
   });
+  // console.log("🚀 ~ MainSystemPage ~ systemData:", systemData);
 
   const customHeaders = info.custom_header;
 
   const headers = Object.keys(customHeaders);
-  console.log("😁", reportData);
 
   const handlePopOverClose = () => {
     setAnchorEl(null);
@@ -105,10 +111,26 @@ function MainSystemPage() {
   const handleDialogClose = () => setIsDialogOpen(false);
 
   const { exportImportSystem } = useExportData();
+  const [fetchExportData] = useLazyGenerateGLReportPageQuery();
+
+  const hasData =
+    systemData?.value?.glreport && systemData?.value?.glreport?.length > 0;
+
   const onExport = async () => {
     try {
-      await exportImportSystem(headers, systemData, reportData, selectedSystem);
-      toast.success("Data exported successfully!");
+      // Trigger lazy query for export
+      const exportData = await fetchExportData({
+        UsePagination: false, // Disable pagination
+        System: selectedSystem,
+        FromMonth: reportData.fromMonth,
+        ToMonth: reportData.toMonth,
+      }).unwrap();
+      await exportImportSystem(
+        headers,
+        exportData?.value?.glreport,
+        reportData,
+        selectedSystem
+      );
     } catch (err) {
       toast.error(err.message);
       console.log(err);
@@ -184,15 +206,7 @@ function MainSystemPage() {
                 <TableHead>
                   <TableRow>
                     {headerColumn.map((columnTable) => (
-                      <TableCell
-                        key={columnTable.id}
-                        // sx={{
-                        //   whiteSpace:
-                        //     columnTable.id === "itemDescription"
-                        //       ? "nowrap"
-                        //       : "normal",
-                        // }}
-                      >
+                      <TableCell key={columnTable.id}>
                         {columnTable.name}
                       </TableCell>
                     ))}
@@ -213,8 +227,8 @@ function MainSystemPage() {
                         ))}
                       </TableRow>
                     ))
-                  ) : systemData?.reports?.length > 0 ? (
-                    systemData?.reports?.map((row, index) => (
+                  ) : systemData?.value?.glreport?.length > 0 ? (
+                    systemData?.value?.glreport?.map((row, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
                           <TableCell key={col.id}>
@@ -258,7 +272,7 @@ function MainSystemPage() {
               variant="contained"
               color="primary"
               onClick={onExport}
-              //disabled
+              disabled={!hasData || isSystemloading || isSystemFetching}
               startIcon={<IosShareRounded />}
             >
               {info.button.exportButton.label}
@@ -266,7 +280,7 @@ function MainSystemPage() {
           </Box>
           <TablePagination
             component="div"
-            count={systemData?.totalCount || 0}
+            count={systemData?.value?.totalCount || 0}
             page={page}
             rowsPerPage={pageSize}
             onPageChange={handleChangePage}
@@ -275,7 +289,7 @@ function MainSystemPage() {
               25,
               50,
               100,
-              { label: "All", value: systemData?.totalCount || 0 },
+              { label: "All", value: systemData?.value?.totalCount || 0 },
             ]}
           />
         </Box>

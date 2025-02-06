@@ -1,32 +1,58 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DataFile from "./components/DataFile";
-import { Box } from "@mui/material";
-import { Link, useOutletContext } from "react-router-dom";
-import moment from "moment";
+import { useNavigate, useParams } from "react-router-dom";
 
-const months = moment.monthsShort();
+import { useGenerateSystemFolderStructurePageQuery } from "../../features/api/folderStructureApi";
+import { Box } from "@mui/material";
 
 const MonthsPage = () => {
-  const { data } = useOutletContext();
-  console.log("you are here", data);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const containerRef = useRef(null);
+  const params = useParams();
+
+  const { data: folderData } = useGenerateSystemFolderStructurePageQuery({
+    Year: params.year,
+  });
+
+  const months = folderData?.value?.response?.map((item) => item.month);
+
+
+
+  const navigate = useNavigate();
+
+  const handleDoubleClick = (month) => {
+    navigate(`./${month}`);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setSelectedItem(null); // Deselect when clicking outside
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
-      {months.map((month) => (
-        <Link
-        
-          to={`./${month}`}
-          key={month}
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-            height:"fit-content",
-            width:"fit-content"
-          }}
-        >
-          <DataFile   name={month} variant="sheet" />
-        </Link>
-      ))}
+      <Box ref={containerRef} display={"flex"}>
+        {months?.map((month) => (
+          <DataFile
+            isSelected={selectedItem === month}
+            onClick={() => setSelectedItem(month)}
+            key={month}
+            name={month}
+            onDoubleClick={() => handleDoubleClick(month)}
+          />
+        ))}
+      </Box>
     </>
   );
 };

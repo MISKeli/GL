@@ -5,23 +5,16 @@ import sheetClose from "../../../assets/icon/sheetClose.svg";
 import folderClose from "../../../assets/icon/folderClose.svg";
 import { Box, Tooltip, Typography } from "@mui/material";
 
-const DataFile = ({ name, onClick, onDoubleClick, variant = "folder" }) => {
+const DataFile = ({ name, onClick, onDoubleClick, variant = "folder",  isSelected  }) => {
   const [imageState, setImageState] = useState(
     variant === "folder" ? folderClose : sheetClose
   );
-  const [isSelected, setIsSelected] = useState(false);
+ 
 
-  const handleClick = () => {
-    // Toggle the selection state
-    setIsSelected((prev) => !prev);
-  };
-
-  const handleDoubleClick = () => {
-    // Trigger the fetch data function on double-click
-    if (onDoubleClick) {
-      onDoubleClick(); // Call the provided onDoubleClick function
-    }
-  };
+  // const handleClick = () => {
+  //   setIsSelected((prev) => !prev); // Toggle selection
+  //   if (onClick) onClick();
+  // };
 
   return (
     <Box
@@ -39,13 +32,15 @@ const DataFile = ({ name, onClick, onDoubleClick, variant = "folder" }) => {
           setImageState(sheetClose);
         }
       }}
-      onClick={handleClick} // Toggle background color on click
-      onDoubleClick={handleDoubleClick} // Fetch data on double-click
+      onClick={onClick}
+      onDoubleClick={onDoubleClick} 
+      // Fetch data on double-click
       sx={{
         cursor: "pointer",
 
         borderRadius: "8px",
         transition: "background-color 0.3s",
+        backgroundColor: isSelected ? "rgba(0, 123, 255, 0.2)" : "transparent",
         "&:hover": {
           backgroundColor: "rgba(0, 123, 255, 0.1)",
         },
@@ -57,14 +52,17 @@ const DataFile = ({ name, onClick, onDoubleClick, variant = "folder" }) => {
         </Box>
 
         <Box
-          position={"absolute"}
+         
           bottom={0}
           width={"130px"}
           display={"flex"}
           justifyContent={"center"}
-          
+  
+          gap={"2rem"}
         >
-          <Typography>{name}</Typography>
+          <Typography bottom={0} textAlign={"center"}>
+            {name}
+          </Typography>
         </Box>
       </Box>
     </Box>

@@ -268,7 +268,7 @@ const TrialBalancePage = () => {
             25,
             50,
             100,
-            { label: "All", value: trialData?.totalCount || 0 },
+            { label: "All", value: trialData?.value?.totalCount || 0 },
           ]}
         />
       </Box>

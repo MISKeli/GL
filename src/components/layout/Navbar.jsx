@@ -87,17 +87,20 @@ const Navbar = () => {
         open={Boolean(anchorEl)}
         onClose={handlePopOverClose}
         anchorEl={anchorEl}
+        
       >
-        <Box className="navbar__menu--title">
-          <Typography fontWeight={500}>
+        <Box className="navbar__menu--title"  >
+          <Typography fontWeight={500} color={"white"}>
             {user.firstName}, {user.lastName}
           </Typography>
 
-          <Typography variant="button">{user.roleName}</Typography>
+          <Typography variant="button" color={"white"}>
+            {user.roleName}
+          </Typography>
         </Box>
         <Divider sx={{ m: 0.5, height: 1 }} orientation="horizontal" />
 
-        <Typography className="navbar__menu--title">
+        <Typography className="navbar__menu__profile">
           Profile Settings
         </Typography>
         <MenuItem

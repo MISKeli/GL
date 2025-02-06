@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   sidebar: false,
   folderApiUrl: "",
+  
 };
 const miscSlice = createSlice({
   name: "misc",

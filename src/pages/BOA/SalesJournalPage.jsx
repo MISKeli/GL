@@ -1,10 +1,8 @@
+/* eslint-disable react/prop-types */
 import {
   Box,
   Button,
   CircularProgress,
-  Divider,
-  IconButton,
-  InputBase,
   Paper,
   Skeleton,
   Table,
@@ -19,12 +17,12 @@ import {
 import React, { useState } from "react";
 
 import { IosShareRounded } from "@mui/icons-material";
-import "../../styles/BoaPage.scss";
-import { info } from "../../schemas/info";
 import { useGenerateSaleJournalBookPerMonthPaginationQuery } from "../../features/api/boaApi";
+import { info } from "../../schemas/info";
+import "../../styles/BoaPage.scss";
 
-import useExportData from "../../components/hooks/useExportData";
 import { toast } from "react-toastify";
+import useExportData from "../../components/hooks/useExportData";
 const SalesJournalPage = ({ reportData }) => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
@@ -37,11 +35,6 @@ const SalesJournalPage = ({ reportData }) => {
   };
 
   console.log("fill", fillParams);
-
-  // const { data: exportData, isLoading: isExportLoading } =
-  //   useExportGenerateSaleJournalBookPerMonthQuery({
-  //     ...fillParams,
-  //   });
 
   const {
     data: boaData,
@@ -119,7 +112,6 @@ const SalesJournalPage = ({ reportData }) => {
   return (
     <>
       <Box className="boa">
-        <Box className="boa__header"></Box>
         <Box className="boa__content">
           <Box className="boa__content__table">
             <TableContainer
@@ -162,15 +154,12 @@ const SalesJournalPage = ({ reportData }) => {
                 </TableHead>
                 <TableBody>
                   {isboaFetching || isboaloading ? (
-                    Array.from({ length: pageSize }).map((_, index) => (
+                    // Show skeleton loaders when fetching or loading
+                    Array.from({ length: 10 }).map((_, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
                           <TableCell key={col.id}>
-                            <Skeleton
-                              variant="text"
-                              animation="wave"
-                              height={100}
-                            />
+                            <Skeleton variant="text" animation="wave" />
                           </TableCell>
                         ))}
                       </TableRow>
@@ -201,19 +190,23 @@ const SalesJournalPage = ({ reportData }) => {
                                             row.drCr === "Credit"
                                           ? row.lineAmount
                                           : null;
-                                      const formatted = formatNumber(
-                                        amountValue || 0
-                                      ); // Get formatted number
+                                      const { formattedNumber, color } =
+                                        amountValue
+                                          ? formatNumber(amountValue)
+                                          : {
+                                              formattedNumber: "0",
+                                              color: "inherit",
+                                            };
+
                                       return (
                                         <TableCell
                                           key={subItem.id}
                                           sx={{
                                             border: "none",
-                                            color: formatted.color, // Apply the color
+                                            color: color, // Apply the color
                                           }}
                                         >
-                                          {formatted.formattedNumber}{" "}
-                                          {/* Display formatted number */}
+                                          {formattedNumber}
                                         </TableCell>
                                       );
                                     })}
@@ -229,7 +222,7 @@ const SalesJournalPage = ({ reportData }) => {
                                   }}
                                 >
                                   {row[col.id]
-                                    ? col.id === "lineAmount" // Apply formatting only for numeric columns
+                                    ? col.id === "lineAmount"
                                       ? formatNumber(row[col.id])
                                           .formattedNumber
                                       : row[col.id]
@@ -244,7 +237,10 @@ const SalesJournalPage = ({ reportData }) => {
                       {/* Grand Total Row */}
                       <TableRow>
                         {headerColumn.map((col) => (
-                          <TableCell key={col.id} align="center">
+                          <TableCell
+                            key={col.id}
+                            className="boa__content__table--grandtotal"
+                          >
                             {col.subItems ? (
                               <TableRow
                                 style={{
@@ -270,8 +266,7 @@ const SalesJournalPage = ({ reportData }) => {
                                         color: formatted.color, // Apply color for grand total
                                       }}
                                     >
-                                      {formatted.formattedNumber}{" "}
-                                      {/* Display formatted grand total */}
+                                      {formatted.formattedNumber}
                                     </TableCell>
                                   );
                                 })}

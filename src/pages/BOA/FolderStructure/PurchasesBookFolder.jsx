@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import React, { useContext, useState } from "react";
 import {
   Box,
   Button,
@@ -14,68 +15,45 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
-
+import { info } from "../../../schemas/info";
 import { IosShareRounded } from "@mui/icons-material";
-import "../../styles/BoaPage.scss";
-import { info } from "../../schemas/info";
-import { useGenerateVerticalPurchasesBookPerMonthPaginationQuery } from "../../features/api/boaApi";
+import "../../../styles/BoaPage.scss";
+import { useDispatch } from "react-redux";
+import {
+  setPage,
+  setPageNumber,
+  setPageSize,
+} from "../../../features/slice/authSlice";
+import { useParams } from "react-router-dom";
+import useExportData from "../../../components/hooks/useExportData";
 import { toast } from "sonner";
+import moment from "moment";
+import { useLazyGenerateSystemFolderStructurePageQuery } from "../../../features/api/folderStructureApi";
 
-import useExportData from "../../components/hooks/useExportData";
+const PurchasesBookFolder = ({
+  data,
+  page,
+  pageSize,
+  isLoading,
+  isFetching,
+}) => {
+  const dispatch = useDispatch();
+  const param = useParams();
+  //console.log("🚀 ~ param:", param);
 
-const PurchasesBookPage = ({ reportData }) => {
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(25);
+  //   const {  pageSize } = useSelector((state) => state.auth);
 
-  const { purchasesBookExport } = useExportData();
-  const fillParams = {
-    FromMonth: reportData?.fromMonth || "",
-    ToMonth: reportData?.toMonth || "",
-  };
-
-  const headerColumn = info.Purchases_Book;
-
-  const {
-    data: exportData,
-    isLoading: isExportLoading,
-    isFetching: isExportFetching,
-  } = useGenerateVerticalPurchasesBookPerMonthPaginationQuery({
-    ...fillParams,
-    UsePagination: false,
-  });
-
-  const {
-    data: boaData,
-    isLoading: isboaloading,
-    isFetching: isboaFetching,
-  } = useGenerateVerticalPurchasesBookPerMonthPaginationQuery({
-    ...fillParams,
-    search: reportData.Search,
-    UsePagination: true,
-    PageNumber: page + 1,
-    PageSize: pageSize,
-  });
-
-  // console.log("✌", boaData);
-
-
-  // console.log("Export Data", exportData);
-
-  // Check if data is available and user has selected a month and year
-  const hasData =
-    exportData?.value?.purchasesBook &&
-    exportData?.value?.purchasesBook?.length > 0;
-
-  //Pagination
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    dispatch(setPageNumber(newPage));
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setPageSize(parseInt(event.target.value, 10)); // Directly set the selected value
-    setPage(0);
+    dispatch(setPageSize(parseInt(event.target.value, 10)));
+    dispatch(setPage(0)); // Reset to first page
   };
+
+ // console.log("🚀 ~ PurchasesBookFolder ~ data:", data);
+  const headerColumn = info.Purchases_Book;
 
   // for comma
   const formatNumber = (number) => {
@@ -90,26 +68,48 @@ const PurchasesBookPage = ({ reportData }) => {
   };
 
   const purchasesBookDebitTotalData =
-    boaData?.value?.lineAmount?.lineAmountDebit || 0;
+    data?.value?.lineAmount?.lineAmountDebit || 0;
   const purchasesBookCreditTotalData =
-    boaData?.value?.lineAmount?.lineAmountCredit || 0;
+    data?.value?.lineAmount?.lineAmountCredit || 0;
 
   const grandTotal = purchasesBookDebitTotalData + purchasesBookCreditTotalData;
 
+  const { purchasesBookExport } = useExportData();
+  const [fetchExportData] = useLazyGenerateSystemFolderStructurePageQuery();
   const header = info.Purchases_Book_Export;
 
   const onExport = async () => {
     try {
-      purchasesBookExport(header, exportData.value.purchasesBook, reportData);
+      // Trigger lazy query for export
+      const exportData = await fetchExportData({
+        Year: param.year,
+        Month: param.month,
+        Boa: param.boaName,
+        UsePagination: false, // Disable pagination
+      }).unwrap();
+
+      // Use the fetched data for export
+      purchasesBookExport(header, exportData?.value?.purchasesBook, {
+        fromMonth: moment(param.month, "MMM")
+          .startOf("month")
+          .format("MMMM DD, YYYY"),
+        toMonth: moment(param.month, "MMM").endOf("month"),
+      });
     } catch (err) {
       toast.error(err.message);
-      console.log(err);
+      console.error(err);
     }
   };
 
   return (
     <>
-      <Box className="boa">
+      <Box
+        className="boa"
+        width={100}
+        flex={1}
+        display={"flex"}
+        flexDirection={"column"}
+      >
         <Box className="boa__content">
           <Box className="boa__content__table">
             <TableContainer
@@ -126,7 +126,7 @@ const PurchasesBookPage = ({ reportData }) => {
                           textAlign: columnTable.subItems ? "center" : "",
                         }}
                       >
-                        {columnTable.name}
+                        {columnTable.name}{" "}
                         {columnTable.subItems && (
                           <TableRow
                             style={{
@@ -152,7 +152,7 @@ const PurchasesBookPage = ({ reportData }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {isboaFetching || isboaloading ? (
+                  {isFetching || isLoading ? (
                     Array.from({ length: 5 }).map((_, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
@@ -166,9 +166,9 @@ const PurchasesBookPage = ({ reportData }) => {
                         ))}
                       </TableRow>
                     ))
-                  ) : boaData?.value?.purchasesBook?.length > 0 ? (
+                  ) : data?.value?.purchasesBook?.length > 0 ? (
                     <>
-                      {boaData?.value?.purchasesBook?.map((row, index) => (
+                      {data?.value?.purchasesBook?.map((row, index) => (
                         <TableRow key={index}>
                           {headerColumn.map((col) => (
                             <React.Fragment key={col.id}>
@@ -307,18 +307,14 @@ const PurchasesBookPage = ({ reportData }) => {
               variant="contained"
               color="primary"
               onClick={onExport}
-              disabled={!hasData || isExportLoading || isExportFetching}
+              disabled={isLoading || isFetching}
               startIcon={
-                isExportLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <IosShareRounded />
-                )
+                isLoading ? <CircularProgress size={20} /> : <IosShareRounded />
               }
             >
-              {isExportLoading
+              {isLoading
                 ? "Loading..."
-                : isExportFetching
+                : isFetching
                 ? "Exporting..."
                 : "Export"}
             </Button>
@@ -326,7 +322,7 @@ const PurchasesBookPage = ({ reportData }) => {
 
           <TablePagination
             component="div"
-            count={boaData?.value.totalCount || 0}
+            count={data?.value.totalCount || 0}
             page={page}
             rowsPerPage={pageSize}
             onPageChange={handleChangePage}
@@ -337,7 +333,7 @@ const PurchasesBookPage = ({ reportData }) => {
               100,
               {
                 label: "All",
-                value: boaData?.value?.totalCount || 0,
+                value: data?.value?.totalCount || 0,
               },
             ]}
           />
@@ -347,4 +343,4 @@ const PurchasesBookPage = ({ reportData }) => {
   );
 };
 
-export default PurchasesBookPage;
+export default PurchasesBookFolder;

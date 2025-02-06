@@ -1,8 +1,11 @@
 @import "__palette.module";
 .folder {
+  display: flex;
   height: 100%;
-  width: 100%;
-  overflow: hidden;
+  flex-direction: column;
+  // height: 100%;
+  // width: 100%;
+  // overflow: hidden;
   padding: 0 10px;
 
   &__breadcrumbs {

@@ -8,12 +8,16 @@ import {
   DeveloperBoard,
   FeedOutlined,
   FeedRounded,
+  FolderOutlined,
+  FolderRounded,
   PersonOutline,
   PersonRounded,
   SupervisedUserCircleOutlined,
   SupervisedUserCircleRounded,
   SupervisorAccountOutlined,
   SupervisorAccountRounded,
+  TopicOutlined,
+  TopicRounded,
 } from "@mui/icons-material";
 
 export const moduleSchema = [
@@ -66,11 +70,11 @@ export const moduleSchema = [
     subCategory: null,
   },
   {
-    name: "System",
-    section: "system",
-    icon: FeedOutlined,
-    iconOn: FeedRounded,
-    to: "/system",
+    name: "BOA File Manager",
+    section: "boa_file_manager",
+    icon: TopicOutlined,
+    iconOn: TopicRounded,
+    to: "/boa_file_manager",
     subCategory: null,
   },
   {

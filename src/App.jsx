@@ -8,14 +8,18 @@ import store from "./app/store";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routes/router";
 import ProvidesTheme from "./theme/ProvidesTheme";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 function App() {
   return (
     <>
       <Provider store={store}>
         <ProvidesTheme>
-          <Toaster position="bottom-right" richColors closeButton />
-          <RouterProvider router={router} />
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Toaster position="bottom-right" richColors closeButton />
+            <RouterProvider router={router} />
+          </LocalizationProvider>
         </ProvidesTheme>
       </Provider>
     </>

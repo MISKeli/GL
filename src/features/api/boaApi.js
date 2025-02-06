@@ -86,6 +86,15 @@ const boaApi = indexApi
         }),
         providesTags: ["boa"],
       }),
+      GenerateJournalBookPage: builder.query({
+        // for viewing vertical
+        query: (params) => ({
+          url: `/book-of-accounts/journal-book/page`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["boa"],
+      }),
     }),
   });
 
@@ -102,4 +111,6 @@ export const {
   useGenerateCashDisbursementBookPerMonthPaginationQuery,
   useGenerateSaleJournalBookPerMonthPaginationQuery,
   useExportVerticalPurchasesBookPerMonthQuery,
+  useGenerateJournalBookPageQuery,
+  useLazyGenerateJournalBookPageQuery
 } = boaApi;

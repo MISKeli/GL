@@ -13,7 +13,8 @@ const authSlice = createSlice({
     isAuthenticated: !!decryptedToken,
     token: decryptedToken,
     user: initialUser,
-    
+    pageNumber: 0,
+    pageSize: 25,
   },
   reducers: {
     loginSlice: (state, action) => {
@@ -28,7 +29,23 @@ const authSlice = createSlice({
     setPokedData: (state, action) => {
       state.pokedData = action.payload;
     },
+    setPageNumber: (state, action) => {
+      state.pageNumber = action.payload;
+    },
+    setPageSize: (state, action) => {
+      state.pageSize = action.payload;
+    },
+    setPage: (state, action) => {
+      state.page = action.payload;
+    },
   },
 });
-export const { loginSlice, logoutSlice, setPokedData } = authSlice.actions;
+export const {
+  setPage,
+  loginSlice,
+  logoutSlice,
+  setPokedData,
+  setPageNumber,
+  setPageSize,
+} = authSlice.actions;
 export default authSlice.reducer;

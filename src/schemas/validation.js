@@ -51,7 +51,10 @@ export const importSchema = yup.object().shape({
   mark2: yup.string().nullable(),
   assetCIP: yup.string().nullable(),
   accountingTag: yup.string().nullable(),
-  transactionDate: yup.date(), //"YYYY-MM-DD HH:mm:ss"
+  transactionDate: yup
+    .date()
+    .nullable()
+    .required("Transaction Date is required."), //"YYYY-MM-DD HH:mm:ss"
   clientSupplier: yup.string().nullable(),
   accountTitleCode: yup.string().nullable(),
   accountTitle: yup.string().nullable(),
@@ -77,7 +80,7 @@ export const importSchema = yup.object().shape({
   lineAmount: yup.number().nullable(),
   voucherJournal: yup.string().nullable(),
   accountType: yup.string().nullable(),
-  drcp: yup.string().nullable(),
+  drcr: yup.string().nullable(),
   assetCode: yup.string().nullable(),
   asset: yup.string().nullable(),
   serviceProviderCode: yup.string().nullable(),
@@ -97,8 +100,8 @@ export const importSchema = yup.object().shape({
   depreciationDescription: yup.string().nullable(),
   remainingDepreciationValue: yup.string().nullable(),
   usefulLife: yup.string().nullable(),
-  month: yup.string().nullable(),
-  year: yup.string().nullable(),
+  month: yup.string().required("Month is required."),
+  year: yup.string().required("Year is required."),
   particulars: yup.string().nullable(),
   month2: yup.string().nullable(),
   farmType: yup.string().nullable(),
@@ -108,6 +111,6 @@ export const importSchema = yup.object().shape({
   reason: yup.string().nullable(),
   checkingRemarks: yup.string().nullable(),
   boA2: yup.string().nullable(),
-  system: yup.string().nullable(),
+  system: yup.string().required("System is required."),
   books: yup.string().nullable(),
 });

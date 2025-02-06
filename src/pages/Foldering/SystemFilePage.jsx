@@ -1,51 +1,61 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DataFile from "./components/DataFile";
 import { Box } from "@mui/material";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import "../../styles/SystemFolder.scss";
-
-const boaName = [
-  "Purchases Book",
-  "Cash Disbursement Book",
-  "Sales Journal Book",
-  "Cash Receipt Book",
-  "General Ledger Book",
-  "Journal Book",
-];
+import { useGenerateSystemFolderStructurePageQuery } from "../../features/api/folderStructureApi";
 
 const SystemFilepage = () => {
-  console.log("system: ", boaName);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [isSelected, setIsSelected] = useState(null);
-  const folderUrl = useSelector((state) => state.misc.folderUrl);
+  const params = useParams();
 
-  console.log("folder", folderUrl);
+  const { data: folderData } = useGenerateSystemFolderStructurePageQuery({
+    Year: params.year,
+    Month: params.month,
+  });
+
+  const boaName = folderData?.value?.boa?.map((item) => item.boa);
+
+  const navigate = useNavigate();
+  const [selectedItem, setSelectedItem] = useState(null);
+  const containerRef = useRef(null);
 
   const handleDoubleClick = (boa) => {
     navigate(`./${boa}`);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setSelectedItem(null); // Deselect when clicking outside
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
-      {boaName.map((boa) => (
-        <Box
-          key={boa}
-          onDoubleClick={() => handleDoubleClick(boa)}
-          sx={{
-            backgroundColor: isSelected?.boa === boa ? "red" : "",
-            height: "fit-content",
-          
-          }}
-          onClick={() => {
-            setIsSelected(boa);
-          }}
-        >
-          <DataFile name={boa} />
-        </Box>
-      ))}
-      <Box></Box>
+      <Box ref={containerRef} display={"flex"}>
+        {boaName?.map((boa) => (
+          <DataFile
+            isSelected={selectedItem === boa}
+            onClick={() => setSelectedItem(boa)}
+            key={boa}
+            name={boa}
+            variant="sheet"
+            onDoubleClick={() => handleDoubleClick(boa)}
+          />
+        ))}
+      </Box>
     </>
   );
 };

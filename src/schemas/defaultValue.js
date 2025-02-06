@@ -18,7 +18,7 @@ export const defaultValue = {
     mark2: null,
     assetCIP: null,
     accountingTag: null,
-    transactionDate: Date("YYYY-MM-DD HH:mm:ss"),
+    transactionDate: null,
     clientSupplier: null,
     accountTitleCode: null,
     accountTitle: null,

@@ -4,14 +4,13 @@ export const transformRows = (data) => {
   return data.map((row, index) => ({
     ...row,
     id: row.id ?? index, // Unique identifier
-
     syncId: row.syncId ? row.syncId.toString() : "",
     mark1: row.mark1 ? row.mark1.toString() : "",
     mark2: row.mark2 ? row.mark2.toString() : "",
     assetCIP: row.assetCIP ? row.assetCIP.toString() : "",
     accountingTag: row.accountingTag ? row.accountingTag.toString() : "",
     transactionDate: row.transactionDate
-      ? moment(row.transactionDate, "MM/DD/YYYY").utc().toISOString()
+      ? moment(row.transactionDate).format("YYYY-MM-DD").toString()
       : "",
     clientSupplier: row.clientSupplier ? row.clientSupplier.toString() : "",
     accountTitleCode: row.accountTitleCode

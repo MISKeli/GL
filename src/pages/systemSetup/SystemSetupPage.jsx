@@ -290,7 +290,7 @@ const SystemSetupPage = () => {
             >
               <TableCell>{row.systemName}</TableCell>
               <TableCell>{row.endpoint}</TableCell>
-              <TableCell>
+              {/* <TableCell>
                 <Tooltip
                   TransitionComponent={Zoom}
                   arrow
@@ -301,7 +301,7 @@ const SystemSetupPage = () => {
                     <PreviewRounded />
                   </IconButton>
                 </Tooltip>
-              </TableCell>
+              </TableCell> */}
               <TableCell>
                 <Chip
                   variant="filled"
