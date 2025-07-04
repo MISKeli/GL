@@ -1,13 +1,4 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import "../../styles/layout/SideBar.scss";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { KeyboardDoubleArrowLeft } from "@mui/icons-material";
 import {
   Box,
   Collapse,
@@ -16,22 +7,40 @@ import {
   Typography,
   Zoom,
 } from "@mui/material";
-import { KeyboardDoubleArrowLeft } from "@mui/icons-material";
-import { moduleSchema } from "../../schemas/moduleSchema";
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useRememberQueryParams } from "../../hooks/useRememberQueryParams";
 import logo from "../../assets/images/logo.png";
 import MISLOGO from "../../assets/images/MISLOGO.png";
+import { useGetAllSystemsAsyncQuery } from "../../features/api/systemApi";
+import { moduleSchema } from "../../schemas/moduleSchema";
+import "../../styles/layout/SideBar.scss";
 
 const Sidebar = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeSubIndex, setActiveSubIndex] = useState(null);
   const [stepHeight, setStepHeight] = useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+
   const sidebarRef = useRef();
   const indicatorRef = useRef();
   const location = useLocation();
   const navigate = useNavigate();
+  const [queryParams, setQueryParams, removeQueryParams] =
+    useRememberQueryParams();
   const user = JSON.parse(sessionStorage.getItem("user"));
   const AccessPermission = user.permission || [];
+
+  const { data: systemData } = useGetAllSystemsAsyncQuery({
+    UsePagination: false,
+  });
 
   const updateStepHeight = () => {
     if (sidebarRef.current) {
@@ -54,12 +63,50 @@ const Sidebar = () => {
     };
   }, []);
 
-  // Memoize filtered module schema for better performance
   const navsModule = useMemo(() => {
-    return moduleSchema
+    // Map systemData to create subcategories
+    const systemNames =
+      systemData?.value?.result?.map((item) => {
+        const bookParams = item?.bookParameter
+          ? typeof item?.bookParameter === "string"
+            ? JSON.parse(item?.bookParameter)
+            : []
+          : [];
+        return {
+          name: item.systemName,
+          bookParameter: bookParams,
+          section: item.systemName, // Convert to a valid section name
+          // icon: Edit, // Default icon (can be changed)
+          // iconOn: DesktopMacTwoTone,
+          icon:
+            item.iconUrl ??
+            "https://10.10.13.5:5004/icons/c0447852-d92e-463e-9397-edd52d6c09b2.svg",
+          iconOn:
+            item.iconUrl ??
+            "https://10.10.13.5:5004/icons/c0447852-d92e-463e-9397-edd52d6c09b2.svg",
+          isServerIcon: true,
+          to: `/system/${item.systemName}`,
+        };
+      }) || [];
+    // Map moduleSchema and update System module
+    const updatedModuleSchema = moduleSchema
+      .map((module) => {
+        //console.log("mod", module);
+        if (module.section === "system") {
+          return {
+            ...module,
+            subCategory: systemNames, // Assign dynamic subCategory
+          };
+        }
+
+        return module;
+      })
+      .slice(0, -1);
+    // Filter the final nav modules based on access permissions
+    return updatedModuleSchema
       ?.filter((module) => module.subCategory || module.name)
       ?.filter((item) => AccessPermission.includes(item.name));
-  }, [AccessPermission]);
+  }, [systemData, AccessPermission]);
 
   useEffect(() => {
     const curPath = location.pathname.split("/")[1];
@@ -86,8 +133,12 @@ const Sidebar = () => {
     [navigate]
   );
 
-  const handleSubCatClick = (subIndex) => {
-    setActiveSubIndex(subIndex); // Set active subcategory on click
+  const handleSubCatClick = (event, subItem, subIndex) => {
+    event.preventDefault();
+
+    // Navigate directly to the subcategory
+    setActiveSubIndex(subIndex);
+    navigate(subItem.to || "#");
   };
 
   const popperModifiers = useMemo(
@@ -165,32 +216,46 @@ const Sidebar = () => {
                   </Box>
                   {item.subCategory && (
                     <Collapse in={activeIndex === index && isDrawerOpen}>
-                      {item.subCategory.map((subItem, subIndex) =>
-                        AccessPermission.includes(subItem.name) ? (
+                      {item.subCategory.map((subItem, subIndex) => {
+                        return AccessPermission.includes(subItem.name) ? (
                           <Fragment key={subIndex}>
-                            <Link
-                              to={subItem.to || "#"}
+                            <Box
                               className="side__link"
-                              onClick={() => handleSubCatClick(subIndex)} // Handle subcategory click
+                              onClick={(event) =>
+                                handleSubCatClick(event, subItem, subIndex)
+                              }
+                              style={{ cursor: "pointer" }}
                             >
                               <Box
                                 className={`side__sub-item ${
                                   activeSubIndex === subIndex ? "active" : ""
                                 }`}
                               >
-                                {activeSubIndex === subIndex ? (
-                                  <subItem.iconOn />
-                                ) : (
-                                  <subItem.icon />
-                                )}
+                                {/* Render SubCategory Icons */}
+                                {subItem.isServerIcon ? (
+                                  <img
+                                    src={subItem.icon}
+                                    alt={subItem.name}
+                                    style={{ width: "24px" }}
+                                  />
+                                ) : subItem.icon ? (
+                                  React.createElement(
+                                    activeSubIndex === subIndex
+                                      ? subItem.iconOn || subItem.icon
+                                      : subItem.icon,
+                                    { fontSize: "medium" }
+                                  )
+                                ) : null}
+
+                                {/* SubCategory Name */}
                                 <Box className="side__sub-item--name">
                                   {subItem.name}
                                 </Box>
                               </Box>
-                            </Link>
+                            </Box>
                           </Fragment>
-                        ) : null
-                      )}
+                        ) : null;
+                      })}
                     </Collapse>
                   )}
                 </Fragment>
@@ -199,6 +264,7 @@ const Sidebar = () => {
           ))}
         </Box>
       </Box>
+
       <Box className="side__container side__container--footer">
         <Box className="side__footer">
           <img src={MISLOGO} className="footer__logo" alt="Footer Logo" />

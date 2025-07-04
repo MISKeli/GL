@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { defaultValue } from "../../schemas/defaultValue";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -24,10 +24,14 @@ import "../../styles/CusImport.scss";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { info } from "../../schemas/info";
+import noRecordsFound from "../../assets/images/noRecordsFound.png";
 import {
   Close,
   SyncRounded,
   SystemUpdateAltRounded,
+  IosShareRounded,
+  Dvr,
+  DvrRounded,
 } from "@mui/icons-material";
 import { useImportReportsMutation } from "../../features/api/importReportApi";
 import moment from "moment";
@@ -36,6 +40,8 @@ import { DataGrid } from "@mui/x-data-grid";
 import DropDownComponent from "../../components/DropDownComponent";
 import { transformRows } from "../../schemas/importReport";
 import useExportData from "../../components/hooks/useExportData";
+import OnExportButton from "../../components/OnExportButton";
+// import SystemMonitoringComponent from "../../components/SystemMonitoringComponent";
 
 const CusImport = ({ open, onClose }) => {
   const [data, setData] = useState([]); // Holds parsed data
@@ -50,22 +56,22 @@ const CusImport = ({ open, onClose }) => {
     endpoint: null,
     token: null,
     adjustment_month: null,
+    bookName: null, // Add this if not already present
+    systemName: null, // Add this if not already present
   });
 
-  //console.log({ params });
-  const {
-    setValue
-  } = useForm({
+  // console.log({ params });
+  const { setValue } = useForm({
     defaultValues: {
       addedBy: 0,
       reports: [defaultValue.report],
     },
     resolver: yupResolver(importSchema),
   });
-  
 
-
- 
+  const hasImportButtonPermission = sessionStorage
+    .getItem("user")
+    .includes("IMPORT BUTTON");
 
   const [importData, { isFetching }] = useImportReportsMutation();
 
@@ -94,7 +100,7 @@ const CusImport = ({ open, onClose }) => {
   const columns = createHeader();
   //transformRows is a schema
   const rows = transformRows(data);
- 
+  // console.log("🚀 ~ CusImport ~ rows:", rows);
 
   const createHeaderDuplicate = () => {
     if (errorReports.length === 0) return [];
@@ -112,7 +118,7 @@ const CusImport = ({ open, onClose }) => {
 
   const roundedTotal = Math.round(lineAmountTotal);
 
-  const { exportSystem } = useExportData();
+  const { exportSystem, exportViewSystem } = useExportData();
 
   // Define your custom headers mapping
   const customHeaders = info.custom_header;
@@ -121,7 +127,16 @@ const CusImport = ({ open, onClose }) => {
   const onExport = async () => {
     try {
       await exportSystem(headers);
-      // console.log({ exportSystem });
+      //console.log({ exportSystem });
+      toast.success("Data exported successfully!");
+    } catch (err) {
+      toast.error(err.message);
+      console.log(err);
+    }
+  };
+  const syncExport = async () => {
+    try {
+      await exportViewSystem(headers, rows);
       toast.success("Data exported successfully!");
     } catch (err) {
       toast.error(err.message);
@@ -150,14 +165,15 @@ const CusImport = ({ open, onClose }) => {
         const workbook = XLSX.read(fileData, {
           type: "binary",
           dateNF: "YYYY-MM-DD",
-          cellDates: true,
+          cellDates: false,
+          raw: true,
+          defval: "",
         });
 
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
 
         let parsedData = XLSX.utils.sheet_to_json(sheet);
-        console.log("🚀 ~ onDrop ~ parsedData:", parsedData);
 
         const customHeaders = info.custom_header;
 
@@ -190,7 +206,6 @@ const CusImport = ({ open, onClose }) => {
             setValue(`reports[${index}].${key}`, report[key]);
           });
         });
-       
 
         setIsDataGridOpen(true);
         onClose();
@@ -216,13 +231,19 @@ const CusImport = ({ open, onClose }) => {
 
   const processRowUpdate = (newRow) => {
     const originalRow = data[newRow.id];
-    console.log("🚀 ~ processRowUpdate ~ originalRow:", originalRow);
+    //console.log("🚀 ~ processRowUpdate ~ originalRow:", originalRow);
     const updatedRow = {
       ...originalRow,
       ...newRow,
       transactionDate: newRow.transactionDate
-        ? moment(newRow.transactionDate).format("YYYY-MM-DD").toString()
+        ? moment(new Date(newRow.transactionDate)).format("YYYY-MM-DD")
         : originalRow.transactionDate,
+      chequeDate: newRow.chequeDate
+        ? moment(newRow.chequeDate).format("YYYY-MM-DD")
+        : originalRow.chequeDate,
+      releasedDate: newRow.releasedDate
+        ? moment(newRow.releasedDate).format("YYYY-MM-DD")
+        : originalRow.releasedDate,
     };
 
     setData((prevData) => {
@@ -244,46 +265,56 @@ const CusImport = ({ open, onClose }) => {
     ...row,
     id: row.id || index, // Unique identifier
     accountingTag: row.accountingTag?.toString(),
-    transactionDate: moment(row.transactionDate)
-      .format("MM/DD/YYYY")
-      .toString(),
+    transactionDate: row.transactionDate
+      ? moment(row.transactionDate).format("YYYY-MM-DD")
+      : null,
+    releasedDate: row.releasedDate
+      ? moment(row.releasedDate).format("YYYY-MM-DD")
+      : null,
+    chequeDate: row.chequeDate
+      ? moment(row.chequeDate).format("YYYY-MM-DD")
+      : null,
   }));
   const columnsDuplicate = createHeaderDuplicate();
 
-  const handleImport = async () => {
-    const transformedRows = rows.map((row) => ({
-      ...row,
-      transactionDate: row.transactionDate
-        ? moment(row.transactionDate).format("YYYY-MM-DD").toString()
-        : moment().utc().toISOString(),
-    }));
-    //setIsDataGridOpen(false); // Close DataGrid dialog
+  const requiredFields = info.requiredField;
+  const requiredKeys = requiredFields.map((field) => info.custom_header[field]);
+  //console.log("🚀 ~ CusImport ~ requiredKeys:", requiredKeys);
 
-    //console.log("TRansformerrrrrr", transformedRows);
+  const isSubmitDisabled = useMemo(() => {
+    if (!rows.length) return true;
+
+    return rows.some(
+      (row) => requiredKeys.some((key) => !row[key]) // Check if any required field is empty
+    );
+  }, [rows]);
+
+  const handleImport = async () => {
+    if (isSubmitDisabled) {
+      toast.error("There's a missing field.");
+      return;
+    }
 
     try {
-      setIsLoading(true); // Start loading
-      const response = await importData({
-        reports: transformedRows,
-      }).unwrap();
-      setImportedData(response); // Save imported data
-      setIsDataGridOpen(false); // Close DataGrid dialog
-      //onClose(); // Close main import dialog
+      setIsLoading(true);
+      const transformedRows = rows.map((row) => ({
+        ...row,
+      }));
+
+      const response = await importData({ reports: transformedRows }).unwrap();
+      setImportedData(response);
+      setIsDataGridOpen(false);
+
       toast.success("File imported successfully!");
     } catch (error) {
       toast.error(error?.data?.message || "Failed to import data.");
-
-      // Check for duplicates in the error response
-
       setErrorReports(error?.data?.value?.duplicateReports || []);
-      setIsDuplicateDialogOpen(true); // Open duplicate dialog
+      setIsDuplicateDialogOpen(true);
     } finally {
-      setIsDataGridOpen(false);
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
 
-  //SYNCING
   const nonEditableColumns = ["syncId", "system", "drcp", "lineAmount"];
   const [triggerTestSystem] = useLazyTestConnectQuery();
 
@@ -291,7 +322,7 @@ const CusImport = ({ open, onClose }) => {
     // setSelectedValue(data);
 
     try {
-      // console.log({ data });
+      //console.log("DATAAAAAAAAAA", data);
       const response = await triggerTestSystem({
         endpoint: `${params.endpoint}/${params.adjustment_month}`,
         token: data.token,
@@ -309,15 +340,36 @@ const CusImport = ({ open, onClose }) => {
     try {
       const response = await triggerTestSystem(params).unwrap();
 
-      setData(response);
-      setDialogTitle("Review Synced Data");
-      setIsDataGridOpen(true);
+      // Add bookName to each row in the response
+      const dataWithBookName = response.map((row) => ({
+        ...row,
+        bookName: `${params.systemName || ""} - ${params.bookName || ""}`, // Combined format
+      }));
 
-      toast.success("Establishing Connection Successfully.");
+      setData(dataWithBookName); // setData(response)
+      setDialogTitle("Review Synced Data");
+      onClose();
+      setIsDataGridOpen(true); // Open the dialog first
+
+      setTimeout(() => {
+        const hasMissingFields = rows.some(
+          (row) => requiredKeys.some((key) => !row[key]) // Check if any required field is empty
+        );
+
+        //console.log("🚀 ~ setTimeout ~ hasMissingFields:", hasMissingFields)
+
+        if (hasMissingFields) {
+          toast.error("There's a missing field.");
+        } else {
+          toast.success("Establishing Connection Successfully.");
+        }
+      }, 500); // Delay to show toast after opening the dialog
     } catch (error) {
       toast.error(error?.message || "Error establishing connection");
     }
   };
+
+  const showIcon = dialogTitle === "Review Synced Data";
 
   const [activeTab, setActiveTab] = useState(0);
 
@@ -325,9 +377,22 @@ const CusImport = ({ open, onClose }) => {
     setActiveTab(newValue);
   };
 
-  const isHeaderMismatch = columns.some(
-    (col) => !Object.values(info.custom_header)?.includes(col.field)
+  // Get the required headers from your custom header info
+  const requiredHeaders = Object.values(info.custom_header);
+
+  // Get the column headers they're providing
+  const providedHeaders = columns.map((col) => col.field);
+
+  // Check if ALL required headers are present in the provided columns
+  // Extra headers don't matter - we only care if any required ones are missing
+  const areAllRequiredHeadersPresent = requiredHeaders.every((requiredHeader) =>
+    providedHeaders.includes(requiredHeader)
   );
+
+  // Button should be disabled when required headers are missing
+  const isButtonDisabled = !areAllRequiredHeadersPresent;
+
+  //console.log("🚀 ~ CusImport ~ isButtonDisabled:", isButtonDisabled)
 
   return (
     <>
@@ -340,21 +405,27 @@ const CusImport = ({ open, onClose }) => {
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab
               sx={{ fontWeight: "900", fontSize: "13px" }}
-              icon={<SystemUpdateAltRounded />}
-              iconPosition="start"
-              label="Import"
-            />
-            <Tab
-              sx={{ fontWeight: "900", fontSize: "13px" }}
               icon={<SyncRounded />}
               iconPosition="start"
               label="Sync"
             />
+
+            {/* <Tab
+              sx={{ fontWeight: "900", fontSize: "13px" }}
+              icon={<SystemUpdateAltRounded />}
+              iconPosition="start"
+              label="Import"
+            /> */}
           </Tabs>
 
           <Divider className="customimport__divider--horizontal" />
           <Stack>
-            <IconButton onClick={onClose}>
+            <IconButton
+              onClick={() => {
+                onClose();
+                setData([]);
+              }}
+            >
               <Close />
             </IconButton>
           </Stack>
@@ -363,6 +434,19 @@ const CusImport = ({ open, onClose }) => {
         <DialogContent>
           <Box className="customimport__dialog">
             {activeTab === 0 && (
+              <Box className="customimport__sync">
+                <DropDownComponent
+                  onChange={handleChange}
+                  onHandleSync={onHandleSync}
+                  setParams={setParams}
+                />
+              </Box>
+            )}
+
+            {activeTab === 1 &&
+              {
+                /* <Box className="customimport__dialog">
+            {activeTab === 1 && (
               <Box className="customimport__dialog__import">
                 <Typography>
                   Download a sample CSV file{" "}
@@ -410,7 +494,7 @@ const CusImport = ({ open, onClose }) => {
               </Box>
             )}
 
-            {activeTab === 1 && (
+            {activeTab === 0 && (
               <Box className="customimport__sync">
                 <DropDownComponent
                   onChange={handleChange}
@@ -419,11 +503,22 @@ const CusImport = ({ open, onClose }) => {
                 />
               </Box>
             )}
+          </Box> */
+              }}
           </Box>
         </DialogContent>
+
         <Divider className="customimport__divider--horizontal" />
         <DialogActions>
-          <Button onClick={onClose} variant="contained" color="primary">
+          <Button
+            disabled={isLoading || isFetching}
+            onClick={() => {
+              onClose();
+              setData([]);
+            }}
+            variant="contained"
+            color="primary"
+          >
             Cancel
           </Button>
         </DialogActions>
@@ -439,7 +534,31 @@ const CusImport = ({ open, onClose }) => {
           className="customimport__content__dialog__viewing--title"
           fontWeight={600}
         >
-          {dialogTitle}
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent={showIcon ? "space-between" : "flex-start"}
+            width="100%"
+          >
+            {dialogTitle}
+            {showIcon && (
+              <Button
+                variant="text"
+                color="primary"
+                onClick={syncExport}
+                disabled={isLoading || isFetching}
+                startIcon={
+                  isLoading || isFetching ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <IosShareRounded />
+                  )
+                }
+              >
+                {info.download.export}
+              </Button>
+            )}
+          </Box>
         </DialogTitle>
 
         <DialogContent
@@ -452,56 +571,66 @@ const CusImport = ({ open, onClose }) => {
         >
           {isFetching || isLoading ? (
             <CircularProgress />
+          ) : data.length === 0 ? (
+            <Box className="customimport__content__dialog__viewing--norecords">
+              <img src={noRecordsFound} alt="No Records Found" />
+            </Box>
           ) : (
-            data.length > 0 && (
-              // checking whether the col.field value exists in the info.custom_header object's values.
-              <DataGrid
-                rows={rows}
-                columns={columns.map((col) => {
-                  // console.log("🚀 ~ columns={columns.map ~ col:", col);
-                  return {
-                    ...col,
-                    renderHeader: () =>
-                      Object.values(info.custom_header)?.some((item) => {
-                        return item == col.field;
-                      }) ? (
-                        <div>{col.headerName}</div>
-                      ) : (
-                        <strong style={{ color: "red" }}>
-                          {col.headerName}
-                        </strong>
-                      ), // Custom rendering
-                  };
-                })}
-                processRowUpdate={processRowUpdate}
-                getCellClassName={(params) => {
-                  return nonEditableColumns.includes(params.field)
-                    ? "non-editable-cell"
-                    : "";
-                }}
-                initialState={{
-                  pagination: {
-                    paginationModel: {
-                      pageSize: 10,
-                    },
+            <DataGrid
+              rows={rows}
+              columns={columns.map((col) => {
+                return {
+                  ...col,
+                  renderHeader: () =>
+                    Object.values(info.custom_header)?.some((item) => {
+                      return item == col.field;
+                    }) ? (
+                      <div>{col.headerName}</div>
+                    ) : (
+                      <strong style={{ color: "red" }}>{col.headerName}</strong>
+                    ),
+                };
+              })}
+              processRowUpdate={processRowUpdate}
+              // getCellClassName={(params) => {
+              //   return nonEditableColumns.includes(params.field)
+              //     ? "non-editable-cell"
+              //     : "";
+              // }}
+              getCellClassName={(params) => {
+                if (requiredKeys.includes(params.field) && !params.value) {
+                  return "missing-required-field"; // Apply red highlight
+                }
+                return nonEditableColumns.includes(params.field)
+                  ? "non-editable-cell"
+                  : "";
+              }}
+              initialState={{
+                pagination: {
+                  paginationModel: {
+                    pageSize: 10,
                   },
-                }}
-                pageSizeOptions={[5, 10, 25, { value: 99, label: "All" }]}
-                //checkboxSelection
-                disableRowSelectionOnClick
-                // experimentalFeatures={{ newEditingApi: true }}
-                sx={{
-                  "& .MuiDataGrid-columnHeaderTitle": {
-                    fontWeight: "bolder",
-                  },
-                  "& .MuiDataGrid-row": {
-                    backgroundColor: "$background-header",
-                  },
-                }}
-              />
-            )
+                },
+              }}
+              pageSizeOptions={[5, 10, 25, { value: 99, label: "All" }]}
+              disableRowSelectionOnClick
+              sx={{
+                "& .MuiDataGrid-columnHeaderTitle": {
+                  fontWeight: "bolder",
+                },
+                "& .MuiDataGrid-row": {
+                  backgroundColor: "$background-header",
+                },
+                "& .missing-required-field": {
+                  backgroundColor: "rgba(255, 0, 0, 0.2)", // Light red
+                  color: "red",
+                  fontWeight: "bold",
+                },
+              }}
+            />
           )}
         </DialogContent>
+
         <DialogActions className="customimport__content__dialog__viewing--actions">
           <Typography
             variant="h5"
@@ -513,22 +642,30 @@ const CusImport = ({ open, onClose }) => {
               maximumFractionDigits: 2,
             }) || "--"}
           </Typography>
+
           <Box>
+            {/* Conditionally render the Import button - hide it if user has IMPORT permission */}
+            {hasImportButtonPermission && (
+              <Button
+                onClick={handleImport}
+                variant="contained"
+                color="primary"
+                disabled={
+                  isLoading ||
+                  isFetching ||
+                  roundedTotal !== 0 ||
+                  data.length === 0 ||
+                  isSubmitDisabled
+                }
+              >
+                {info.download.import}
+              </Button>
+            )}{" "}
             <Button
-              onClick={handleImport}
-              variant="contained"
-              color="primary"
-              disabled={
-                isLoading ||
-                isFetching ||
-                roundedTotal !== 0 ||
-                isHeaderMismatch
-              } // Disable button while loading
-            >
-              Import
-            </Button>{" "}
-            <Button
-              onClick={() => setIsDataGridOpen(false)}
+              onClick={() => {
+                setIsDataGridOpen(false);
+                setData([]);
+              }}
               variant="contained"
               color="secondary"
               disabled={isLoading || isFetching}

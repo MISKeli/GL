@@ -1,0 +1,41 @@
+@import "../_palette.module";
+.coa {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0 10px;
+  
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &--title {
+      color: $primary-main;
+    }
+
+    
+    
+  }
+  &__content {
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    &__table {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        width: auto;
+        overflow-x: auto;
+        overflow-y: hidden;}
+  }
+
+  &__footer {
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

@@ -124,6 +124,8 @@ const SystemPage2 = () => {
           flexDirection={"row"}
           width={"100%"}
           overflow={"hidden"}
+          //height={"fit-content"}
+          flex={1}
         >
           <Outlet context={{ year, month, boaName, isHorizontalView }} />
         </Box>

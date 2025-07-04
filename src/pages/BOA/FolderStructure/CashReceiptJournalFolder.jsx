@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { useDispatch } from "react-redux";
-import { setPageNumber, setPageSize } from "../../../features/slice/authSlice";
+import { setPage, setPageNumber, setPageSize } from "../../../features/slice/authSlice";
 import { info } from "../../../schemas/info";
 import "../../../styles/BoaPage.scss";
 import {

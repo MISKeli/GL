@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -32,9 +33,9 @@ import {
   ArchiveRounded,
   ClearRounded,
   EditRounded,
+  IosShareRounded,
   LibraryAddRounded,
   MoreVertOutlined,
-  PreviewRounded,
   RestoreFromTrashOutlined,
   SearchRounded,
 } from "@mui/icons-material";
@@ -43,18 +44,20 @@ import { setPokedData } from "../../features/slice/authSlice";
 import useDebounce from "../../components/useDebounce";
 import {
   useGetAllSystemsAsyncQuery,
+  useLazyGetAllSystemsAsyncQuery,
   useUpdateSystemStatusMutation,
 } from "../../features/api/systemApi";
 import { toast } from "sonner";
 import ConfirmedDialog from "../../components/ConfirmedDialog";
+import useExportData from "../../components/hooks/useExportData";
 
 const SystemSetupPage = () => {
+  const { commonExport } = useExportData();
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [expanded, setExpanded] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
   // const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [activeRow, setActiveRow] = useState(null);
   const debounceValue = useDebounce(search);
@@ -71,9 +74,9 @@ const SystemSetupPage = () => {
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
 
-  //console.log("poked", pokedData);
 
-  const headerColumn = info.setup_table_columns;
+
+  const headerColumn = info.setup.header;
 
   const {
     data: systemData,
@@ -84,8 +87,9 @@ const SystemSetupPage = () => {
     Status: params.status === "active" ? true : false,
     PageNumber: params.page + 1,
     PageSize: params.PageSize,
+    UsePagination: false,
   });
-  //console.log("apple", systemData);
+  
 
   const changeStatus = (data) =>
     setParams((currentValue) => ({
@@ -98,15 +102,6 @@ const SystemSetupPage = () => {
     setExpanded(true); // Expand the box
     inputRef.current?.focus(); // Immediately focus the input field
   };
-
-  // // Pagination
-  // const handleChangePage = (event, newPage) => {
-  //   setPage(newPage);
-  // };
-  // const handleChangeRowsPerPage = (event) => {
-  //   setPageSize(parseInt(event.target.value, 10));
-  //   setPage(0); // Reset to the first page when rows per page changes
-  // };
 
   // Status Toggle
   const handleToggleStatus = () => {
@@ -148,7 +143,6 @@ const SystemSetupPage = () => {
   // Opening Menu
   const handlePopOverOpen = (event, headerColumn) => {
     setAnchorEl(event.currentTarget);
-    dispatch(setPokedData(headerColumn));
     setIsUpdate(true);
   };
   const handlePopOverClose = () => {
@@ -177,9 +171,24 @@ const SystemSetupPage = () => {
         setOpenArchiveDialog(false);
       })
       .catch((error) => {
-        //console.log({ error });
+        
         toast.error(error?.message);
       });
+  };
+  const Headers = info.setup.export;
+  const hasData = systemData?.value?.result?.length > 0;
+  const [fetchExportData] = useLazyGetAllSystemsAsyncQuery();
+
+  const onExport = async () => {
+    try {
+      const exportData = await fetchExportData({
+        UsePagination: false,
+      }).unwrap();
+      await commonExport(Headers, exportData?.value?.result, info.setup.title);
+    } catch (err) {
+      toast.error(err.message);
+   
+    }
   };
 
   return (
@@ -194,7 +203,7 @@ const SystemSetupPage = () => {
         <Box className="setup__header">
           <Box className="setup__header__con1">
             <Typography variant="h5" className="setup__header__con1--title">
-              {info.setup_title}
+              {info.setup.title}
             </Typography>
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <Button
@@ -205,7 +214,7 @@ const SystemSetupPage = () => {
                 dispatch(setPokedData(null));
               }}
             >
-              {info.setup_add_button}
+              {info.setup.dialogs.addTitle}
             </Button>
           </Box>
           <Box className="setup__header__con2">
@@ -263,34 +272,50 @@ const SystemSetupPage = () => {
         </Box>
         <Box className="setup__content">
           <Box className="setup__content__table">
-          <TableContainer component={Paper} sx={{ overflow: "auto", height: "100%" }}>
-  <Table stickyHeader>
-    <TableHead>
-      <TableRow>
-        {headerColumn.map((column) => (
-          <TableCell key={column.id}>{column.name}</TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {isSystemLoading || isSystemFetching
-        ? Array.from({ length: pageSize }).map((_, index) => (
-            <TableRow key={index}>
-              {headerColumn.map((column) => (
-                <TableCell key={column.id}>
-                  <Skeleton variant="text" animation="wave" />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))
-        : systemData?.result.map((row) => (
-            <TableRow
-              key={row.id}
-              className={activeRow === row.id ? "active" : ""}
+            <TableContainer
+              component={Paper}
+              sx={{ overflow: "auto", height: "100%" }}
             >
-              <TableCell>{row.systemName}</TableCell>
-              <TableCell>{row.endpoint}</TableCell>
-              {/* <TableCell>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {headerColumn.map((column) => (
+                      <TableCell key={column.id}>{column.name}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isSystemLoading || isSystemFetching
+                    ? Array.from({ length: 5 }).map((_, index) => (
+                        <TableRow key={index}>
+                          {headerColumn.map((column) => (
+                            <TableCell key={column.id}>
+                              <Skeleton variant="text" animation="wave" />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    : systemData?.value?.result.map((row) => (
+                        <TableRow
+                          key={row.id}
+                          className={activeRow === row.id ? "active" : ""}
+                        >
+                          <TableCell>
+                            <Box display="flex" alignItems="center">
+                              {row.iconUrl && (
+                                <img
+                                  src={row.iconUrl}
+                                  alt="icon"
+                                  width={30}
+                                  height={30}
+                                  style={{ marginRight: 8 }}
+                                />
+                              )}
+                              {row.systemName}
+                            </Box>
+                          </TableCell>
+                          <TableCell>{row.endpoint}</TableCell>
+                          {/* <TableCell>
                 <Tooltip
                   TransitionComponent={Zoom}
                   arrow
@@ -302,40 +327,64 @@ const SystemSetupPage = () => {
                   </IconButton>
                 </Tooltip>
               </TableCell> */}
-              <TableCell>
-                <Chip
-                  variant="filled"
-                  label={
-                    params.status === "active" ? "active" : "inactive"
-                  }
-                  color={params.status === "active" ? "success" : "error"}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>
-                <IconButton
-                  onClick={(event) => handlePopOverOpen(event, row)}
-                >
-                  <MoreVertOutlined />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-    </TableBody>
-  </Table>
-  {systemData?.result && systemData.result.length === 0 ? (
-    <Box className="setup__content__table--norecords">
-      <img src={noRecordsFound} alt="No Records Found" />
-    </Box>
-  ) : null}
-</TableContainer>
-
+                          <TableCell>
+                            <Chip
+                              variant="filled"
+                              label={
+                                params.status === "active"
+                                  ? "active"
+                                  : "inactive"
+                              }
+                              color={
+                                params.status === "active" ? "success" : "error"
+                              }
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <IconButton
+                              onClick={(event) => {
+                                handlePopOverOpen(event, row);
+                                dispatch(setPokedData(row));
+                              }}
+                            >
+                              <MoreVertOutlined />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                </TableBody>
+              </Table>
+              {systemData?.value?.result &&
+              systemData.value?.result.length === 0 ? (
+                <Box className="setup__content__table--norecords">
+                  <img src={noRecordsFound} alt="No Records Found" />
+                </Box>
+              ) : null}
+            </TableContainer>
           </Box>
         </Box>
         <Box className="setup__footer">
+          <Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={onExport}
+              disabled={!hasData || isSystemLoading || isSystemFetching}
+              startIcon={
+                isSystemLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <IosShareRounded />
+                )
+              }
+            >
+              {isSystemLoading ? "Exporting..." : "Export"}
+            </Button>
+          </Box>
           <TablePagination
             component="div"
-            count={systemData?.totalCount || 0}
+            count={systemData?.value?.totalCount || 0}
             page={params.page}
             rowsPerPage={params.PageSize}
             onPageChange={handleChangePage}

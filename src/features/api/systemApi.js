@@ -1,5 +1,5 @@
 import { indexApi } from "./indexApi";
-
+const invalidatesTags = (_, error) => (error ? [] : ["system"]);
 const systemApi = indexApi
   .enhanceEndpoints({ addTagTypes: ["system"] })
   .injectEndpoints({
@@ -10,7 +10,7 @@ const systemApi = indexApi
           method: "POST",
           body: body,
         }),
-        providesTags: ["system"],
+        invalidatesTags,
       }),
       GetAllSystemsAsync: builder.query({
         query: (params) => ({
@@ -21,12 +21,12 @@ const systemApi = indexApi
         providesTags: ["system"],
       }),
       updateSystem: builder.mutation({
-        query: ({ id, ...body }) => ({
-          url: `/system/${id}`,
+        query: (payload) => ({
+          url: `/system/${payload.id}`,
           method: "PUT",
-          body: body,
+          body: payload.formData,
         }),
-        invalidatesTags: (_, error) => (error ? [] : ["system"]),
+        invalidatesTags,
       }),
       updateSystemStatus: builder.mutation({
         query: (params) => ({
@@ -34,7 +34,7 @@ const systemApi = indexApi
           method: "PATCH",
           params,
         }),
-        invalidatesTags: (_, error) => (error ? [] : ["system"]),
+        invalidatesTags,
       }),
     }),
   });

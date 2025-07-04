@@ -57,8 +57,8 @@ function FistoPageSample() {
     ...(reportData.dateFrom ? { DateFrom: reportData.dateFrom } : {}),
     ...(reportData.dateTo ? { DateTo: reportData.dateTo } : {}),
   });
-  console.log("DATEEEE", reportData);
-  //console.log("fisto", fistoData);
+  // console.log("DATEEEE", reportData);
+  // console.log("fisto", fistoData);
   // SEARCH
   const handleSearchClick = () => {
     setExpanded(true); // Expand the box
@@ -67,8 +67,8 @@ function FistoPageSample() {
 
   // Function to handle data fetched from the Date component
   const handleFetchData = (data) => {
-    console.log("DATAAA", data);
-    console.log("Received DateFrom:", data.dateFrom, "DateTo:", data.dateTo); // Debugging
+    // console.log("DATAAA", data);
+    // console.log("Received DateFrom:", data.dateFrom, "DateTo:", data.dateTo); // Debugging
     setReportData(data);
   };
 

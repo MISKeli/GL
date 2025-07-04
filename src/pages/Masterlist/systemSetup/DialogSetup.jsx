@@ -1,19 +1,23 @@
 import {
+  Box,
   Button,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormHelperText,
   Grid,
   IconButton,
+  InputAdornment,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import "../../styles/DialogSetup.scss";
 import { info } from "../../schemas/info";
-import { Close } from "@mui/icons-material";
+import { AttachFile, Clear, Close } from "@mui/icons-material";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { systemSchema } from "../../schemas/validation";
@@ -34,11 +38,14 @@ const DialogSetup = ({
   data,
   isUpdate = false,
 }) => {
+  console.log("🚀 ~ data:", data);
   const [loading, setLoading] = useState(false);
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [connectionSuccess, setConnectionSuccess] = useState(false); // New state to track connection success
+  const [preview, setPreview] = useState(null);
   const pokedData = useSelector((state) => state.auth.pokedData);
+  console.log("🚀 ~ pokedData:", pokedData);
 
   const {
     handleSubmit,
@@ -68,19 +75,30 @@ const DialogSetup = ({
     { skip: !watch("endpoint") || !watch("token") }
   );
 
-  const [AddNewSystem] = useAddNewSystemMutation();
+  const [AddNewSystem, { isLoading, isFetching }] = useAddNewSystemMutation();
+  //console.log("🚀 ~ isLoading:", isLoading);
   const [UpdateSystem] = useUpdateSystemMutation();
 
   const handleClose = () => {
     reset(defaultValue.system);
     setConnectionSuccess(false); // Reset connection success on close
+    setPreview(null);
     closeHandler();
   };
+
+  useEffect(() => {
+    if (isUpdate && pokedData?.iconUrl) {
+      setPreview(pokedData.iconUrl); // Assuming it's a URL
+      setValue("iconFile", pokedData.iconUrl);
+    }
+  }, [isUpdate, pokedData, setValue]);
 
   const handleFormValue = () => {
     setValue("systemName", pokedData?.systemName || "");
     setValue("endpoint", pokedData?.endpoint || "");
     setValue("token", pokedData?.token || "");
+    setValue("iconFile", pokedData?.iconUrl || null);
+    setValue("id", pokedData?.id || "");
   };
 
   useEffect(() => {
@@ -90,30 +108,41 @@ const DialogSetup = ({
   }, [open, pokedData]);
 
   const confirmSubmit = async (systemData) => {
+    console.log("🚀 ~ confirmSubmit ~ systemData:", systemData);
+
     setLoading(true);
-    const body = {
-      systemName: systemData.systemName.toUpperCase(),
-      endpoint: systemData.endpoint,
-      token: systemData.token,
-    };
-    const updateBody = {
-      systemName: systemData.systemName.toUpperCase(),
-      endpoint: systemData.endpoint,
-      token: systemData.token,
-    };
+
+    // Create FormData
+    const formData = new FormData();
+    formData.append("systemName", systemData.systemName.toUpperCase());
+    formData.append("endpoint", systemData.endpoint);
+    formData.append("token", systemData.token);
+    formData.append("id", systemData.id);
+
+    console.log("watch", watch("systemData"));
+
+    // Append file if it exists
+    if (systemData.iconFile) {
+      formData.append("iconFile", systemData.iconFile);
+    }
 
     try {
       if (isUpdate) {
-        await UpdateSystem({ id: pokedData.id, ...updateBody }).unwrap();
+        await UpdateSystem({ id: systemData.id, formData }).unwrap();
+
         toast.success("System Updated Successfully");
       } else {
-        await AddNewSystem(body).unwrap();
+        await AddNewSystem(formData).unwrap();
+
         toast.success("System Created Successfully");
       }
       reset();
       handleClose();
     } catch (error) {
-      const systemErrMessage = error?.data?.error.message;
+      console.log("🚀 ~ confirmSubmit ~ error:", error);
+      const systemErrMessage = Object.entries(error?.data?.errors || {})
+        .map(([key, messages]) => `${key}: ${messages.join(", ")}`)
+        .join("\n");
       toast.error(systemErrMessage);
     } finally {
       setLoading(false);
@@ -136,7 +165,7 @@ const DialogSetup = ({
       toast.error("Please provide both endpoint and token.");
       return;
     }
-
+    setLoading(true);
     try {
       const { isSuccess } = await refetch({ endpoint, token });
 
@@ -148,6 +177,8 @@ const DialogSetup = ({
       }
     } catch (error) {
       toast.error("An error occurred while testing the connection.");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -161,8 +192,8 @@ const DialogSetup = ({
       <Dialog open={open} fullWidth className="dialogsetup">
         <DialogTitle fontWeight={600} className="dialogsetup__dialog__header">
           {isUpdate
-            ? info.setup_dialog_update_title
-            : info.setup_dialog_add_title}
+            ? info.setup.dialogs.updateTitle
+            : info.setup.dialogs.addTitle}
           <Stack>
             <IconButton onClick={handleClose}>
               <Close />
@@ -235,6 +266,76 @@ const DialogSetup = ({
                   )}
                 />
               </Grid>
+              <Grid item xs={12}>
+                <Controller
+                  name="iconFile"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      label="System Icon"
+                      value={
+                        typeof field.value === "string"
+                          ? field.value
+                          : field.value?.name || ""
+                      }
+                      InputProps={{
+                        startAdornment: preview && (
+                          <InputAdornment position="start">
+                            <Box
+                              component="img"
+                              src={preview}
+                              alt="SVG Preview"
+                              sx={{ width: 30, height: 30, marginRight: 1 }}
+                            />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            {field.value ? (
+                              <IconButton
+                                onClick={() => {
+                                  setPreview(null);
+                                  field.onChange(null);
+                                }}
+                              >
+                                <Clear />
+                              </IconButton>
+                            ) : (
+                              <>
+                                <input
+                                  type="file"
+                                  accept="image/svg+xml"
+                                  style={{ display: "none" }}
+                                  id="upload-icon"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const objectUrl =
+                                        URL.createObjectURL(file);
+                                      setPreview(objectUrl);
+                                      field.onChange(file);
+                                    }
+                                  }}
+                                />
+                                <label htmlFor="upload-icon">
+                                  <IconButton component="span">
+                                    <AttachFile />
+                                  </IconButton>
+                                </label>
+                              </>
+                            )}
+                          </InputAdornment>
+                        ),
+                      }}
+                      error={!!errors.iconFile}
+                      helperText={errors.iconFile?.message}
+                    />
+                  )}
+                />
+              </Grid>
             </Grid>
           </form>
         </DialogContent>
@@ -246,7 +347,12 @@ const DialogSetup = ({
             <Button
               color="info"
               variant="contained"
-              disabled={loading || !isValid}
+              disabled={isLoading || isFetching || !isValid}
+              startIcon={
+                isLoading || isFetching ? (
+                  <CircularProgress color="info" size={20} />
+                ) : null
+              }
               onClick={handleTestClick}
             >
               Test
@@ -257,12 +363,12 @@ const DialogSetup = ({
               variant="contained"
               type="submit"
               form="submit-form"
-              disabled={loading || !isValid}
+              disabled={isLoading || !isValid}
               startIcon={
-                loading ? <CircularProgress color="info" size={20} /> : null
+                isLoading ? <CircularProgress color="info" size={20} /> : null
               }
             >
-              {loading ? "Processing..." : isUpdate ? "Save" : "Register"}
+              {isLoading ? "Processing..." : isUpdate ? "Save" : "Register"}
             </Button>
           )}
         </DialogActions>

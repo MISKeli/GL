@@ -67,7 +67,24 @@ const boaApi = indexApi
         }),
         providesTags: ["boa"],
       }),
-
+      GenerateDetailedTrialBalance: builder.query({
+        // for viewing vertical
+        query: (params) => ({
+          url: `/bookofaccounts/trialbalance-detailed/page`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["boa"],
+      }),
+      GenerateBalanceSheet: builder.query({
+        // for viewing vertical
+        query: (params) => ({
+          url: `/bookofaccounts/balancesheet/page`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["boa"],
+      }),
       GenerateVerticalCashDisbursementBookPerMonth: builder.query({
         // for viewing vertical
         query: (params) => ({
@@ -95,14 +112,28 @@ const boaApi = indexApi
         }),
         providesTags: ["boa"],
       }),
+      GenerateVouchersPayableBook: builder.query({
+        //for viewing vertical
+        query: (params) => ({
+          url: `/book-of-accounts/vouchers-payable-book/page`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["boa"],
+      }),
     }),
   });
 
 export const {
+  useGenerateVouchersPayableBookQuery,
+  useLazyGenerateVouchersPayableBookQuery,
   useGenerateVerticalCashReceiptBookPerMonthPaginationQuery,
   useExportGenerateSaleJournalBookPerMonthQuery,
   useExportGenerateTrialBalancePerMonthQuery,
   useGenerateTrialBalancePerMonthPaginationQuery,
+  useLazyGenerateDetailedTrialBalanceQuery,
+  useGenerateDetailedTrialBalanceQuery,
+  useGenerateBalanceSheetQuery,
   useExportVerticalCashDisbursementBookPerMonthQuery,
   useGenerateVerticalCashDisbursementBookPerMonthQuery,
   useGenerateHorizontalCashDisbursementBookPerMonthQuery,
@@ -112,5 +143,5 @@ export const {
   useGenerateSaleJournalBookPerMonthPaginationQuery,
   useExportVerticalPurchasesBookPerMonthQuery,
   useGenerateJournalBookPageQuery,
-  useLazyGenerateJournalBookPageQuery
+  useLazyGenerateJournalBookPageQuery,
 } = boaApi;

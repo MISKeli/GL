@@ -1,7 +1,11 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { useDispatch } from "react-redux";
-import { setPageNumber, setPageSize } from "../../../features/slice/authSlice";
+import {
+  setPage,
+  setPageNumber,
+  setPageSize,
+} from "../../../features/slice/authSlice";
 import "../../../styles/BoaPage.scss";
 import {
   Box,
@@ -24,6 +28,7 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 import { toast } from "react-toastify";
 import { IosShareRounded } from "@mui/icons-material";
+import { useLazyGenerateSystemFolderStructurePageQuery } from "../../../features/api/folderStructureApi";
 
 const SalesJournalFolder = ({
   data,
@@ -62,19 +67,37 @@ const SalesJournalFolder = ({
     data?.value?.lineAmount?.lineAmountCredit || 0;
 
   const { salesJournalExport } = useExportData();
+  const [
+    fetchExportData,
+    { isLoading: isExportLoading, isFetching: isExportFetching },
+  ] = useLazyGenerateSystemFolderStructurePageQuery();
   const header = info.sale_book_Export;
 
   const onExport = async () => {
+    if (isExportLoading || isExportFetching) {
+      return; // Prevent multiple export attempts while one is in progress
+    }
+    toast.info("Export started");
     try {
-      salesJournalExport(header, data.value.purchasesBook, {
+      // Trigger lazy query for export
+      const exportData = await fetchExportData({
+        Year: param.year,
+        Month: param.month,
+        Boa: param.boaName,
+        UsePagination: false, // Disable pagination
+      }).unwrap();
+
+      // Use the fetched data for export
+      await salesJournalExport(header, exportData?.value?.salesJournalBook, {
         fromMonth: moment(param.month, "MMM")
           .startOf("month")
           .format("MMMM DD, YYYY"),
         toMonth: moment(param.month, "MMM").endOf("month"),
       });
+      toast.success("Export completed successfully");
     } catch (err) {
       toast.error(err.message);
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -265,22 +288,21 @@ const SalesJournalFolder = ({
           <Button
             variant="contained"
             color="primary"
-            disabled
+            disabled={isExportLoading || isExportFetching}
             onClick={onExport}
-            //     startIcon={
-            //       isExportLoading ? (
-            //         <CircularProgress size={20} />
-            //       ) : (
-            //         <IosShareRounded />
-            //       )
-            //     }
+            startIcon={
+              isExportLoading || isExportFetching ? (
+                <CircularProgress size={20} />
+              ) : (
+                <IosShareRounded />
+              )
+            }
           >
-            {/* //   {isExportLoading
-          //       ? "Loading..."
-          //       : isExportFetching
-          //       ? "Exporting..."
-          //       : "Export"} */}
-            export
+            {isExportLoading
+              ? "Loading..."
+              : isExportFetching
+              ? "Exporting..."
+              : "Export"}
           </Button>
         </Box>
         <TablePagination

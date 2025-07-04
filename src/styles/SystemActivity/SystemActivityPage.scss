@@ -1,0 +1,30 @@
+@import "../_palette.module";
+
+.activity {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+   
+      &--title {
+        padding: 11px 0;
+        color: $primary-main;
+      }
+    
+  }
+  &__content {
+    overflow: hidden;
+    height: 100%;
+    width: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}

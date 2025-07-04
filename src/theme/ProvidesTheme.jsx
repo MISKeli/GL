@@ -1,11 +1,12 @@
-import { createTheme, Paper, ThemeProvider } from "@mui/material";
+import { createTheme, CssBaseline, Paper, ThemeProvider } from "@mui/material";
 import { paletteSchema } from "../schemas/paletteSchema";
 import { BorderColor } from "@mui/icons-material";
 
-console.log("palette", paletteSchema);
+//console.log("palette", paletteSchema);
 const ProvidesTheme = ({ children }) => {
   const theme = createTheme({
     palette: { ...paletteSchema },
+    ...CssBaseline,
 
     typography: {
       fontFamily: ["Lato"],
@@ -71,7 +72,6 @@ const ProvidesTheme = ({ children }) => {
       MuiInputLabel: {
         styleOverrides: {
           root: {
-            
             //  color: paletteSchema.secondary.light,
           },
         },
@@ -79,7 +79,6 @@ const ProvidesTheme = ({ children }) => {
       MuiOutlinedInput: {
         styleOverrides: {
           notchedOutline: {
-            
             borderColor: paletteSchema.primary.main,
             borderRadius: "10px",
             borderWidth: "2px",
@@ -101,8 +100,6 @@ const ProvidesTheme = ({ children }) => {
             overflow: "hidden",
             // backgroundColor: paletteSchema.primary.dark,
             color: paletteSchema.primary.dark,
-
-          
           },
         },
       },
@@ -151,7 +148,6 @@ const ProvidesTheme = ({ children }) => {
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          
           fontSize: "0.75rem", // Adjust font size if needed
           height: "36px", // Adjust the height
         },
@@ -200,13 +196,17 @@ const ProvidesTheme = ({ children }) => {
     MuiSelect: {
       styleOverrides: {
         root: {
-          
           color: paletteSchema.secondary.main,
         },
       },
     },
   });
 
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  );
 };
 export default ProvidesTheme;

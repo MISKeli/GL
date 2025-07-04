@@ -23,18 +23,19 @@ import { useGenerateVerticalPurchasesBookPerMonthPaginationQuery } from "../../f
 import { toast } from "sonner";
 
 import useExportData from "../../components/hooks/useExportData";
+import OnExportButton from "../../components/OnExportButton";
 
 const PurchasesBookPage = ({ reportData }) => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
 
-  const { purchasesBookExport } = useExportData();
+  const { purchasesBookSummaryExport } = useExportData();
   const fillParams = {
     FromMonth: reportData?.fromMonth || "",
     ToMonth: reportData?.toMonth || "",
   };
 
-  const headerColumn = info.Purchases_Book;
+  const headerColumn = info.Purchases_Book_Sumarry;
 
   const {
     data: exportData,
@@ -57,10 +58,7 @@ const PurchasesBookPage = ({ reportData }) => {
     PageSize: pageSize,
   });
 
-  // console.log("✌", boaData);
 
-
-  // console.log("Export Data", exportData);
 
   // Check if data is available and user has selected a month and year
   const hasData =
@@ -96,11 +94,21 @@ const PurchasesBookPage = ({ reportData }) => {
 
   const grandTotal = purchasesBookDebitTotalData + purchasesBookCreditTotalData;
 
-  const header = info.Purchases_Book_Export;
+  const header = info.Purchases_Book_Export_Summary;
 
   const onExport = async () => {
+    if (isExportLoading || isExportFetching) {
+      return; // Prevent multiple export attempts while one is in progress
+    }
+    toast.info("Export started");
     try {
-      purchasesBookExport(header, exportData.value.purchasesBook, reportData);
+      purchasesBookSummaryExport(
+        header,
+        exportData.value.purchasesBook,
+        reportData,
+        "Purchases Requisition Book"
+      );
+      toast.success("Export completed successfully");
     } catch (err) {
       toast.error(err.message);
       console.log(err);
@@ -303,25 +311,12 @@ const PurchasesBookPage = ({ reportData }) => {
         </Box>
         <Box className="boa__footer">
           <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={onExport}
-              disabled={!hasData || isExportLoading || isExportFetching}
-              startIcon={
-                isExportLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <IosShareRounded />
-                )
-              }
-            >
-              {isExportLoading
-                ? "Loading..."
-                : isExportFetching
-                ? "Exporting..."
-                : "Export"}
-            </Button>
+          <OnExportButton
+              onExport={onExport}
+              hasData={hasData}
+              isLoading={isExportLoading}
+              isFetching={isExportFetching}
+            />
           </Box>
 
           <TablePagination

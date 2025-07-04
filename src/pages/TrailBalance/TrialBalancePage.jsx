@@ -1,8 +1,6 @@
 /* eslint-disable react/prop-types */
 import {
   Box,
-  Button,
-  CircularProgress,
   Paper,
   Skeleton,
   Table,
@@ -14,22 +12,23 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
-import "../styles/TrialBalancePage.scss";
-import { info } from "../schemas/info";
-import { useGenerateTrialBalancePerMonthPaginationQuery } from "../features/api/boaApi";
-import useDebounce from "../components/useDebounce";
-import DateSearchCompoment from "../components/DateSearchCompoment";
 import moment from "moment";
-import { IosShareRounded } from "@mui/icons-material";
+import React, { useState } from "react";
 import { toast } from "sonner";
-import useExportData from "../components/hooks/useExportData";
+import DateSearchCompoment from "../../components/DateSearchCompoment";
+import useExportData from "../../components/hooks/useExportData";
+import OnExportButton from "../../components/OnExportButton";
+import useDebounce from "../../components/useDebounce";
+import { useGenerateTrialBalancePerMonthPaginationQuery } from "../../features/api/boaApi";
+import { info } from "../../schemas/info";
+import "../../styles/TrialBalancePage.scss";
 
 const TrialBalancePage = () => {
   const [search, setSearch] = useState("");
   const debounceValue = useDebounce(search);
   const [reportData, setReportData] = useState({
     FromMonth: moment().startOf("month").format("MM-DD-YYYY").toString(),
+
     ToMonth: moment().endOf("month").format("MM-DD-YYYY").toString(),
   });
 
@@ -60,7 +59,6 @@ const TrialBalancePage = () => {
     UsePagination: true,
     PageSize: params.PageSize,
   });
-  console.log("🚀 ~ TrialBalancePage ~ trialData:", trialData);
 
   //export
   const {
@@ -95,16 +93,21 @@ const TrialBalancePage = () => {
     }));
   };
   const trailBalanceData = trialData?.value?.trialBalance || [];
-  console.log("🚀 ~ TrialBalancePage ~ trialData:", trialData);
 
-  const trailBalanceDebitTotalData =
-    trialData?.value?.lineAmount?.lineAmountDebit || 0;
-  const trailBalanceCreditTotalData =
-    trialData?.value?.lineAmount?.lineAmountCredit || 0;
+  const debitTotal = trialData?.value?.lineAmount?.lineAmountDebit || 0;
+  const creditTotal = trialData?.value?.lineAmount?.lineAmountCredit || 0;
+
+  const debitBalanceTotal = trialData?.value?.lineAmount?.debitBalance || 0;
+  const creditBalanceTotal = trialData?.value?.lineAmount?.creditBalance || 0;
 
   const headers = info.trial_balance_export;
 
   const onExport = async () => {
+    if (isExportLoading || isExportFetching) {
+      return; // Prevent multiple export attempts while one is in progress
+    }
+
+    toast.info("Export started");
     try {
       exportToExcel(headers, exportData.value.trialBalance, reportData);
       toast.success("Data exported successfully!");
@@ -114,13 +117,13 @@ const TrialBalancePage = () => {
     }
   };
 
-  console.log("exportData: ", exportData);
-  //console.log("reportData: ", reportData);
-
   // for comma
+  // Updated formatNumber function with 2 decimal places
   const formatNumber = (number) => {
     const isNegative = number < 0;
-    const formattedNumber = Math.abs(number)
+    // Round to 2 decimal places and format with commas
+    const roundedNumber = parseFloat(Math.abs(number).toFixed(2));
+    const formattedNumber = roundedNumber
       .toString()
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return {
@@ -129,13 +132,31 @@ const TrialBalancePage = () => {
     };
   };
 
+  // Custom styles for sticky headers
+  const stickyHeaderStyle = {
+    position: "sticky",
+    top: 0,
+    // backgroundColor: "#fff",
+    zIndex: 1,
+  };
+
+  const stickySubHeaderStyle = {
+    position: "sticky",
+    top: "57px", // Adjust this value based on the height of your first header row
+    //backgroundColor: "#fff",
+    zIndex: 1,
+  };
+
   return (
     <Box className="trial">
       <Box className="trial__header">
-        <Typography variant="h5" className="setup__header__con1--title">
+        {/* <Typography variant="h5" className="trial__header--title">
           {info.trialbalance_title}
-        </Typography>
-        <DateSearchCompoment setReportData={setReportData} />
+        </Typography> */}
+        <DateSearchCompoment
+          setReportData={setReportData}
+          isTrailBalance={true}
+        />
       </Box>
       <Box className="trial__content">
         <Box className="trial__content__table">
@@ -146,9 +167,38 @@ const TrialBalancePage = () => {
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  {headerColumn.map((column) => (
-                    <TableCell key={column.id}>{column.name}</TableCell>
-                  ))}
+                  <TableCell rowSpan={2} style={stickyHeaderStyle}>
+                    ACCOUNT NAME
+                  </TableCell>
+                  <TableCell style={stickyHeaderStyle}></TableCell>
+                  <TableCell style={stickyHeaderStyle}></TableCell>
+
+                  {/* Opening Balance Column Group */}
+                  <TableCell
+                    colSpan={8}
+                    align="center"
+                    style={stickyHeaderStyle}
+                  >
+                    BALANCES
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  {/* Opening Balance subheaders */}
+                  <TableCell align="center" style={stickySubHeaderStyle}>
+                    DEBIT{" "}
+                  </TableCell>
+                  <TableCell align="center" style={stickySubHeaderStyle}>
+                    CREDIT
+                  </TableCell>
+
+                  {/* Transaction subheaders */}
+                  <TableCell align="center" style={stickySubHeaderStyle}>
+                    DEBIT{" "}
+                  </TableCell>
+                  <TableCell align="center" style={stickySubHeaderStyle}>
+                    CREDIT
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -195,28 +245,35 @@ const TrialBalancePage = () => {
                           style={{
                             color:
                               col.id === "debit"
-                                ? formatNumber(trailBalanceDebitTotalData).color
+                                ? formatNumber(debitTotal).color
                                 : col.id === "credit"
-                                ? formatNumber(trailBalanceCreditTotalData)
-                                    .color
+                                ? formatNumber(creditTotal).color
+                                : col.id === "debitVariance"
+                                ? formatNumber(debitBalanceTotal).color
+                                : col.id === "creditVariance"
+                                ? formatNumber(creditBalanceTotal).color
                                 : "inherit",
                             fontWeight:
                               col.id === "debit" ||
                               col.id === "credit" ||
+                              col.id === "debitVariance" ||
+                              col.id === "creditVariance" ||
                               col.id === "chartOfAccount"
                                 ? 600
                                 : "inherit",
                           }}
                         >
                           {col.id === "debit"
-                            ? formatNumber(trailBalanceDebitTotalData)
-                                .formattedNumber
+                            ? formatNumber(debitTotal).formattedNumber
                             : col.id === "credit"
-                            ? formatNumber(trailBalanceCreditTotalData)
-                                .formattedNumber
+                            ? formatNumber(creditTotal).formattedNumber
+                            : col.id === "debitVariance"
+                            ? formatNumber(debitBalanceTotal).formattedNumber
+                            : col.id === "creditVariance"
+                            ? formatNumber(creditBalanceTotal).formattedNumber
                             : col.id === "chartOfAccount"
                             ? "Grand Total"
-                            : ""}
+                            : "0.00"}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -237,25 +294,12 @@ const TrialBalancePage = () => {
       </Box>
       <Box className="trial__footer">
         <Box>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={onExport}
-            disabled={!hasData || isExportLoading || isExportFetching}
-            startIcon={
-              isExportLoading ? (
-                <CircularProgress size={20} />
-              ) : (
-                <IosShareRounded />
-              )
-            }
-          >
-            {isExportLoading
-              ? "Loading..."
-              : isExportFetching
-              ? "Exporting..."
-              : "Export"}
-          </Button>
+          <OnExportButton
+            onExport={onExport}
+            hasData={hasData}
+            isLoading={isExportLoading}
+            isFetching={isExportFetching}
+          />
         </Box>
         <TablePagination
           component="div"

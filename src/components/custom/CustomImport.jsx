@@ -47,8 +47,8 @@ const CustomImport = ({ onDataLoaded, open, onClose, system }) => {
     },
     resolver: yupResolver(importSchema),
   });
-  console.log("dup", errorReports);
-  console.log("dup2", data);
+  //console.log("dup", errorReports);
+  //console.log("dup2", data);
   // Import mutation with loading and fetching indicators
   const [importData, { isFetching }] = useImportReportsMutation();
 

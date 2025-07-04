@@ -3,6 +3,7 @@ import {
   Badge,
   Box,
   Button,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -29,6 +30,7 @@ import "../../styles/Masterlist.scss";
 import useDebounce from "../../components/useDebounce";
 import {
   useGetAllUserRolesQuery,
+  useLazyGetAllUserRoleAsyncQuery,
   useUpdateUserRoleStatusMutation,
 } from "../../features/api/roleApi";
 import {
@@ -36,6 +38,7 @@ import {
   ArchiveOutlined,
   ArchiveRounded,
   EditRounded,
+  IosShareRounded,
   LibraryAddRounded,
   MoreVertOutlined,
   RestoreFromTrashOutlined,
@@ -47,6 +50,7 @@ import { setPokedData } from "../../features/slice/authSlice";
 import { toast } from "sonner";
 import noRecordsFound from "../../assets/images/noRecordsFound.png";
 import ConfirmedDialog from "../../components/ConfirmedDialog";
+import useExportData from "../../components/hooks/useExportData";
 
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
   display: "flex",
@@ -61,6 +65,8 @@ const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
 }));
 
 const RoleManagemenPage = () => {
+  const { commonExport } = useExportData();
+
   const [open, setOpen] = useState(false);
   const [viewOnly, setViewOnly] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
@@ -68,16 +74,13 @@ const RoleManagemenPage = () => {
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
-  const [activeRow, setActiveRow] = useState(null);
   const [status, setStatus] = useState("active");
   const [expanded, setExpanded] = useState(false); // State for search bar expansion
-  const [userPermission, setUserPermission] = useState(null);
   const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
   const inputRef = useRef(null); // Create a ref for InputBase
 
   const dispatch = useDispatch();
   const pokedData = useSelector((state) => state.auth.pokedData);
-  //console.log("pokeddata", pokedData);
   const debounceValue = useDebounce(search);
   const TableColumn = info.role.tableColumns;
 
@@ -91,9 +94,11 @@ const RoleManagemenPage = () => {
       Status: status === "active" ? true : false,
       PageNumber: page + 1,
       PageSize: pageSize,
+      UsePagination: true,
     },
     { refetchOnFocus: true }
   );
+  console.log("🚀 ~ RoleManagemenPage ~ roleData:", roleData);
   // SEARCH
   const handleSearchClick = () => {
     setExpanded(true); // Expand the box
@@ -162,6 +167,24 @@ const RoleManagemenPage = () => {
       .catch((error) => {
         toast.error(error?.data?.error?.message);
       });
+  };
+
+  const [fetchExportData] = useLazyGetAllUserRoleAsyncQuery();
+
+  const Headers = info.role.export;
+  const hasData = roleData?.value?.result?.length > 0;
+  const onExport = async () => {
+    try {
+      const exportData = await fetchExportData({
+        UsePagination: false,
+      }).unwrap();
+      //console.log("🚀 ~ onExport ~ exportData:", exportData)
+
+      await commonExport(Headers, exportData?.value, info.role.title);
+    } catch (err) {
+      toast.error(err.message);
+      console.log(err);
+    }
   };
 
   return (
@@ -246,6 +269,7 @@ const RoleManagemenPage = () => {
                   <TableRow>
                     {TableColumn.map((roleTable) => (
                       <TableCell key={roleTable.id}>{roleTable.name}</TableCell>
+                      
                     ))}
                   </TableRow>
                 </TableHead>
@@ -260,7 +284,7 @@ const RoleManagemenPage = () => {
                           ))}
                         </TableRow>
                       ))
-                    : roleData?.value.userRoles.map((userRole) => (
+                    : roleData?.value.result.map((userRole) => (
                         <TableRow
                           key={userRole.id}
                           // className={activeRow === userRole.id ? "active" : ""}
@@ -298,23 +322,43 @@ const RoleManagemenPage = () => {
                       ))}
                 </TableBody>
               </Table>
-              {roleData?.value?.userRoles.length === 0 && !isRoleLoading ? (
+              {roleData?.value?.result.length === 0 && !isRoleLoading ? (
                 <Box className="masterlist__content__table--norecords">
                   <img src={noRecordsFound} alt="No Records Found" />
                 </Box>
               ) : null}
             </TableContainer>
-            <TablePagination
-              component="div"
-              className="masterlist__content--pagination"
-              count={roleData?.value.totalCount || 0}
-              page={page}
-              rowsPerPage={pageSize}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[5, 10, 25]}
-            />
           </Box>
+        </Box>
+        <Box className="masterlist__footer">
+          <Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={onExport}
+              disabled={!hasData || isRoleLoading || isRoleFetching}
+              startIcon={
+                isRoleLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <IosShareRounded />
+                )
+              }
+            >
+              {isRoleLoading ? "Exporting..." : "Export"}
+            </Button>
+          </Box>
+
+          <TablePagination
+            component="div"
+            className="pagination"
+            count={roleData?.value.totalCount || 0}
+            page={page}
+            rowsPerPage={pageSize}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+          />
         </Box>
       </Box>
       <Menu

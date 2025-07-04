@@ -1,0 +1,26 @@
+@import "../_palette.module";
+.viewer {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &__container {
+      display: flex;
+      align-items: center;
+      color: $primary-main;
+    }
+  }
+  &__content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: auto;
+  }
+}

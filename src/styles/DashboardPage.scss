@@ -2,17 +2,30 @@
 @import "__mixins";
 
 .dashboard {
+  height: 100%;
+  width: 100%;
+
+  padding: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
   &__header {
-    position: relative;
-    padding-top: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    //position: relative;
+    //padding-top: 40px;
+
     &__box1 {
       border-radius: 5px;
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
-      height: 215px;
-      
+      //height: 215px;
+      height: auto;
+      margin-bottom: 1rem;
+
+      padding-left: 10px;
       background: linear-gradient(
         to right,
         #0c3483 0%,
@@ -22,26 +35,49 @@
       );
 
       &--title {
-        
         padding: 10px;
-        
+        font-size: 1.5rem;
         color: $primary-contrast-text;
+        @media (max-width: 768px) {
+          font-size: 1.2rem;
+          text-align: center;
+        }
       }
     }
+
+    // &__image {
+    //   position: absolute;
+    //   top: 0;
+    //   right: 0;
+
+    //   width: 500px;
+    //   max-width: 400px;
+    //   @include md {
+    //     display: flex;
+    //   }
+    //   display: none;
+    // }
 
     &__image {
-      position: absolute;
-      top: 0;
-      right: 0;
-
-      width: 500px;
+      width: 100%;
       max-width: 400px;
-      @include md {
-        display: flex;
-      }
-      display: none;
-      
-    }
+      display: block;
 
+      @media (max-width: 768px) {
+        max-width: 250px;
+      }
+
+      @media (max-width: 480px) {
+        display: none;
+      }
+    }
+  }
+  &__content {
+    //padding: 1rem;
+
+    .MuiGrid-item {
+      //display: flex;
+      //justify-content: center;
+    }
   }
 }

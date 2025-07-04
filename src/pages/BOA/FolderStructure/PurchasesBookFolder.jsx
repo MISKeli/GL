@@ -36,6 +36,7 @@ const PurchasesBookFolder = ({
   pageSize,
   isLoading,
   isFetching,
+  bookType
 }) => {
   const dispatch = useDispatch();
   const param = useParams();
@@ -52,7 +53,7 @@ const PurchasesBookFolder = ({
     dispatch(setPage(0)); // Reset to first page
   };
 
- // console.log("🚀 ~ PurchasesBookFolder ~ data:", data);
+  console.log("🚀 ~ PurchasesBookFolder ~ data:", data);
   const headerColumn = info.Purchases_Book;
 
   // for comma
@@ -75,10 +76,17 @@ const PurchasesBookFolder = ({
   const grandTotal = purchasesBookDebitTotalData + purchasesBookCreditTotalData;
 
   const { purchasesBookExport } = useExportData();
-  const [fetchExportData] = useLazyGenerateSystemFolderStructurePageQuery();
+  const [
+    fetchExportData,
+    { isLoading: isExportLoading, isFetching: isExportFetching },
+  ] = useLazyGenerateSystemFolderStructurePageQuery();
   const header = info.Purchases_Book_Export;
 
   const onExport = async () => {
+    if (isExportLoading || isExportFetching) {
+      return; // Prevent multiple export attempts while one is in progress
+    }
+    toast.info("Export started");
     try {
       // Trigger lazy query for export
       const exportData = await fetchExportData({
@@ -88,13 +96,15 @@ const PurchasesBookFolder = ({
         UsePagination: false, // Disable pagination
       }).unwrap();
 
-      // Use the fetched data for export
-      purchasesBookExport(header, exportData?.value?.purchasesBook, {
+      await purchasesBookExport(header, exportData?.value?.purchasesBook, {
         fromMonth: moment(param.month, "MMM")
           .startOf("month")
           .format("MMMM DD, YYYY"),
         toMonth: moment(param.month, "MMM").endOf("month"),
-      });
+      }, bookType);
+
+  
+      toast.success("Export completed successfully");
     } catch (err) {
       toast.error(err.message);
       console.error(err);
@@ -307,14 +317,18 @@ const PurchasesBookFolder = ({
               variant="contained"
               color="primary"
               onClick={onExport}
-              disabled={isLoading || isFetching}
+              disabled={isExportLoading || isExportFetching}
               startIcon={
-                isLoading ? <CircularProgress size={20} /> : <IosShareRounded />
+                isExportLoading || isExportFetching ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <IosShareRounded />
+                )
               }
             >
-              {isLoading
+              {isExportLoading
                 ? "Loading..."
-                : isFetching
+                : isExportFetching
                 ? "Exporting..."
                 : "Export"}
             </Button>
@@ -342,5 +356,4 @@ const PurchasesBookFolder = ({
     </>
   );
 };
-
 export default PurchasesBookFolder;

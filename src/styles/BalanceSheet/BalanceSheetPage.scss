@@ -1,0 +1,85 @@
+@import "../_palette.module";
+.sheet {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0 10px;
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__header-title {
+    color: $primary-main;
+  }
+
+  &__content {
+    overflow: hidden;
+    min-height: 0; // Important for proper flex behavior
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+  }
+
+  &__content-container-1 {
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  &__content-container {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    overflow: hidden;
+    height: 100%;
+  }
+  &__content-container-2 {
+    overflow: hidden;
+    //flex: 1;
+    display: flex;
+    height: 60%;
+    flex-direction: column;
+  }
+  &__content-container-3 {
+    overflow: hidden;
+    //flex: 1;
+    display: flex;
+    height: 30%;
+    flex-direction: column;
+  }
+  &__content-container-4 {
+    //flex: 1;
+    display: flex;
+    flex-direction: column;
+    ;
+
+    &--total {
+      color: $text-primary;
+      background-color: $background-paper;
+      border-radius: 5px;
+   
+
+      padding: 10px;
+    }
+    &--variance {
+      color: $text-primary;
+      background-color: $background-paper;
+      border-radius: 5px;
+      padding: 10px;
+   
+
+      
+    }
+  }
+  
+
+  &__footer {
+    padding-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

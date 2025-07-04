@@ -7,6 +7,7 @@ import {
   setPageNumber,
   setPageSize,
 } from "../../../features/slice/authSlice";
+import "../../../styles/BoaPage.scss";
 import { info } from "../../../schemas/info";
 import {
   Box,
@@ -30,6 +31,7 @@ import moment from "moment";
 import { toast } from "react-toastify";
 
 const JournalBookFolder = ({ data, page, pageSize, isLoading, isFetching }) => {
+  console.log("folder journal book", data);
   const dispatch = useDispatch();
   const param = useParams();
 
@@ -63,10 +65,17 @@ const JournalBookFolder = ({ data, page, pageSize, isLoading, isFetching }) => {
   const headerColumn = info.journal_book;
 
   const { journalBookExport } = useExportData();
-  const [fetchExportData] = useLazyGenerateSystemFolderStructurePageQuery();
+  const [
+    fetchExportData,
+    { isLoading: isExportLoading, isFetching: isExportFetching },
+  ] = useLazyGenerateSystemFolderStructurePageQuery();
   const header = info.journal_book_export;
 
   const onExport = async () => {
+    if (isExportLoading || isExportFetching) {
+      return;
+    }
+    toast.info("Export started");
     try {
       // Trigger lazy query for export
       const exportData = await fetchExportData({
@@ -77,12 +86,13 @@ const JournalBookFolder = ({ data, page, pageSize, isLoading, isFetching }) => {
       }).unwrap();
 
       // Use the fetched data for export
-      journalBookExport(header, exportData?.value?.journalBook, {
+      await journalBookExport(header, exportData?.value?.journalBook, {
         fromMonth: moment(param.month, "MMM")
           .startOf("month")
           .format("MMMM DD, YYYY"),
         toMonth: moment(param.month, "MMM").endOf("month"),
       });
+      toast.success("Export completed successfully");
     } catch (err) {
       toast.error(err.message);
       console.error(err);
@@ -91,14 +101,14 @@ const JournalBookFolder = ({ data, page, pageSize, isLoading, isFetching }) => {
 
   return (
     <>
-      <Box className="boa">
+      <Box className="boa" sx={{ flex: 1 }}>
         <Box className="boa__content">
           <Box className="boa__content__table">
             <TableContainer
               component={Paper}
               sx={{ overflow: "auto", height: "100%" }}
             >
-              <Table stickyHeader size="small">
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     {headerColumn.map((column) => (
@@ -146,7 +156,7 @@ const JournalBookFolder = ({ data, page, pageSize, isLoading, isFetching }) => {
                       ))}
                       {/* Grand Total Row */}
                       <TableRow className="boa__content__table--grandtotal">
-                        {info.journal_book.map((col) => (
+                        {headerColumn.map((col) => (
                           <TableCell
                             key={col.id}
                             style={{
@@ -170,6 +180,8 @@ const JournalBookFolder = ({ data, page, pageSize, isLoading, isFetching }) => {
                               : col.id === "credit"
                               ? formatNumber(journalBookCreditTotalData)
                                   .formattedNumber
+                              : col.id === "account_title"
+                              ? "Grand Total"
                               : ""}
                           </TableCell>
                         ))}
@@ -195,12 +207,16 @@ const JournalBookFolder = ({ data, page, pageSize, isLoading, isFetching }) => {
               variant="contained"
               color="primary"
               onClick={onExport}
-              disabled={isLoading || isFetching}
+              disabled={isLoading || isExportFetching}
               startIcon={
-                isLoading ? <CircularProgress size={20} /> : <IosShareRounded />
+                isLoading || isExportFetching ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <IosShareRounded />
+                )
               }
             >
-              {isLoading ? "Exporting..." : "Export"}
+              {isLoading || isExportFetching ? "Exporting..." : "Export"}
             </Button>
           </Box>
 

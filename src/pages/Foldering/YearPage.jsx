@@ -15,7 +15,7 @@ const YearPage = () => {
   const years = folderData?.value?.years;
 
   const navigate = useNavigate();
-  
+
   const handleDoubleClick = (year) => {
     navigate(`./${year}`);
   };
@@ -38,7 +38,7 @@ const YearPage = () => {
 
   return (
     <>
-      <Box ref={containerRef} display={"flex"}>
+      <Box ref={containerRef} display={"flex"} height={"fit-content"}>
         {years?.map((year) => (
           <DataFile
             isSelected={selectedItem === year}

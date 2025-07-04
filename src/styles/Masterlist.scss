@@ -63,7 +63,13 @@
         height: auto;
       }
     }
+  }
 
+  &__footer {
+    // Footer styles here
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     &--pagination {
       height: auto;
       overflow: hidden; // Prevent scrollbar by hiding overflow
@@ -72,9 +78,5 @@
       align-items: center; // Align pagination vertically
       padding: 10px 0; // Add padding for spacing
     }
-  }
-
-  &__footer {
-    // Footer styles here
   }
 }

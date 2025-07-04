@@ -20,12 +20,23 @@ const folderStructureApi = indexApi
         }),
         providesTags: ["folder"],
       }),
+      //system monitoring
+      GenerateImportedSystems: builder.query({
+        query: (params) => ({
+          url: `/folder-structure/system-imported/page`,
+          method: "GET",
+          params,
+        }),
+        providesTags: ["folder"],
+      }),
     }),
+    
   });
 
 export const {
   useGenerateSystemFolderStructurePageQuery,
   useLazyGenerateSystemFolderStructurePageQuery,
   useGenerateAvailableBOAPageQuery,
+  useGenerateImportedSystemsQuery,
   useLazyGenerateAvailableBOAPageQuery
 } = folderStructureApi;

@@ -8,11 +8,13 @@ import CashDisbursementBookFolder from "../BOA/FolderStructure/CashDisbursementB
 import SalesJournalFolder from "../BOA/FolderStructure/SalesJournalFolder";
 import CashReceiptJournalFolder from "../BOA/FolderStructure/CashReceiptJournalFolder";
 import JournalBookFolder from "../BOA/FolderStructure/JournalBookFolder";
+import { info } from "../../schemas/info";
 
 export const SystemNameContext = createContext(null);
 
 const SystemNames = () => {
   const param = useParams();
+  const { year, month, boaName } = param;
 
   const page = useSelector((state) => state.auth.pageNumber);
   const pageSize = useSelector((state) => state.auth.pageSize);
@@ -31,13 +33,10 @@ const SystemNames = () => {
   });
   //console.log("🚀 ~ SystemNames ~ folderData:", folderData);
 
-  
-
-  const { year, month, boaName } = param;
   //console.log("🚀 ~ SystemNames ~ boaName:", boaName);
   const { isHorizontalView } = useOutletContext();
 
-  if (boaName === "Purchases Book") {
+  if (info.boa.pb.includes(boaName)) {
     return (
       <PurchasesBookFolder
         data={folderData}
@@ -45,9 +44,10 @@ const SystemNames = () => {
         pageSize={pageSize}
         isLoading={isLoading}
         isFetching={isFetching}
+        bookType = {boaName}
       />
     );
-  } else if (boaName === "Cash Disbursement Book") {
+  } else if (info.boa.cdb.includes(boaName)) {
     return (
       <CashDisbursementBookFolder
         data={folderData}
@@ -57,7 +57,7 @@ const SystemNames = () => {
         isFetching={isFetching}
       />
     );
-  } else if (boaName === "Sales Journal") {
+  } else if (info.boa.sb.includes(boaName)) {
     return (
       <SalesJournalFolder
         data={folderData}
@@ -67,7 +67,7 @@ const SystemNames = () => {
         isFetching={isFetching}
       />
     );
-  } else if (boaName === "Cash Receipt Journal") {
+  } else if (info.boa.crj.includes(boaName)) {
     return (
       <CashReceiptJournalFolder
         data={folderData}
@@ -77,7 +77,7 @@ const SystemNames = () => {
         isFetching={isFetching}
       />
     );
-  } else if (boaName === "Journal Book") {
+  } else if (info.boa.jb.includes(boaName)) {
     return (
       <JournalBookFolder
         data={folderData}

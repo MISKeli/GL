@@ -1,9 +1,6 @@
 /* eslint-disable react/prop-types */
-import { IosShareRounded } from "@mui/icons-material";
 import {
   Box,
-  Button,
-  CircularProgress,
   Paper,
   Skeleton,
   Table,
@@ -23,18 +20,19 @@ import { info } from "../../schemas/info";
 import "../../styles/BoaPage.scss";
 
 import useExportData from "../../components/hooks/useExportData";
+import OnExportButton from "../../components/OnExportButton";
 const CashDisbursementBookPage = ({ reportData }) => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
 
   const debounceValue = useDebounce(search);
-  const { CashDisburstmentBookExport } = useExportData();
+  const { CashDisburstmentBookSummaryExport } = useExportData();
   const fillParams = {
     FromMonth: reportData?.fromMonth || "",
     ToMonth: reportData?.toMonth || "",
   };
-  const headerColumn = info.cash_disbursement_book;
+  const headerColumn = info.cash_disbursement_book_sumarry;
 
   const {
     data: boaData,
@@ -58,7 +56,6 @@ const CashDisbursementBookPage = ({ reportData }) => {
 
     UsePagination: false,
   });
- 
 
   const hasData =
     exportData?.value?.cashDisbursementBook &&
@@ -75,6 +72,7 @@ const CashDisbursementBookPage = ({ reportData }) => {
     const formattedNumber = Math.abs(number)
       .toFixed(2)
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
     return {
       formattedNumber,
       color: isNegative ? "red" : "inherit", // Use "red" for negative numbers
@@ -92,11 +90,15 @@ const CashDisbursementBookPage = ({ reportData }) => {
   const cashDisburstmentCreditTotalData =
     boaData?.value?.lineAmount?.lineAmountCredit || 0;
 
-  const header = info.cash_disbursement_Export;
+  const header = info.cash_disbursement_Export_Summary;
 
   const onExport = async () => {
+    if (isExportLoading || isExportFetching) {
+      return; // Prevent multiple export attempts while one is in progress
+    }
+    toast.info("Export started");
     try {
-      CashDisburstmentBookExport(
+      CashDisburstmentBookSummaryExport(
         header,
         exportData.value.cashDisbursementBook,
         reportData
@@ -229,7 +231,10 @@ const CashDisbursementBookPage = ({ reportData }) => {
                       {/* Grand Total Row */}
                       <TableRow>
                         {headerColumn.map((col) => (
-                          <TableCell key={col.id} className="boa__content__table--grandtotal">
+                          <TableCell
+                            key={col.id}
+                            className="boa__content__table--grandtotal"
+                          >
                             {col.subItems ? (
                               <TableRow
                                 style={{
@@ -290,25 +295,12 @@ const CashDisbursementBookPage = ({ reportData }) => {
         </Box>
         <Box className="boa__footer">
           <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={onExport}
-              disabled={!hasData || isExportLoading || isExportFetching}
-              startIcon={
-                isExportLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <IosShareRounded />
-                )
-              }
-            >
-              {isExportLoading
-                ? "Loading..."
-                : isExportFetching
-                ? "Exporting..."
-                : "Export"}
-            </Button>
+            <OnExportButton
+              onExport={onExport}
+              hasData={hasData}
+              isLoading={isExportLoading}
+              isFetching={isExportFetching}
+            />
           </Box>
           <TablePagination
             component="div"

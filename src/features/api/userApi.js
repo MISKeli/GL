@@ -41,6 +41,7 @@ const userApi = indexApi
 export const {
   useAddUserMutation,
   useGetAllUserQuery,
+  useLazyGetAllUserQuery,
   useUpdateUserMutation,
   useUpdateUserStatusMutation,
 } = userApi;

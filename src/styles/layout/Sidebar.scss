@@ -5,6 +5,7 @@
   a {
     text-decoration: none;
     color: $text-primary;
+    font-size: small;
   }
 
   height: 100%;
@@ -28,7 +29,7 @@
     }
 
     &--content {
-      height: 60%;
+      height: 70%;
       overflow-y: auto;
       overflow-x: hidden;
       font-size: clamp(0.25rem, 5vw, 1rem);
@@ -36,7 +37,8 @@
     }
 
     &--footer {
-      height: 25%;
+      // background-color: aqua;
+      height: 15%;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -77,6 +79,7 @@
     display: flex;
     &:hover:not(.active) {
       color: $primary-light;
+
       font-weight: 600;
     }
   }
@@ -140,17 +143,17 @@
         opacity: 35%; // Your desired opacity
         border-radius: 10px;
         z-index: -1; // Ensure it is behind the text
-        
       }
     }
 
     &:hover:not(.active) {
       color: $primary-main;
       font-weight: 900;
-      
     }
 
     &--name {
+      font-size: 15px;
+
       padding-left: 10px;
       align-self: center;
     }
@@ -180,19 +183,19 @@
   }
 
   &__footer {
+    height: fit-content;
     overflow: hidden;
-    width: 100%;
+    width: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
     flex-direction: column;
   }
 
   .footer__logo {
     max-width: 55px;
     height: auto;
-    margin-top: 90px;
+    //margin-top: 90px;
   }
 
   .side__icon {
@@ -211,7 +214,7 @@
 
   .footer__logo {
     width: 55px;
-    margin-top: 100px;
+    // margin-top: 90px;
   }
 
   .side__footer-text {

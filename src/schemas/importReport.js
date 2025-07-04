@@ -10,8 +10,8 @@ export const transformRows = (data) => {
     assetCIP: row.assetCIP ? row.assetCIP.toString() : "",
     accountingTag: row.accountingTag ? row.accountingTag.toString() : "",
     transactionDate: row.transactionDate
-      ? moment(row.transactionDate).format("YYYY-MM-DD").toString()
-      : "",
+      ? moment(row.transactionDate).format("YYYY-MM-DD")
+      : null,
     clientSupplier: row.clientSupplier ? row.clientSupplier.toString() : "",
     accountTitleCode: row.accountTitleCode
       ? row.accountTitleCode.toString()
@@ -60,7 +60,7 @@ export const transformRows = (data) => {
       : "",
     unitResponsible: row.unitResponsible ? row.unitResponsible.toString() : "",
     batch: row.batch ? row.batch.toString() : "",
-    remarks: row.remarks ? row.remarks.toString() : "",
+    lineDescription: row.lineDescription ? row.lineDescription.toString() : "",
     payrollPeriod: row.payrollPeriod ? row.payrollPeriod.toString() : "",
     position: row.position ? row.position.toString() : "",
     payrollType: row.payrollType ? row.payrollType.toString() : "",
@@ -88,7 +88,15 @@ export const transformRows = (data) => {
       ? row.chequeVoucherNumber.toString()
       : "",
     boA2: row.boA2 ? row.boA2.toString() : "",
+    chequeDate: row.chequeDate
+      ? moment(row.chequeDate).format("YYYY-MM-DD")
+      : null,
+    releasedDate: row.releasedDate
+      ? moment(row.releasedDate).format("YYYY-MM-DD")
+      : null,
+
     system: row.system ? row.system.toString() : "",
     books: row.books ? row.books.toString() : "",
+    bookName: row.bookName ? row.bookName.toString() : "",
   }));
 };

@@ -3,6 +3,9 @@
 .navbar {
   display: flex;
   justify-content: flex-end;
+  padding: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
   //background-color: $text-hint;
 
   &__container {
@@ -12,22 +15,30 @@
       color: $text-primary;
       font-weight: 900;
     }
+
+    &--icon {
+      display: flex;
+      color: $text-primary;
+
+      align-items: center; //background-color: aquamarine;
+    }
   }
 
   &__menu {
+    z-index: 9999 ;
+    position: absolute ;
     //Profile Settings
 
-    &__profile{
+    &__profile {
       padding: 5px;
     }
-     &--title {
-      text-align: center;
-      background-color: $primary-main;
-       padding: 5px 0px;
-       margin: 0px;
-   
-
-     }
+    &--title {
+      //text-align: center;
+      //background-color: $primary-main;
+      // padding: 5px 0px;
+      color: $text-primary;
+      margin: 0px;
+    }
     &__item {
       &--logout {
         color: $secondary-light;

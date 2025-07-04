@@ -35,10 +35,21 @@ export const boaSchema = yup.object().shape({
   selectedDate: yup.date().required("Date is required"),
 });
 
+export const closedDate = yup.object().shape({
+  closedDate: yup.string().required("Closed Date is required"),
+});
+
 export const systemSchema = yup.object().shape({
   systemName: yup.string().required("System Name is required."),
   endpoint: yup.string().required("Endpoint is required."),
   token: yup.string().required("Token is required."),
+  bookParameter: yup.array().of(
+    yup.object().shape({
+      bookName: yup.string(),
+      bookValue: yup.string(),
+    })
+  ),
+  //iconFile: yup.string().required("Icon is required."),
 });
 
 export const systemDateSchema = yup.object().shape({
@@ -105,11 +116,13 @@ export const importSchema = yup.object().shape({
   particulars: yup.string().nullable(),
   month2: yup.string().nullable(),
   farmType: yup.string().nullable(),
-  jeanRemarks: yup.string().nullable(),
+  adjustment: yup.string().nullable(),
   from: yup.string().nullable(),
   changeTo: yup.string().nullable(),
   reason: yup.string().nullable(),
   checkingRemarks: yup.string().nullable(),
+  chequeDate: yup.date().nullable(),
+  releasedDate: yup.date().nullable(),
   boA2: yup.string().nullable(),
   system: yup.string().required("System is required."),
   books: yup.string().nullable(),

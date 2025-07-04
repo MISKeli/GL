@@ -34,10 +34,10 @@ const ConfirmedDialog = ({ open, onClose, title, description, onYes }) => {
           <Typography variant="h6">{description}</Typography>
         </DialogContent>
         <DialogActions className="dialog__action">
-          <Button onClick={onClose} variant="contained" color="primary">
+          <Button onClick={onClose} variant="contained" color="error">
             No
           </Button>
-          <Button onClick={onYes} variant="contained" color="error">
+          <Button onClick={onYes} variant="contained" color="primary">
             Yes
           </Button>
         </DialogActions>

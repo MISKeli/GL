@@ -1,8 +1,17 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useParams } from "react-router-dom";
+import "../../styles/SystemsPage.scss";
 
 function SystemsPage() {
-  return <Outlet />;
+  const params = useParams();
+
+  const { name, section, to } = params;
+
+  return (
+    <>
+      <Outlet context={{ name, section, to }} />
+    </>
+  );
 }
 
 export default SystemsPage;

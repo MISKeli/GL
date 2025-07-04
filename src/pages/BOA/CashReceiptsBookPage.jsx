@@ -29,7 +29,7 @@ const CashReceiptsBookPage = ({ reportData }) => {
     FromMonth: reportData?.fromMonth || "",
     ToMonth: reportData?.toMonth || "",
   };
-  console.log("🚀 ~ CashReceiptsBookPage ~ fillParams:", fillParams);
+  // console.log("🚀 ~ CashReceiptsBookPage ~ fillParams:", fillParams);
 
   const [params, setParams] = useState({
     ...fillParams,

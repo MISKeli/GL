@@ -6,6 +6,7 @@ import "../../../styles/BoaPage.scss";
 import {
   Box,
   Button,
+  CircularProgress,
   Paper,
   Skeleton,
   Table,
@@ -17,11 +18,17 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { setPageNumber, setPageSize } from "../../../features/slice/authSlice";
+import {
+  setPage,
+  setPageNumber,
+  setPageSize,
+} from "../../../features/slice/authSlice";
 import useExportData from "../../../components/hooks/useExportData";
 import moment from "moment";
 import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
+import { useLazyGenerateSystemFolderStructurePageQuery } from "../../../features/api/folderStructureApi";
+import { IosShareRounded } from "@mui/icons-material";
 
 const CashDisbursementBookFolder = ({
   data,
@@ -61,19 +68,38 @@ const CashDisbursementBookFolder = ({
     data?.value?.lineAmount?.lineAmountCredit || 0;
 
   const { CashDisburstmentBookExport } = useExportData();
+  const [
+    fetchExportData,
+    { isLoading: isExportLoading, isFetching: isExportFetching },
+  ] = useLazyGenerateSystemFolderStructurePageQuery();
   const header = info.cash_disbursement_Export;
 
   const onExport = async () => {
+    toast.info("Export started");
     try {
-      CashDisburstmentBookExport(header, data.value.cashDisbursementBook, {
-        fromMonth: moment(param.month, "MMM")
-          .startOf("month")
-          .format("MMMM DD, YYYY"),
-        toMonth: moment(param.month, "MMM").endOf("month"),
-      });
+      // Trigger lazy query for export
+      const exportData = await fetchExportData({
+        Year: param.year,
+        Month: param.month,
+        Boa: param.boaName,
+        UsePagination: false, // Disable pagination
+      }).unwrap();
+
+      // Use the fetched data for export
+      await CashDisburstmentBookExport(
+        header,
+        exportData?.value?.cashDisbursementBook,
+        {
+          fromMonth: moment(param.month, "MMM")
+            .startOf("month")
+            .format("MMMM DD, YYYY"),
+          toMonth: moment(param.month, "MMM").endOf("month"),
+        }
+      );
+      toast.success("Export completed successfully");
     } catch (err) {
       toast.error(err.message);
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -269,16 +295,20 @@ const CashDisbursementBookFolder = ({
             variant="contained"
             color="primary"
             onClick={onExport}
-            //disabled
-            //   startIcon={
-            //     isExportLoading ? (
-            //       <CircularProgress size={20} />
-            //     ) : (
-            //       <IosShareRounded />
-            //     )
-            //   }
+            disabled={isExportLoading || isExportFetching}
+            startIcon={
+              isExportLoading ? (
+                <CircularProgress size={20} />
+              ) : (
+                <IosShareRounded />
+              )
+            }
           >
-            {isLoading ? "Loading..." : isFetching ? "Exporting..." : "Export"}
+            {isExportLoading
+              ? "Loading..."
+              : isExportFetching
+              ? "Exporting..."
+              : "Export"}
           </Button>
         </Box>
         <TablePagination

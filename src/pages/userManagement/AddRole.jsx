@@ -23,21 +23,15 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { info } from "../../schemas/info";
 import { Close } from "@mui/icons-material";
+import { info } from "../../schemas/info";
 import "../../styles/AddRole.scss";
 import { moduleSchema } from "../../schemas/moduleSchema";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
 import ConfirmedDialog from "../../components/ConfirmedDialog";
-
-// Helper function to get permissions from schema
-const getPermissionsFromSchema = () =>
-  moduleSchema.map((module) => ({
-    name: module.name,
-    subCategory: module.subCategory || [],
-  }));
+import { useGetAllSystemsAsyncQuery } from "../../features/api/systemApi";
 
 const AddRole = ({
   open = false,
@@ -48,10 +42,15 @@ const AddRole = ({
   isViewOnly,
   setIsUpdate,
 }) => {
-  const permissions = getPermissionsFromSchema();
   const [selectedMainCategories, setSelectedMainCategories] = useState([]);
+  const [selectedSystems, setSelectedSystems] = useState([]);
+  const [selectedBooks, setSelectedBooks] = useState({});
   const [isSubcategoryValid, setIsSubcategoryValid] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [originalData, setOriginalData] = useState({
+    roleName: "",
+    permissions: [],
+  });
 
   const {
     reset,
@@ -73,27 +72,139 @@ const AddRole = ({
   const [updateRole] = useUpdateRoleMutation();
   const dispatch = useDispatch();
 
+  const { data: systemData } = useGetAllSystemsAsyncQuery({
+    UsePagination: false,
+    isActive: true,
+  });
+
+  const permissions = getPermissionsFromSchema(systemData);
+
+  // Remove duplicates from array
+  const removeDuplicates = (array) => [...new Set(array)];
+
+  // Check if there are changes compared to original data
+  const hasChanges = () => {
+    const currentRoleName = watch("roleName") || "";
+    const currentPermissions = watch("permissions") || [];
+
+    return (
+      currentRoleName.toUpperCase() !== originalData.roleName.toUpperCase() ||
+      !arraysEqual(
+        removeDuplicates(currentPermissions).sort(),
+        removeDuplicates(originalData.permissions).sort()
+      )
+    );
+  };
+
+  // Helper function to compare arrays
+  const arraysEqual = (a, b) => {
+    if (a.length !== b.length) return false;
+    return a.every((val, index) => val === b[index]);
+  };
+
+  // Parse existing permissions and books from data
+  const parseExistingPermissions = (existingPermissions) => {
+    const mainCategories = [];
+    const systems = [];
+    const books = {};
+
+    if (!existingPermissions) return { mainCategories, systems, books };
+
+    const uniquePermissions = removeDuplicates(existingPermissions);
+
+    uniquePermissions.forEach((permission) => {
+      // Check if it's a main category
+      const mainCategory = permissions.find((p) => p.name === permission);
+      if (mainCategory) {
+        mainCategories.push(permission);
+        return;
+      }
+
+      // Check if it's a system (subcategory)
+      let isSystem = false;
+      for (const module of permissions) {
+        const system = module.subCategory?.find(
+          (sub) => sub.name === permission
+        );
+        if (system) {
+          systems.push(permission);
+          isSystem = true;
+          break;
+        }
+      }
+
+      // Check if it's a book (format: "systemName - bookName")
+      if (!isSystem && permission.includes(" - ")) {
+        for (const module of permissions) {
+          for (const sub of module.subCategory || []) {
+            if (permission.startsWith(sub.name + " - ")) {
+              const systemName = sub.name;
+              const bookName = permission.substring(sub.name.length + 3);
+
+              if (!books[systemName]) books[systemName] = [];
+              if (!books[systemName].includes(bookName)) {
+                books[systemName].push(bookName);
+              }
+              if (!systems.includes(systemName)) {
+                systems.push(systemName);
+              }
+              return;
+            }
+          }
+        }
+      }
+    });
+
+    return {
+      mainCategories: removeDuplicates(mainCategories),
+      systems: removeDuplicates(systems),
+      books,
+    };
+  };
+
   // Populate form with data when open or data changes
   useEffect(() => {
     if (open && data) {
-      setValue("roleName", data.roleName || "");
-      setValue("permissions", data.permissions || []);
-      setSelectedMainCategories(
-        permissions
-          .filter((module) => data?.permissions?.includes(module.name))
-          .map((module) => module.name)
-      );
+      const roleName = data.roleName || "";
+      const permissions = removeDuplicates(data.permissions || []);
+
+      setValue("roleName", roleName);
+      setValue("permissions", permissions);
+      setOriginalData({ roleName, permissions });
+
+      const { mainCategories, systems, books } =
+        parseExistingPermissions(permissions);
+      setSelectedMainCategories(mainCategories);
+      setSelectedSystems(systems);
+      setSelectedBooks(books);
     } else {
-      reset(); // Reset form if no data
+      reset();
+      setOriginalData({ roleName: "", permissions: [] });
+      setSelectedMainCategories([]);
+      setSelectedSystems([]);
+      setSelectedBooks({});
     }
   }, [open, data, setValue, reset]);
-  console.log("DATA", data);
 
+  // Update permissions array when selections change
   useEffect(() => {
-    const selectedPermissions = watch("permissions");
-    const subcategoryValidation = validateSubcategories(selectedPermissions);
-    setIsSubcategoryValid(subcategoryValidation);
-  }, [watch("permissions"), selectedMainCategories]);
+    const allPermissions = [
+      ...selectedMainCategories,
+      ...selectedSystems,
+      ...Object.entries(selectedBooks).flatMap(([systemName, books]) =>
+        books.map((bookName) => `${systemName} - ${bookName}`)
+      ),
+    ];
+
+    setValue("permissions", removeDuplicates(allPermissions), {
+      shouldValidate: true,
+    });
+  }, [selectedMainCategories, selectedSystems, selectedBooks, setValue]);
+
+  // Validate permissions
+  useEffect(() => {
+    setIsSubcategoryValid(validatePermissions());
+  }, [selectedMainCategories, selectedSystems, selectedBooks]);
 
   // Close dialog and reset state
   const handleClose = () => {
@@ -103,80 +214,116 @@ const AddRole = ({
     setIsUpdate(false);
     dispatch(setPokedData([]));
     setSelectedMainCategories([]);
+    setSelectedSystems([]);
+    setSelectedBooks({});
+    setOriginalData({ roleName: "", permissions: [] });
   };
 
   // Handle main category checkbox changes
-  // This function updates the selected main categories and corresponding permissions
   const handleMainCategoryChange = (e) => {
     const category = e.target.value;
     const checked = e.target.checked;
 
     if (checked) {
-      // If checked, add the main category to the list of selected categories
-      setSelectedMainCategories((prev) => [...prev, category]);
-      // Add the main category to permissions
-      setValue("permissions", [...watch("permissions"), category], {
-        shouldValidate: true,
-      });
+      setSelectedMainCategories((prev) =>
+        removeDuplicates([...prev, category])
+      );
     } else {
-      // If unchecked, remove the main category from the list of selected categories
       setSelectedMainCategories((prev) =>
         prev.filter((item) => item !== category)
       );
-      // Find the subcategories of the main category to remove them as well
-      const subCategoriesToRemove =
-        permissions
-          .find((mod) => mod.name === category)
-          ?.subCategory.map((sub) => sub.name) || [];
-      // Remove the main category and its subcategories from permissions
-      setValue(
-        "permissions",
-        watch("permissions").filter(
-          (perm) => perm !== category && !subCategoriesToRemove.includes(perm)
-        ),
-        { shouldValidate: true }
-      );
+
+      // Remove all systems and books for this category
+      const moduleToRemove = permissions.find((mod) => mod.name === category);
+      if (moduleToRemove && moduleToRemove.subCategory) {
+        const systemsToRemove = moduleToRemove.subCategory.map(
+          (sub) => sub.name
+        );
+        setSelectedSystems((prev) =>
+          prev.filter((sys) => !systemsToRemove.includes(sys))
+        );
+
+        const newSelectedBooks = { ...selectedBooks };
+        systemsToRemove.forEach((systemName) => {
+          delete newSelectedBooks[systemName];
+        });
+        setSelectedBooks(newSelectedBooks);
+      }
     }
   };
 
-  // Handle subcategory checkbox changes
-  // This function updates the permissions when a subcategory checkbox is toggled
-  const handleCheckboxChange = (e) => {
-    const value = e.target.value;
+  // Handle system checkbox changes
+  const handleSystemChange = (e) => {
+    const systemName = e.target.value;
     const checked = e.target.checked;
 
-    // Update permissions based on whether the checkbox is checked or not
-    setValue(
-      "permissions",
-      checked
-        ? [...watch("permissions"), value]
-        : watch("permissions").filter((perm) => perm !== value),
-      { shouldValidate: true }
-    );
+    if (checked) {
+      setSelectedSystems((prev) => removeDuplicates([...prev, systemName]));
+    } else {
+      setSelectedSystems((prev) => prev.filter((sys) => sys !== systemName));
+      // Remove all books for this system
+      const newSelectedBooks = { ...selectedBooks };
+      delete newSelectedBooks[systemName];
+      setSelectedBooks(newSelectedBooks);
+    }
   };
-  const validateSubcategories = (selectedPermissions) => {
-    let isValid = true;
 
-    // Iterate over selected main categories
-    selectedMainCategories.forEach((mainCategory) => {
-      // Find the corresponding module schema for the selected main category
-      const module = permissions.find((mod) => mod.name === mainCategory);
+  // Handle book checkbox changes
+  const handleBookChange = (e, systemName) => {
+    const bookName = e.target.value;
+    const checked = e.target.checked;
 
-      // If the main category has subcategories
-      if (module && module.subCategory.length > 0) {
-        // Check if any of the subcategories are selected in permissions
-        const selectedSubCategories = module.subCategory.filter((subCat) =>
-          selectedPermissions.includes(subCat.name)
-        );
+    setSelectedBooks((prev) => {
+      const systemBooks = prev[systemName] || [];
 
-        // If no subcategory is selected, mark as invalid
-        if (selectedSubCategories.length === 0) {
-          isValid = false;
+      if (checked) {
+        return {
+          ...prev,
+          [systemName]: removeDuplicates([...systemBooks, bookName]),
+        };
+      } else {
+        const updatedBooks = systemBooks.filter((book) => book !== bookName);
+        if (updatedBooks.length === 0) {
+          const { [systemName]: removed, ...rest } = prev;
+          return rest;
         }
+        return { ...prev, [systemName]: updatedBooks };
       }
     });
+  };
 
-    return isValid;
+  // Validate permissions - Updated to handle all modules with subcategories
+  const validatePermissions = () => {
+    // Check all selected main categories that have subcategories
+    for (const categoryName of selectedMainCategories) {
+      const module = permissions.find((mod) => mod.name === categoryName);
+
+      if (module && module.subCategory && module.subCategory.length > 0) {
+        // Check if at least one system is selected for this category
+        const categorySystemNames = module.subCategory.map((sub) => sub.name);
+        const hasSelectedSystems = categorySystemNames.some((systemName) =>
+          selectedSystems.includes(systemName)
+        );
+
+        if (!hasSelectedSystems) {
+          return false;
+        }
+      }
+    }
+
+    // Check if selected systems with books have at least one book selected
+    for (const systemName of selectedSystems) {
+      const system = permissions
+        .flatMap((mod) => mod.subCategory || [])
+        .find((sub) => sub.name === systemName);
+
+      if (system && system.books && system.books.length > 0) {
+        const systemBooks = selectedBooks[systemName] || [];
+        if (systemBooks.length === 0) return false;
+      }
+    }
+
+    return true;
   };
 
   const addRoleRequest = async (roleData) => {
@@ -188,7 +335,7 @@ const AddRole = ({
         await addRole(roleData).unwrap();
         toast.success(info.role.messages.addedSuccess);
       }
-      handleClose(); // Close the dialog on success
+      handleClose();
     } catch (error) {
       toast.error(error?.data?.message || "Failed to process the request.");
     }
@@ -196,17 +343,16 @@ const AddRole = ({
 
   // Submit form handler
   const submitHandler = (roleData) => {
-    // Validate subcategories
-    const isSubcategoryValid = validateSubcategories(roleData.permissions);
-
-    if (!isSubcategoryValid) {
-      toast.error(info.role.messages.error);
+    if (!validatePermissions()) {
+      toast.error(
+        "Please select required systems and books for selected categories."
+      );
       return;
     }
 
     const body = {
       roleName: roleData.roleName.toUpperCase(),
-      permissions: roleData.permissions,
+      permissions: removeDuplicates(roleData.permissions),
     };
 
     if (isUpdate) {
@@ -221,12 +367,55 @@ const AddRole = ({
     addRoleRequest({
       id: data.id,
       roleName: watch("roleName").toUpperCase(),
-      permissions: watch("permissions"),
+      permissions: removeDuplicates(watch("permissions")),
     });
   };
+
+  // Check if save button should be disabled
+  const isSaveDisabled = () => {
+    if (!isValid || !isSubcategoryValid) return true;
+    if (isUpdate && !hasChanges()) return true;
+    return false;
+  };
+
+  // Get all modules with subcategories that are selected
+  const getSelectedModulesWithSubcategories = () => {
+    return permissions.filter(
+      (module) =>
+        module.subCategory &&
+        module.subCategory.length > 0 &&
+        selectedMainCategories.includes(module.name)
+    );
+  };
+
+  // Get systems with books for book display
+  const getSystemsWithBooks = () => {
+    const allSystemsWithBooks = [];
+
+    permissions.forEach((module) => {
+      if (module.subCategory) {
+        module.subCategory.forEach((system) => {
+          if (
+            selectedSystems.includes(system.name) &&
+            system.books &&
+            system.books.length > 0
+          ) {
+            allSystemsWithBooks.push(system);
+          }
+        });
+      }
+    });
+
+    return allSystemsWithBooks;
+  };
+
+  const selectedModulesWithSubcategories =
+    getSelectedModulesWithSubcategories();
+  const systemsWithBooks = getSystemsWithBooks();
+
   return (
     <>
-      <Dialog open={open} fullWidth className="role">
+      <Dialog open={open} fullWidth maxWidth="md" className="role">
         <DialogTitle className="role__header" fontWeight={600}>
           {isUpdate
             ? info.role.dialogs.updateTitle
@@ -295,9 +484,9 @@ const AddRole = ({
                                     module.name
                                   )}
                                   onChange={handleMainCategoryChange}
+                                  disabled={isViewOnly}
                                 />
                               }
-                              disabled={isViewOnly}
                               label={module.name}
                             />
                           )}
@@ -307,56 +496,99 @@ const AddRole = ({
                   </FormGroup>
                 </FormControl>
 
-                {/* Subcategories */}
-                {permissions
-                  .filter((module) => module.subCategory.length > 0)
-                  .filter((module) =>
-                    selectedMainCategories.includes(module.name)
-                  )
-                  .map((module) => (
-                    <FormControl
-                      component="fieldset"
-                      variant="standard"
-                      key={module.name}
-                      sx={{
-                        border: "1px solid #2D3748",
-                        borderRadius: "10px",
-                        padding: 2,
-                        marginTop: 2,
-                      }}
-                    >
-                      <FormLabel component="legend" sx={{ padding: "0 20px" }}>
-                        {module.name}
-                      </FormLabel>
-                      <FormGroup>
-                        <Stack direction="row" flexWrap="wrap">
-                          {module.subCategory.map((subCat) => (
-                            <Controller
-                              key={subCat.name}
-                              control={control}
-                              name="permissions"
-                              render={() => (
-                                <FormControlLabel
-                                  sx={{ flex: 1, flexBasis: "40%" }}
-                                  control={
-                                    <Checkbox
-                                      value={subCat.name}
-                                      checked={watch("permissions").includes(
-                                        subCat.name
-                                      )}
-                                      onChange={handleCheckboxChange}
-                                    />
-                                  }
-                                  disabled={isViewOnly}
-                                  label={subCat.name}
-                                />
-                              )}
-                            />
-                          ))}
-                        </Stack>
-                      </FormGroup>
-                    </FormControl>
-                  ))}
+                {/* Systems/Subcategories (For all modules that have them) */}
+                {selectedModulesWithSubcategories.map((module) => (
+                  <FormControl
+                    key={`systems-${module.name}`}
+                    component="fieldset"
+                    variant="standard"
+                    sx={{
+                      border: "1px solid #2D3748",
+                      borderRadius: "10px",
+                      padding: 2,
+                      marginTop: 2,
+                    }}
+                  >
+                    <FormLabel component="legend" sx={{ padding: "0 20px" }}>
+                      {module.name} - Systems
+                    </FormLabel>
+                    <FormGroup>
+                      <Stack direction="row" flexWrap="wrap">
+                        {module.subCategory.map((subCat) => (
+                          <Controller
+                            key={subCat.name}
+                            control={control}
+                            name="permissions"
+                            render={() => (
+                              <FormControlLabel
+                                sx={{ flex: 1, flexBasis: "40%" }}
+                                control={
+                                  <Checkbox
+                                    value={subCat.name}
+                                    checked={selectedSystems.includes(
+                                      subCat.name
+                                    )}
+                                    onChange={handleSystemChange}
+                                    disabled={isViewOnly}
+                                  />
+                                }
+                                label={subCat.name}
+                              />
+                            )}
+                          />
+                        ))}
+                      </Stack>
+                    </FormGroup>
+                  </FormControl>
+                ))}
+
+                {/* Books (For all systems that have them) */}
+                {systemsWithBooks.map((system) => (
+                  <FormControl
+                    component="fieldset"
+                    variant="standard"
+                    key={`books-${system.name}`}
+                    sx={{
+                      border: "1px solid #2D3748",
+                      borderRadius: "10px",
+                      padding: 2,
+                      marginTop: 2,
+                    }}
+                  >
+                    <FormLabel component="legend" sx={{ padding: "0 20px" }}>
+                      {system.name} - Books
+                    </FormLabel>
+                    <FormGroup>
+                      <Stack direction="row" flexWrap="wrap">
+                        {system.books.map((book) => (
+                          <Controller
+                            key={`${system.name}-${book.name}`}
+                            control={control}
+                            name="permissions"
+                            render={() => (
+                              <FormControlLabel
+                                sx={{ flex: 1, flexBasis: "40%" }}
+                                control={
+                                  <Checkbox
+                                    value={book.name}
+                                    checked={(
+                                      selectedBooks[system.name] || []
+                                    ).includes(book.name)}
+                                    onChange={(e) =>
+                                      handleBookChange(e, system.name)
+                                    }
+                                    disabled={isViewOnly}
+                                  />
+                                }
+                                label={book.name}
+                              />
+                            )}
+                          />
+                        ))}
+                      </Stack>
+                    </FormGroup>
+                  </FormControl>
+                ))}
               </Grid>
             </Grid>
           </form>
@@ -365,14 +597,13 @@ const AddRole = ({
           <Button color="error" variant="contained" onClick={handleClose}>
             Cancel
           </Button>
-
           {!isViewOnly && (
             <Button
               color="primary"
               variant="contained"
               type="submit"
               form="submit-form"
-              disabled={!isValid || !isSubcategoryValid}
+              disabled={isSaveDisabled()}
             >
               {isUpdate ? "Save" : "Create"}
             </Button>
@@ -388,6 +619,73 @@ const AddRole = ({
       />
     </>
   );
+};
+
+// Keep the existing getPermissionsFromSchema function
+const getPermissionsFromSchema = (systemData) => {
+  const systemPermissions =
+    systemData?.value?.result
+      ?.filter((item) => item.isActive)
+      .map((item) => {
+        let books = [];
+
+        if (
+          item.bookParameter &&
+          item.bookParameter.trim() !== "" &&
+          item.bookParameter !== "[]"
+        ) {
+          try {
+            const parsedBooks = JSON.parse(item.bookParameter);
+            books = parsedBooks
+              .filter((book) => book.status !== false)
+              .map((book) => ({
+                name: book.bookName,
+                id: book.id || book.bookName,
+              }));
+          } catch (error) {
+            console.error(
+              `Error parsing bookParameter for ${item.systemName}:`,
+              error
+            );
+            books = [];
+          }
+        }
+
+        return {
+          name: item.systemName,
+          books: books,
+          subCategory: [],
+        };
+      }) || [];
+
+  // Create a copy of moduleSchema to avoid mutation
+  const modulePermissions = moduleSchema.map((module) => ({
+    ...module,
+    subCategory: module.subCategory ? [...module.subCategory] : [],
+  }));
+
+  // Find or create General Ledger module and add systems + IMPORT BUTTON
+  const glModuleIndex = modulePermissions.findIndex(
+    (module) => module.name === "General Ledger"
+  );
+
+  if (glModuleIndex !== -1) {
+    modulePermissions[glModuleIndex].subCategory.push(...systemPermissions, {
+      name: "IMPORT BUTTON",
+      books: null,
+      subCategory: [],
+    });
+  } else {
+    modulePermissions.push({
+      name: "General Ledger",
+      subCategory: [
+        ...systemPermissions,
+        { name: "IMPORT BUTTON", books: null, subCategory: [] },
+      ],
+    });
+  }
+
+  return modulePermissions;
 };
 
 export default AddRole;

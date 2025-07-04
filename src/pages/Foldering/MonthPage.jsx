@@ -16,8 +16,6 @@ const MonthsPage = () => {
 
   const months = folderData?.value?.response?.map((item) => item.month);
 
-
-
   const navigate = useNavigate();
 
   const handleDoubleClick = (month) => {
@@ -42,7 +40,7 @@ const MonthsPage = () => {
 
   return (
     <>
-      <Box ref={containerRef} display={"flex"}>
+      <Box ref={containerRef} display={"flex"} height={"fit-content"}>
         {months?.map((month) => (
           <DataFile
             isSelected={selectedItem === month}

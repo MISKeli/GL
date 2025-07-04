@@ -26,51 +26,45 @@ import {
 import { IosShareRounded } from "@mui/icons-material";
 import useExportData from "../../components/hooks/useExportData";
 import { toast } from "react-toastify";
+import OnExportButton from "../../components/OnExportButton";
 
 const JournalBookPage = ({ reportData }) => {
-  console.log("🚀 ~ JournalBookPage ~ reportData:", reportData);
+  //console.log("🚀 ~ JournalBookPage ~ reportData:", reportData);
+
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
   const [search, setSearch] = useState("");
   const debounceValue = useDebounce(search);
 
-  const [params, setParams] = useState({
-    Search: debounceValue,
-    page: 0,
-    PageSize: 25,
-    PageNumber: 1,
-    UsePagination: true,
-    FromMonth: reportData.FromMonth,
-    ToMonth: reportData.ToMonth,
-  });
+  const fillParams = {
+    FromMonth: reportData?.fromMonth || "",
+    ToMonth: reportData?.toMonth || "",
+  };
 
-  const headerColumn = info.journal_book;
+  const headerColumn = info.journal_book_sumarry;
 
   const {
     data: boaData,
     isLoading: isBoaLoading,
     isFetching: isBoaFetching,
   } = useGenerateJournalBookPageQuery({
-    ...params,
+    ...fillParams,
+    UsePagination: true,
+    PageNumber: page + 1,
+    PageSize: pageSize,
   });
+
   const bodyData = boaData?.value?.journalBook || [];
 
-  // Handle page change
+  //Pagination
   const handleChangePage = (event, newPage) => {
-    setParams((currentValue) => ({
-      ...currentValue,
-      page: newPage, // Update the page index
-      PageNumber: newPage + 1, // Update the page number (1-based)
-    }));
+    setPage(newPage);
   };
 
-  // Handle rows per page change
   const handleChangeRowsPerPage = (event) => {
-    const newPageSize = parseInt(event.target.value, 10); // Get the new page size
-    setParams((currentValue) => ({
-      ...currentValue,
-      PageSize: newPageSize, // Update the page size
-      page: 0, // Reset to the first page
-      PageNumber: 1, // Reset to page number 1
-    }));
+    const selectedValue = parseInt(event.target.value, 10);
+    setPageSize(selectedValue); // Directly set the selected value
+    setPage(0); // Reset to first page
   };
 
   // for comma
@@ -90,27 +84,36 @@ const JournalBookPage = ({ reportData }) => {
   const journalBookCreditTotalData =
     boaData?.value?.lineAmount?.lineAmountCredit || 0;
 
-  const { journalBookExport } = useExportData();
-  const [fetchExportData] = useLazyGenerateJournalBookPageQuery();
+  const { journalBookSummaryExport } = useExportData();
+  const [
+    fetchExportData,
+    { isLoading: isExportLoading, isFetching: isExportFetching },
+  ] = useLazyGenerateJournalBookPageQuery();
 
-  const hasData =
-    boaData?.value?.journalBook && boaData?.value?.journalBook?.length > 0;
+  const hasData = boaData?.value?.journalBook?.length > 0;
 
-  const headers = info.journal_book_export;
+  const headers = info.journal_book_export_summary;
 
   const onExport = async () => {
+    if (isExportLoading || isExportFetching) {
+      return; // Prevent multiple export attempts while one is in progress
+    }
+    toast.info("Export started");
+
     try {
       // Trigger lazy query for export
       const exportData = await fetchExportData({
         UsePagination: false, // Disable pagination
-        FromMonth: params.FromMonth,
-        ToMonth: params.ToMonth,
+        ...fillParams,
       }).unwrap();
-      await journalBookExport(
+
+      console.log("journal book expoet", exportData);
+      await journalBookSummaryExport(
         headers,
         exportData?.value?.journalBook,
         reportData
       );
+      toast.success("Export completed successfully");
     } catch (err) {
       toast.error(err.message);
       console.log(err);
@@ -136,7 +139,7 @@ const JournalBookPage = ({ reportData }) => {
                 </TableHead>
                 <TableBody>
                   {isBoaFetching || isBoaLoading ? (
-                    Array.from({ length: params.PageSize }).map((_, index) => (
+                    Array.from({ length: 10 }).map((_, index) => (
                       <TableRow key={index}>
                         {headerColumn.map((col) => (
                           <TableCell key={col.id}>
@@ -174,7 +177,7 @@ const JournalBookPage = ({ reportData }) => {
                       ))}
                       {/* Grand Total Row */}
                       <TableRow className="boa__content__table--grandtotal">
-                        {info.journal_book.map((col) => (
+                        {info.journal_book_sumarry.map((col) => (
                           <TableCell
                             key={col.id}
                             style={{
@@ -219,28 +222,19 @@ const JournalBookPage = ({ reportData }) => {
         </Box>
         <Box className="boa__footer">
           <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={onExport}
-              disabled={!hasData || isBoaLoading || isBoaFetching}
-              startIcon={
-                isBoaLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <IosShareRounded />
-                )
-              }
-            >
-              {isBoaLoading ? "Exporting..." : "Export"}
-            </Button>
+            <OnExportButton
+              onExport={onExport}
+              hasData={hasData}
+              isLoading={isExportLoading}
+              isFetching={isExportFetching}
+            />
           </Box>
 
           <TablePagination
             component="div"
             count={boaData?.value.totalCount || 0}
-            page={params.page}
-            rowsPerPage={params.PageSize}
+            page={page}
+            rowsPerPage={pageSize}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             rowsPerPageOptions={[

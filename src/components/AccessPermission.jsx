@@ -6,7 +6,7 @@ const AccessPermission = ({ children, permission }) => {
   // const userData = useSelector((state) => JSON.parse(state.auth.user));
   const user = JSON.parse(sessionStorage.getItem("user"));
   // console.log("userdata", userData);
- // console.log("userdata1", user);
+  // console.log("userdata1", user);
 
   // Directly access the access permissions from userData
   const rolePermissions = user?.permission || [];

@@ -1,22 +1,32 @@
 import { createBrowserRouter } from "react-router-dom";
-import LoginPage from "../pages/login/LoginPage";
-import MainPage from "../pages/MainPage";
-import PrivateRoutes from "../pages/PrivateRoutes";
-import DashboardPage from "../pages/DashboardPage";
-import UserManagementPage from "../pages/userManagement/UserManagementPage";
 import AccessPermission from "../components/AccessPermission";
-import UserAccountPage from "../pages/userManagement/UserAccountPage";
-import RoleManagementPage from "../pages/userManagement/RoleManagemenPage";
-import SystemSetupPage from "../pages/systemSetup/SystemSetupPage";
 import BoaPage from "../pages/BOA/BoaPage";
-import MainSystemPage from "../pages/systems/MainSystemPage";
-import TrialBalancePage from "../pages/TrialBalancePage";
-import SystemPage2 from "../pages/SystemPage2";
-import YearPage from "../pages/Foldering/YearPage";
-import SystemFilepage from "../pages/Foldering/SystemFilePage";
+import ChargeOfAccountPage from "../pages/Masterlist/ChargeOfAccount/ChargeOfAccountPage";
+import DashboardPage from "../pages/DashboardPage";
 import MonthsPage from "../pages/Foldering/MonthPage";
+import SystemFilepage from "../pages/Foldering/SystemFilePage";
 import SystemNames from "../pages/Foldering/SystemNames";
+import YearPage from "../pages/Foldering/YearPage";
 import { LoginRoutes } from "../pages/login/LoginRoute";
+import MainPage from "../pages/MainPage";
+import Notfound from "../pages/NotFound";
+import PrivateRoutes from "../pages/PrivateRoutes";
+import SystemActivityPage from "../pages/Masterlist/SystemActivity/SystemActivityPage";
+import SystemPage2 from "../pages/SystemPage2";
+import MainSystemPage from "../pages/systems/MainSystemPage";
+import SystemsPage from "../pages/systems/SystemsPage";
+import SystemViewingPage from "../pages/systems/SystemViewingPage";
+import SystemSetupPageSample from "../pages/Masterlist/systemSetup/SystemSetupPageSample";
+import TrialBalanceDropDownPage from "../pages/TrailBalance/TrialBalanceDropDownPage";
+import RoleManagementPage from "../pages/userManagement/RoleManagemenPage";
+import UserAccountPage from "../pages/userManagement/UserAccountPage";
+import UserManagementPage from "../pages/userManagement/UserManagementPage";
+import CusImport from "../pages/systems/CusImport";
+import CustomImport from "../components/custom/CustomImport";
+import MainSystemPageV2 from "../pages/systems/MainSystemPageV2";
+import AccountTitlePage from "../pages/AccountTitle/AccountTitlePage";
+import MasterlistPage from "../pages/Masterlist/MasterlistPage";
+import BalanceSheetPage from "../pages/BalanceSheet/BalanceSheetPage";
 
 export const router = createBrowserRouter([
   {
@@ -32,7 +42,11 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "",
-            element: <DashboardPage />,
+            element: (
+              <AccessPermission permission={"Dashboard"}>
+                <DashboardPage />
+              </AccessPermission>
+            ),
           },
           {
             path: "users_management",
@@ -57,9 +71,39 @@ export const router = createBrowserRouter([
             ],
           },
           {
-            path: "system_setup",
-            element: <SystemSetupPage />,
+            path: "masterlist",
+            element: <MasterlistPage />,
+            children: [
+              {
+                path: "system_setup",
+                element: (
+                  <AccessPermission permission={"System Setup"}>
+                    <SystemSetupPageSample />
+                  </AccessPermission>
+                ),
+              },
+              {
+                path: "charge_of_account",
+                element: (
+                  <AccessPermission permission={"Charge of Account"}>
+                    <ChargeOfAccountPage />
+                  </AccessPermission>
+                ),
+              },
+              {
+                path: "account_title",
+                element: (
+                  <AccessPermission permission={"Account Title"}>
+                    <AccountTitlePage />
+                  </AccessPermission>
+                ),
+              },
+            ],
           },
+          // {
+          //   path: "system_setup",
+          //   element: <SystemSetupPageSample />,
+          // },
           {
             path: "boa",
             element: <BoaPage />,
@@ -88,23 +132,49 @@ export const router = createBrowserRouter([
           },
           {
             path: "main_system",
-            element: <MainSystemPage />,
+            element: <MainSystemPageV2 />,
           },
-          // {
-          //   path: "import",
-          //   element: <ImportPage />,
-          // },
+          {
+            path: "system",
+            element: <SystemsPage />,
+            children: [
+              {
+                path: ":to",
+                element: <SystemViewingPage />,
+              },
+            ],
+          },
           {
             path: "trial_balance",
-            element: <TrialBalancePage />,
+            element: <TrialBalanceDropDownPage />,
+          },
+          {
+            path: "system_monitoring",
+            element: <SystemActivityPage />,
+          },
+          {
+            path: "balance_sheet",
+            element: <BalanceSheetPage />,
           },
           // {
-          //   path: "systems",
-          //   element: <SystemsPage />,
-
+          //   path: "account_title",
+          //   element: <AccountTitlePage />,
+          // },
+          // {
+          //   path: "closed_date",
+          //   element: <ClosedDatePage />,
+          // },
+          // {
+          //   path: "closed_dialog_date",
+          //   element: <ClosedDateDialogPage />,
           // },
         ],
       },
     ],
+  },
+
+  {
+    path: "*",
+    element: <Notfound />,
   },
 ]);

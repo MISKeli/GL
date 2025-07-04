@@ -9,7 +9,7 @@
     margin: 0px;
     padding: 0px;
     display: flex;
-    justify-content: space-between;
+    //justify-content: space-between;
     align-items: center;
     color: $primary-main;
     //margin-bottom: 10px; // Space below the title
@@ -38,6 +38,24 @@
       //margin-right: 10px; // Space between import and syncing sections
 
       &__content {
+        &__dialog {
+          &__viewing {
+            &--content {
+              .MuiDataGrid-cell {
+                &.missing-required-field {
+                  background-color: rgba(
+                    255,
+                    0,
+                    0,
+                    0.2
+                  ); // Light red background
+                  color: red;
+                  font-weight: bold;
+                }
+              }
+            }
+          }
+        }
         &__dropzone {
           border: 3px dashed $text-hint; // Style for the dropzone
           padding: 53px; // Padding inside the dropzone
@@ -82,6 +100,17 @@
       }
       height: 500px;
       overflow-y: auto;
+    }
+    &--norecords {
+      display: flex;
+
+      justify-content: center;
+      align-items: center;
+
+      img {
+        width: 70vh;
+        height: auto;
+      }
     }
     &--actions {
     }

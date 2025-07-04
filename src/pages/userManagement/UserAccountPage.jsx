@@ -3,6 +3,7 @@ import {
   ArchiveOutlined,
   ArchiveRounded,
   EditRounded,
+  IosShareRounded,
   LibraryAddRounded,
   LockReset,
   MoreVertOutlined,
@@ -13,6 +14,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Divider,
   IconButton,
   InputBase,
@@ -39,6 +41,7 @@ import "../../styles/Masterlist.scss";
 import AddUser from "../userManagement/AddUser";
 import {
   useGetAllUserQuery,
+  useLazyGetAllUserQuery,
   useUpdateUserStatusMutation,
 } from "../../features/api/userApi";
 import useDebounce from "../../components/useDebounce";
@@ -48,7 +51,7 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setPokedData } from "../../features/slice/authSlice";
 import noRecordsFound from "../../assets/images/noRecordsFound.png";
-
+import useExportData from "../../components/hooks/useExportData";
 
 // Styled component for the animated search bar
 const AnimatedBox = styled(Box)(({ theme, expanded }) => ({
@@ -83,6 +86,8 @@ const UserAccountPage = () => {
   const debounceValue = useDebounce(search);
   const inputRef = useRef(null); // Create a ref for InputBase
 
+  const { commonExport } = useExportData();
+
   const {
     data: userData,
     isLoading: isUserLoading,
@@ -93,10 +98,10 @@ const UserAccountPage = () => {
       Status: status === "active" ? true : false,
       PageNumber: page + 1,
       PageSize: pageSize,
+      UsePagination: true,
     },
     { refetchOnFocus: true }
   );
-  //console.log("appleeee", userData);
 
   const openPopUp = () => {
     setOpen(true);
@@ -133,7 +138,7 @@ const UserAccountPage = () => {
   };
   const handleChangeRowsPerPage = (event) => {
     setPageSize(parseInt(event.target.value, 10));
-    setPage(0); 
+    setPage(0);
   };
 
   //Status
@@ -193,10 +198,29 @@ const UserAccountPage = () => {
       });
   };
 
+  const [fetchExportData] = useLazyGetAllUserQuery();
+
+  const Headers = info.users.export;
+  const hasData = userData?.value?.result?.length > 0;
+
+  const onExport = async () => {
+    try {
+      const exportData = await fetchExportData({
+        UsePagination: false,
+      }).unwrap();
+      await commonExport(Headers, exportData?.value?.result, info.users.title);
+    } catch (err) {
+      toast.error(err.message);
+      console.log(err);
+    }
+  };
+
   return (
     <>
       <Box className="masterlist">
         <AddUser open={open} closeHandler={closePopUp} isUpdate={isUpdate} />
+        {/* <AddUserSample open={open} closeHandler={closePopUp} isUpdate={isUpdate} /> */}
+
         <Box className="masterlist__header">
           <Box className="masterlist__header__con1">
             <Typography variant="h5" className="masterlist__header--title">
@@ -282,7 +306,7 @@ const UserAccountPage = () => {
                           ))}
                         </TableRow>
                       ))
-                    : userData?.value.users.map((userAcc, index) => (
+                    : userData?.value.result.map((userAcc, index) => (
                         <TableRow
                           key={index}
                           className={activeRow === userAcc.id ? "active" : ""}
@@ -322,12 +346,32 @@ const UserAccountPage = () => {
                       ))}
                 </TableBody>
               </Table>
-              {userData?.value?.users.length === 0 ? (
+              {userData?.value?.result.length === 0 ? (
                 <Box className="masterlist__content__table--norecords">
                   <img src={noRecordsFound} alt="No Records Found" />
                 </Box>
               ) : null}
             </TableContainer>
+          </Box>
+          <Box className="masterlist__footer">
+            <Box>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={onExport}
+                disabled={!hasData || isUserLoading || isUserFetching}
+                startIcon={
+                  isUserLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <IosShareRounded />
+                  )
+                }
+              >
+                {isUserLoading ? "Exporting..." : "Export"}
+              </Button>
+            </Box>
+
             <TablePagination
               component="div"
               className="pagination"
@@ -339,7 +383,6 @@ const UserAccountPage = () => {
               rowsPerPageOptions={[5, 10, 25]}
             />
           </Box>
-          <Box className="masterlist__footer"></Box>
           <Menu
             open={Boolean(anchorEl)}
             onClose={handlePopOverClose}
@@ -411,9 +454,15 @@ const UserAccountPage = () => {
           open={openArchiveDialog}
           onClose={() => setOpenArchiveDialog(false)}
           onYes={handleUserStatus} // Call handleUserStatus on confirmation
-          title={pokedData?.isActive ? info.users.dialogs.achiveUserTitle : info.users.dialogs.restoreUserTitle}
+          title={
+            pokedData?.isActive
+              ? info.users.dialogs.achiveUserTitle
+              : info.users.dialogs.restoreUserTitle
+          }
           description={`Are you sure you want to ${
-            pokedData?.isActive ? info.users.dialogs.achiveTitle.toUpperCase() : info.users.dialogs.restoreTitle.toUpperCase() 
+            pokedData?.isActive
+              ? info.users.dialogs.achiveTitle.toUpperCase()
+              : info.users.dialogs.restoreTitle.toUpperCase()
           } ${pokedData?.firstName || "this user"}?`}
         />
       </Box>

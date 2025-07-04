@@ -1,5 +1,7 @@
 // defaultValues.js
 
+import { closedDate } from "./validation";
+
 export const defaultValue = {
   userAcc: {
     idPrefix: "",
@@ -69,7 +71,7 @@ export const defaultValue = {
     particulars: null,
     month2: null,
     farmType: null,
-    jeanRemarks: null,
+    adjustment: null,
     from: null,
     changeTo: null,
     reason: null,
@@ -83,6 +85,12 @@ export const defaultValue = {
     systemName: "",
     endpoint: "",
     token: "",
+    iconFile: "",
+    bookParameter: []
+    
+  },
+  closedDate: {
+    closedDate: 0,
   },
 };
 

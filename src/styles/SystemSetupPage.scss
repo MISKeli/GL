@@ -89,6 +89,19 @@
       }
     }
 
+    // &--pagination {
+    //   height: auto;
+    //   overflow: hidden; // Prevent scrollbar by hiding overflow
+    //   display: flex; // Flexbox for layout control
+    //   justify-content: flex-end; // Center pagination
+    //   align-items: center; // Align pagination vertically
+    //   padding: 10px 0; // Add padding for spacing
+    // }
+  }
+  &__footer{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     &--pagination {
       height: auto;
       overflow: hidden; // Prevent scrollbar by hiding overflow

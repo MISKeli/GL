@@ -23,18 +23,17 @@ import "../../styles/BoaPage.scss";
 
 import { toast } from "react-toastify";
 import useExportData from "../../components/hooks/useExportData";
+import OnExportButton from "../../components/OnExportButton";
 const SalesJournalPage = ({ reportData }) => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
 
-  const headerColumn = info.sales_journal;
-  const { salesJournalExport } = useExportData();
+  const headerColumn = info.sales_journal_sumarry;
+  const { salesJournalSummaryExport } = useExportData();
   const fillParams = {
     FromMonth: reportData?.fromMonth || "",
     ToMonth: reportData?.toMonth || "",
   };
-
-  console.log("fill", fillParams);
 
   const {
     data: boaData,
@@ -57,9 +56,6 @@ const SalesJournalPage = ({ reportData }) => {
     ...fillParams,
     UsePagination: false,
   });
-
-  console.log("boaData", boaData);
-  console.log("export: ", exportData);
 
   const hasData =
     exportData?.value.salesJournalBook &&
@@ -93,11 +89,11 @@ const SalesJournalPage = ({ reportData }) => {
   const trailBalanceCreditTotalData =
     boaData?.value?.lineAmount?.lineAmountCredit || 0;
 
-  const headers = info.sale_book_Export;
+  const headers = info.sale_book_Export_Summary;
 
   const onExport = async () => {
     try {
-      salesJournalExport(
+      salesJournalSummaryExport(
         headers,
         exportData.value.salesJournalBook,
         reportData
@@ -185,10 +181,10 @@ const SalesJournalPage = ({ reportData }) => {
                                       const amountValue =
                                         subItem.id === "debit" &&
                                         row.drCr === "Debit"
-                                          ? row.lineAmount
+                                          ? row.amount
                                           : subItem.id === "credit" &&
                                             row.drCr === "Credit"
-                                          ? row.lineAmount
+                                          ? row.amount
                                           : null;
                                       const { formattedNumber, color } =
                                         amountValue
@@ -294,25 +290,12 @@ const SalesJournalPage = ({ reportData }) => {
         </Box>
         <Box className="boa__footer">
           <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!hasData || isExportLoading || isExportFetching}
-              onClick={onExport}
-              startIcon={
-                isExportLoading ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <IosShareRounded />
-                )
-              }
-            >
-              {isExportLoading
-                ? "Loading..."
-                : isExportFetching
-                ? "Exporting..."
-                : "Export"}
-            </Button>
+            <OnExportButton
+              onExport={onExport}
+              hasData={hasData}
+              isLoading={isExportLoading}
+              isFetching={isExportFetching}
+            />
           </Box>
           <TablePagination
             component="div"
