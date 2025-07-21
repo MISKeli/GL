@@ -219,8 +219,9 @@ const DialogSetupSample = ({
       setValue("token", pokedData?.token || "");
       setValue("iconFile", pokedData?.iconUrl || null);
       setValue("id", pokedData?.id || "");
-      // Parse bookParameter if it's a string
+
       let bookParameterData = pokedData?.bookParameter || [];
+
       if (typeof bookParameterData === "string") {
         try {
           bookParameterData = JSON.parse(bookParameterData);
@@ -229,9 +230,19 @@ const DialogSetupSample = ({
           bookParameterData = [];
         }
       }
+
       setValue("bookParameter", bookParameterData);
+
+      // ✅ If updating, mark all fields as tested
+      if (isUpdate) {
+        const testResults = {};
+        bookParameterData.forEach((_, index) => {
+          testResults[index] = true;
+        });
+        setFieldTestResults(testResults);
+      }
     }
-  }, [pokedData, setValue]);
+  }, [pokedData, setValue, isUpdate]);
 
   // Update your useEffect to handle iconFile properly
   useEffect(() => {
@@ -306,16 +317,6 @@ const DialogSetupSample = ({
       // Option 1: Simple usage
       const errorMessage = getErrorMessage(error);
       toast.error(errorMessage);
-
-      // Option 2: Even simpler with handleErrorWithToast
-      // handleErrorWithToast(error, toast);
-
-      // Option 3: Check for specific error types
-      // if (isErrorCode(error, "System.AlreadyExist")) {
-      //   toast.error("This system name is already taken. Please choose a different name.");
-      // } else {
-      //   handleErrorWithToast(error, toast);
-      // }
     } finally {
       setLoading(false);
     }
@@ -527,174 +528,210 @@ const DialogSetupSample = ({
                 const hasTestFailed = fieldTestResults[fieldIndex] === false;
 
                 return (
-                  <Grid container item xs={12} spacing={2} key={uniqueKey}>
-                    <Grid item xs={4}>
-                      <Controller
-                        name={`bookParameter.${fieldIndex}.bookName`}
-                        control={control}
-                        defaultValue=""
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label="Book Name"
-                            variant="outlined"
-                            fullWidth
-                            size="small"
-                            error={
-                              !!errors.bookParameter?.[fieldIndex]?.bookName
-                            }
-                            helperText={
-                              errors.bookParameter?.[fieldIndex]?.bookName
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={5}>
-                      <Controller
-                        name={`bookParameter.${fieldIndex}.bookValue`}
-                        control={control}
-                        defaultValue=""
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label="Book Value"
-                            variant="outlined"
-                            fullWidth
-                            size="small"
-                            onChange={(e) => {
-                              field.onChange(e);
-                              // Reset test result for this field when value changes
-                              setFieldTestResults((prev) => {
-                                const newResults = { ...prev };
-                                delete newResults[fieldIndex];
-                                return newResults;
-                              });
-                            }}
-                            error={
-                              !!errors.bookParameter?.[fieldIndex]?.bookValue
-                            }
-                            helperText={
-                              errors.bookParameter?.[fieldIndex]?.bookValue
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={1}>
-                      <Controller
-                        name={`bookParameter.${fieldIndex}.closeDate`}
-                        control={control}
-                        defaultValue=""
-                        rules={{ required: "Close Date is required" }}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label="Close Date"
-                            variant="outlined"
-                            type="number"
-                            fullWidth
-                            size="small"
-                            inputProps={{ min: 1, max: 31, step: 1 }}
-                            value={field.value || ""}
-                            onInput={(e) => {
-                              let value = e.target.value.replace(/\D/g, ""); // Only allow digits
-                              if (value.length > 2) {
-                                value = value.slice(0, 2); // Limit to 2 digits
-                              }
-                              if (parseInt(value) > 31) {
-                                value = "31"; // Cap at 31
-                              }
-                              e.target.value = value;
-                              field.onChange(value);
-                            }}
-                            error={
-                              !!errors.bookParameter?.[fieldIndex]?.closeDate
-                            }
-                            helperText={
-                              errors.bookParameter?.[fieldIndex]?.closeDate
-                                ?.message
-                            }
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={1}>
-                      <Controller
-                        name={`bookParameter.${fieldIndex}.status`}
-                        control={control}
-                        defaultValue={true}
-                        render={({ field }) => (
-                          <Tooltip title="Change Status" arrow>
-                            <Chip
-                              label={field.value ? "Active" : "Inactive"}
-                              clickable
-                              color={field.value ? "success" : "error"}
-                              variant="filled"
-                              size="small"
-                              onClick={() => field.onChange(!field.value)}
-                              sx={{
-                                minWidth: 60,
-                                height: 24,
-                                fontSize: "0.75rem",
-                                fontWeight: 500,
-                                "&.MuiChip-clickable:hover": {
-                                  opacity: 0.8,
-                                  transform: "scale(1.05)",
-                                },
-                                transition: "all 0.2s ease-in-out",
-                              }}
-                            />
-                          </Tooltip>
-                        )}
-                      />
-                    </Grid>
-                    <Grid
-                      item
-                      xs={1}
+                  <>
+                    <Box
                       sx={{
-                        display: "flex",
-
-                        alignItems: "center",
-                        gap: 0.5,
+                        padding: 1,
+                        overflowX: "auto",
+                        width: "100%",
+                        "&::-webkit-scrollbar": {
+                          height: "8px",
+                        },
+                        "&::-webkit-scrollbar-track": {
+                          backgroundColor: "#f1f1f1",
+                          borderRadius: "4px",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                          backgroundColor: "#888",
+                          borderRadius: "4px",
+                          "&:hover": {
+                            backgroundColor: "#555",
+                          },
+                        },
                       }}
                     >
-                      <IconButton
-                        onClick={() =>
-                          handleFieldTestClick(
-                            fieldIndex,
-                            watch(`bookParameter.${fieldIndex}.bookValue`)
-                          )
-                        }
-                        size="small"
-                        disabled={isFieldTesting}
-                        color={
-                          isFieldTested
-                            ? "success"
-                            : hasTestFailed
-                            ? "error"
-                            : "default"
-                        }
+                      <Grid
+                        container
+                        item
+                        xs={12}
+                        spacing={2}
+                        key={uniqueKey}
+                        sx={{
+                          minWidth: "800px", // Set minimum width to ensure horizontal scroll
+                          flexWrap: "nowrap", // Prevent wrapping to maintain horizontal layout
+                        }}
                       >
-                        {isFieldTesting ? (
-                          <CircularProgress size={16} />
-                        ) : isFieldTested ? (
-                          <CheckCircle />
-                        ) : (
-                          <CloudSyncRounded />
-                        )}
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDeleteClick(fieldIndex)}
-                        size="small"
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
+                        <Grid item xs={4} sx={{ minWidth: "200px" }}>
+                          <Controller
+                            name={`bookParameter.${fieldIndex}.bookName`}
+                            control={control}
+                            defaultValue=""
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                label="Book Name"
+                                variant="outlined"
+                                fullWidth
+                                size="small"
+                                error={
+                                  !!errors.bookParameter?.[fieldIndex]?.bookName
+                                }
+                                helperText={
+                                  errors.bookParameter?.[fieldIndex]?.bookName
+                                    ?.message
+                                }
+                              />
+                            )}
+                          />
+                        </Grid>
+                        <Grid item xs={5} sx={{ minWidth: "250px" }}>
+                          <Controller
+                            name={`bookParameter.${fieldIndex}.bookValue`}
+                            control={control}
+                            defaultValue=""
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                label="Book Value"
+                                variant="outlined"
+                                fullWidth
+                                size="small"
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  // Reset test result for this field when value changes
+                                  setFieldTestResults((prev) => {
+                                    const newResults = { ...prev };
+                                    delete newResults[fieldIndex];
+                                    return newResults;
+                                  });
+                                }}
+                                error={
+                                  !!errors.bookParameter?.[fieldIndex]
+                                    ?.bookValue
+                                }
+                                helperText={
+                                  errors.bookParameter?.[fieldIndex]?.bookValue
+                                    ?.message
+                                }
+                              />
+                            )}
+                          />
+                        </Grid>
+                        <Grid item xs={1} sx={{ minWidth: "120px" }}>
+                          <Controller
+                            name={`bookParameter.${fieldIndex}.closeDate`}
+                            control={control}
+                            defaultValue=""
+                            rules={{ required: "Close Date is required" }}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                label="Close Date"
+                                variant="outlined"
+                                type="number"
+                                fullWidth
+                                size="small"
+                                inputProps={{ min: 1, max: 31, step: 1 }}
+                                value={field.value || ""}
+                                onInput={(e) => {
+                                  let value = e.target.value.replace(/\D/g, ""); // Only allow digits
+                                  if (value.length > 2) {
+                                    value = value.slice(0, 2); // Limit to 2 digits
+                                  }
+                                  if (parseInt(value) > 31) {
+                                    value = "31"; // Cap at 31
+                                  }
+                                  e.target.value = value;
+                                  field.onChange(value);
+                                }}
+                                error={
+                                  !!errors.bookParameter?.[fieldIndex]
+                                    ?.closeDate
+                                }
+                                helperText={
+                                  errors.bookParameter?.[fieldIndex]?.closeDate
+                                    ?.message
+                                }
+                              />
+                            )}
+                          />
+                        </Grid>
+                        <Grid item xs={1} sx={{ minWidth: "100px" }}>
+                          <Controller
+                            name={`bookParameter.${fieldIndex}.status`}
+                            control={control}
+                            defaultValue={true}
+                            render={({ field }) => (
+                              <Tooltip title="Change Status" arrow>
+                                <Chip
+                                  label={field.value ? "Active" : "Inactive"}
+                                  clickable
+                                  color={field.value ? "success" : "error"}
+                                  variant="filled"
+                                  size="small"
+                                  onClick={() => field.onChange(!field.value)}
+                                  sx={{
+                                    minWidth: 60,
+                                    height: 24,
+                                    fontSize: "0.75rem",
+                                    fontWeight: 500,
+                                    "&.MuiChip-clickable:hover": {
+                                      opacity: 0.8,
+                                      transform: "scale(1.05)",
+                                    },
+                                    transition: "all 0.2s ease-in-out",
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                          />
+                        </Grid>
+                        <Grid
+                          item
+                          xs={1}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            minWidth: "100px",
+                          }}
+                        >
+                          <IconButton
+                            onClick={() =>
+                              handleFieldTestClick(
+                                fieldIndex,
+                                watch(`bookParameter.${fieldIndex}.bookValue`)
+                              )
+                            }
+                            size="small"
+                            disabled={isFieldTesting}
+                            color={
+                              isFieldTested
+                                ? "success"
+                                : hasTestFailed
+                                ? "error"
+                                : "default"
+                            }
+                          >
+                            {isFieldTesting ? (
+                              <CircularProgress size={16} />
+                            ) : isFieldTested ? (
+                              <CheckCircle />
+                            ) : (
+                              <CloudSyncRounded />
+                            )}
+                          </IconButton>
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteClick(fieldIndex)}
+                            size="small"
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  </>
                 );
               })}
               {/* Add Button for Book Parameters */}

@@ -2,13 +2,8 @@
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
+  Autocomplete,
   TextField,
   Typography,
 } from "@mui/material";
@@ -23,7 +18,7 @@ import {
   shouldDisableMonth,
   shouldDisableYear,
 } from "../utils/datePickerMinDate";
-import { useLazyGetSystemClosedDateQuery } from "../features/api/closedDateApi";
+
 import moment from "moment";
 import { useGenerateImportedSystemsQuery } from "../features/api/folderStructureApi";
 import { Circle } from "@mui/icons-material";
@@ -43,12 +38,23 @@ const DropDownComponent = ({
     isFetching: isMornitorFetching,
   } = useGenerateImportedSystemsQuery({
     Year: moment().format("YYYY"),
-    BookName: "",
-    UsePagination: true,
+    //BookName: null,
+    UsePagination: false,
   });
+  
 
-  const [triggerFetchClosedDate, { data: closedDataData }] =
-    useLazyGetSystemClosedDateQuery();
+  // Get permissions from session storage
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  const permissions = user?.permission || [];
+
+  // Function to check if user has permission for a specific book
+  const hasBookPermission = (systemName, bookName) => {
+    if (!permissions || permissions.length === 0) return false;
+
+    // Check if the specific book permission exists
+    const bookPermission = `${systemName} - ${bookName}`;
+    return permissions.includes(bookPermission);
+  };
 
   // Calculate default date value - use current month at end of month, otherwise previous month
   const calculateDefaultDate = () => {
@@ -80,80 +86,137 @@ const DropDownComponent = ({
 
   const [triggerFetchSystem, { data: systemData, isFetching }] =
     useLazyGetAllSystemsAsyncQuery();
+ 
   // Watch the adjustment_month field to get the current selected date
   const watchedDate = watch("adjustment_month");
 
-  // Function to check if a book is imported for the selected month
+  // Updated function to check if a book is imported for the selected month
   const isBookImported = (systemName, bookName, selectedMonth) => {
-    if (!monitorData?.value?.data) return false;
+    if (!monitorData?.value?.data || !selectedMonth) return false;
 
-    const bookKey = `${systemName} - ${bookName}`;
-    const monthName = moment()
-      .subtract(1, "months")
-      .format("MMMM")
-      .toLowerCase();
+    // Get the month number from the selected date (1-12)
+    const monthNumber = moment(selectedMonth, "YYYY-MM").month() + 1; // moment().month() returns 0-11, so we add 1
+
+    // Find the book data by matching the boa field with the book key
     const bookData = monitorData.value.data.find(
-      (item) => item.bookName === bookKey
+      (item) => item.boa === bookName
     );
 
     // Check if the month data exists and status is 1
-    return bookData && bookData[monthName] && bookData[monthName].status === 1;
-  };
-
-  // Function to get sync date for the selected month
-  const getSyncDate = (systemName, bookName, selectedMonth) => {
-    if (!monitorData?.value?.data) return null;
-
-    const bookKey = `${systemName} - ${bookName}`;
-    const monthName = moment()
-      .subtract(1, "months")
-      .format("MMMM")
-      .toLowerCase();
-    const bookData = monitorData.value.data.find(
-      (item) => item.bookName === bookKey
-    );
- 
-    // Return syncDate if month data exists and has a syncDate
-    if (bookData && bookData[monthName] && !!bookData[monthName].syncDate) {
-      return bookData[monthName].syncDate;
+    if (bookData && bookData.monthlyStatus) {
+      const monthData = bookData.monthlyStatus.find(
+        (monthStatus) => monthStatus.month === monthNumber
+      );
+      return monthData && monthData.status === 1;
     }
 
-    return null;
+    return false;
+  };
+
+  const getSyncDate = (systemName, bookName, selectedMonth) => {
+    if (!monitorData?.value?.data || !selectedMonth) return null;
+
+    const monthNumber = moment(selectedMonth, "YYYY-MM").month() + 1;
+
+    // Match directly using bookName only (as you've fixed it)
+    const bookData = monitorData.value.data.find(
+      (item) => item.boa === bookName
+    );
+
+    const monthData = bookData?.monthlyStatus?.find(
+      (m) => m.month === monthNumber
+    );
+
+    return monthData?.syncDate || null;
   };
 
   // Function to render import status chip
   const renderImportStatusChip = (systemName, bookName, selectedMonth) => {
     const isImported = isBookImported(systemName, bookName, selectedMonth);
-
     const syncDate = getSyncDate(systemName, bookName, selectedMonth);
+    
 
     return (
-      <Box display="flex" alignItems={"center"}>
+      <Box display="flex" alignItems={"center"} gap={1}>
         {isImported && syncDate && (
-          <Typography variant="caption">
+          <Typography
+            variant="caption"
+            sx={{ fontSize: "0.75rem", color: "text.secondary" }}
+          >
             {moment(syncDate).format("YYYY-MM-DD")}
           </Typography>
         )}
 
         <Circle
-          size="small"
-          label={isImported ? "Imported" : "Not Imported"}
-          color={isImported ? "success" : "disabled"}
-          variant="outlined"
           sx={{
-            marginLeft: 1,
-            fontSize: "0.7rem",
-            height: "20px",
+            fontSize: "12px",
+            color: isImported ? "#4caf50" : "#bdbdbd", // Green for imported, grey for not imported
           }}
         />
       </Box>
     );
   };
 
-  // Fetch necessary data when component mounts - only once
-  useEffect(() => {
-    triggerFetchClosedDate({}, true);
-  }, []); // Empty dependency array means this runs once on mount
+  // Function to flatten systems and books into a single array for Autocomplete - WITH PERMISSION FILTERING
+  const getAutocompleteOptions = (systemData) => {
+    if (!systemData?.value?.result) return [];
+
+    const options = [];
+
+    systemData.value.result
+      .filter((item) => item.isActive)
+      .forEach((system) => {
+        // Parse bookParameter if it exists and is not null/empty
+        let books = [];
+
+        if (
+          system.bookParameter &&
+          system.bookParameter !== "[]" &&
+          system.bookParameter !== null
+        ) {
+          try {
+            books = JSON.parse(system.bookParameter);
+
+            // Filter out books where status is false AND filter by permissions
+            books = books.filter((book) => {
+              const isStatusActive = book.status !== false;
+              const hasPermission = hasBookPermission(
+                system.systemName,
+                book.bookName
+              );
+              return isStatusActive && hasPermission;
+            });
+          } catch (error) {
+            books = [];
+          }
+        }
+
+        // Only add system if it has books with status true AND user has permission for at least one book
+        if (books.length > 0) {
+          // Add system header
+          options.push({
+            ...system,
+            isSystemHeader: true,
+            displayText: system.systemName,
+          });
+
+          // Add books under this system (already filtered by permission)
+          books.forEach((book, bookIndex) => {
+            options.push({
+              ...system,
+              bookName: book.bookName,
+              bookValue: book.bookValue,
+              closeDate: book.closeDate,
+              isSystemHeader: false,
+              displayText: `${system.systemName} - ${book.bookName}`,
+              uniqueKey: `${system.id}-book-${bookIndex}`,
+            });
+          });
+        }
+      });
+
+    return options;
+  };
 
   const handleOnChange = (data) => {
     onChange(data);
@@ -162,6 +225,7 @@ const DropDownComponent = ({
       systemName: data.systemName,
       endpoint: data.endpoint,
       token: data.token,
+      bookName: data.bookName,
     };
 
     // Also ensure adjustment_month is set when system changes
@@ -172,6 +236,7 @@ const DropDownComponent = ({
       systemName: data.systemName,
       endpoint: data.endpoint,
       token: data.token,
+      bookName: data.bookName,
     }));
 
     // Update the form validation
@@ -208,37 +273,125 @@ const DropDownComponent = ({
 
   return (
     <>
-      <FormControl
-        sx={{ width: "100%" }}
-        variant="outlined"
+      <Autocomplete
+        fullWidth
         disabled={disabled}
-      >
-        <InputLabel id="systemName">System</InputLabel>
+        options={getAutocompleteOptions(systemData)}
+        getOptionLabel={(option) => {
+          if (option && option.systemName && option.bookName) {
+            return `${option.systemName} - ${option.bookName}`;
+          }
+          return option ? option.systemName || "" : "";
+        }}
+        renderOption={(props, option) => {
+          // Handle system headers
+          if (option.isSystemHeader) {
+            return (
+              <Box
+                component="li"
+                {...props}
+                key={`system-${option.id}`}
+                sx={{
+                  fontWeight: "bold",
+                  backgroundColor: "#f5f5f5",
+                  pointerEvents: "none",
+                  color: "rgba(0, 0, 0, 0.87)",
+                }}
+              >
+                {option.systemName}
+              </Box>
+            );
+          }
 
-        <Select
-          fullWidth
-          sx={{ width: "100%" }}
-          labelId="systemName"
-          id="dynamic-dropdown"
-          value={paramsRef.current.systemName}
-          onOpen={() => {
-            triggerFetchSystem({}, true);
-          }}
-          MenuProps={{
-            PaperProps: {
-              sx: {
-                maxHeight: 300, // Set maximum height
-                overflow: "auto", // Enable scrolling
-              },
-            },
-          }}
-          onChange={(e) => {
-            const selectedBook = e.target.value;
+          // Handle book items
+          const currentSelectedDate = watchedDate || selectedDate;
+          const isImported = isBookImported(
+            option.systemName,
+            option.bookName,
+            currentSelectedDate
+          );
 
+          return (
+            <Box
+              component="li"
+              {...props}
+              key={option.uniqueKey}
+              sx={{
+                paddingLeft: 4,
+                fontSize: "0.875rem",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                minHeight: "40px",
+                ...(isImported && {
+                  opacity: 0.6,
+                  backgroundColor: "#f5f5f5",
+                }),
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <span>&nbsp;&nbsp;- {option.bookName}</span>
+              </Box>
+              <Box
+                sx={{ display: "flex", alignItems: "center", marginLeft: 2 }}
+              >
+                {renderImportStatusChip(
+                  option.systemName,
+                  option.bookName,
+                  currentSelectedDate
+                )}
+              </Box>
+            </Box>
+          );
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="System"
+            variant="outlined"
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {isFetching ? (
+                    <CircularProgress color="inherit" size={20} />
+                  ) : null}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            }}
+          />
+        )}
+        value={
+          paramsRef.current.systemName && paramsRef.current.bookName
+            ? getAutocompleteOptions(systemData).find(
+                (opt) =>
+                  opt.systemName === paramsRef.current.systemName &&
+                  opt.bookName === paramsRef.current.bookName &&
+                  !opt.isSystemHeader
+              )
+            : null
+        }
+        onChange={(event, newValue) => {
+          if (newValue && !newValue.isSystemHeader) {
+            const selectedBook = newValue;
+
+            // Additional permission check before allowing selection
+            if (
+              !hasBookPermission(selectedBook.systemName, selectedBook.bookName)
+            ) {
+              console.warn(
+                "User does not have permission for this book:",
+                selectedBook
+              );
+              return;
+            }
+
+            const currentSelectedDate = watchedDate || selectedDate;
             const isImported = isBookImported(
               selectedBook.systemName,
               selectedBook.bookName,
-              watchedDate || selectedDate
+              currentSelectedDate
             );
 
             handleOnChange(selectedBook);
@@ -251,131 +404,70 @@ const DropDownComponent = ({
                 moment().subtract(1, "months").format("YYYY-MM")
               );
             }
-            // Concatenate endpoint + "/" + bookValue
+
             const fullEndpoint = `${selectedBook.endpoint}/${selectedBook.bookValue}`;
 
-            setParams((prevVal) => {
-              return {
-                ...prevVal,
-                ...selectedBook,
-                isImported: isImported,
-                endpoint: fullEndpoint,
-                token: selectedBook.token,
-                systemName: selectedBook.systemName,
-                bookName: selectedBook.bookName,
-              };
-            });
-          }}
-          renderValue={(selected) => {
-            // Display format: "SYSTEMNAME - BOOKNAME"
-            if (selected && selected.systemName && selected.bookName) {
-              return `${selected.systemName} - ${selected.bookName}`;
+            setParams((prevVal) => ({
+              ...prevVal,
+              ...selectedBook,
+              isImported: isImported,
+              endpoint: fullEndpoint,
+              token: selectedBook.token,
+              systemName: selectedBook.systemName,
+              bookName: selectedBook.bookName,
+            }));
+          }
+        }}
+        onOpen={() => {
+          triggerFetchSystem({}, true);
+        }}
+        filterOptions={(options, { inputValue }) => {
+          // Custom filter logic for searching
+          return options.filter((option) => {
+            if (option.isSystemHeader) {
+              // Always include system headers if any of their books match
+              return true;
             }
-            return selected ? selected.systemName || "" : "";
-          }}
-          label="System"
-        >
-          {isFetching ? (
-            <MenuItem disabled>
-              <CircularProgress size={20} sx={{ marginRight: 1 }} /> Loading...
-            </MenuItem>
-          ) : systemData?.value?.result?.filter((item) => item.isActive)
-              .length > 0 ? (
-            systemData.value.result
-              .filter((item) => item.isActive)
-              .map((system) => {
-                // Parse bookParameter if it exists and is not null/empty
-                let books = [];
+            return (
+              option.systemName
+                ?.toLowerCase()
+                .includes(inputValue.toLowerCase()) ||
+              option.bookName?.toLowerCase().includes(inputValue.toLowerCase())
+            );
+          });
+        }}
+        isOptionEqualToValue={(option, value) =>
+          option.systemName === value?.systemName &&
+          option.bookName === value?.bookName &&
+          !option.isSystemHeader
+        }
+        getOptionDisabled={(option) => {
+          // Always disable headers
+          if (option.isSystemHeader) return true;
 
-                if (
-                  system.bookParameter &&
-                  system.bookParameter !== "[]" &&
-                  system.bookParameter !== null
-                ) {
-                  try {
-                    books = JSON.parse(system.bookParameter);
-                    // Filter out books where status is false
-                    books = books.filter((book) => book.status !== false);
-                  } catch (error) {
-                    // console.error("Error parsing bookParameter:", error);
-                    books = [];
-                  }
-                }
+          // Only check books for disabled state
+          if (option.systemName && option.bookName) {
+            const currentSelectedDate = watchedDate || selectedDate;
+            return isBookImported(
+              option.systemName,
+              option.bookName,
+              currentSelectedDate
+            );
+          }
 
-                // Only render system if it has books with status true
-                if (books.length === 0) {
-                  return null;
-                }
-
-                return [
-                  // System name as a disabled header
-                  <MenuItem
-                    key={`system-${system.id}`}
-                    disabled
-                    sx={{
-                      fontWeight: "bold",
-                      backgroundColor: "#f5f5f5",
-                      "&.Mui-disabled": {
-                        opacity: 1,
-                        color: "rgba(0, 0, 0, 0.87)",
-                      },
-                    }}
-                  >
-                    {system.systemName}
-                  </MenuItem>,
-
-                  // Books under this system
-                  ...books.map((book, bookIndex) => {
-                    const isImported = isBookImported(
-                      system.systemName,
-                      book.bookName,
-                      watchedDate || selectedDate
-                    );
-
-                    return (
-                      <MenuItem
-                        key={`${system.id}-book-${bookIndex}`}
-                        value={{
-                          ...system,
-                          bookName: book.bookName,
-                          bookValue: book.bookValue,
-                          closeDate: book.closeDate,
-                        }}
-                        // disabled={isImported} // disabled the bookName if already imported
-                        sx={{
-                          paddingLeft: 4,
-                          fontSize: "0.875rem",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          ...(isImported && {
-                            opacity: 0.6,
-                            backgroundColor: "#f5f5f5",
-                            "&.Mui-disabled": {
-                              opacity: 0.6,
-                              color: "rgba(0, 0, 0, 0.38)",
-                            },
-                          }),
-                        }}
-                      >
-                        <span>&nbsp;&nbsp;- {book.bookName}</span>
-                        {renderImportStatusChip(
-                          system.systemName,
-                          book.bookName,
-                          watchedDate || selectedDate
-                        )}
-                      </MenuItem>
-                    );
-                  }),
-                ];
-              })
-              .filter(Boolean) // Remove null entries from systems with no active books
-              .flat() // Flatten the nested arrays
-          ) : (
-            <MenuItem disabled>No Systems Available</MenuItem>
-          )}
-        </Select>
-      </FormControl>
+          // Default: don't disable
+          return false;
+        }}
+        freeSolo={false}
+        loading={isFetching}
+        noOptionsText={
+          isFetching
+            ? "Loading..."
+            : permissions.length === 0
+            ? "No permissions assigned"
+            : "No Systems Available"
+        }
+      />
 
       <form onSubmit={handleSubmit(submitHandler)}>
         <Controller
@@ -385,7 +477,6 @@ const DropDownComponent = ({
             <DatePicker
               sx={{ width: "100%", marginTop: "15px" }}
               label="Date"
-              //disabled
               views={["month", "year"]}
               value={value ? dayjs(value) : null}
               minDate={dayjs().startOf("year")}
@@ -414,7 +505,7 @@ const DropDownComponent = ({
               }}
               renderInput={(params) => (
                 <TextField
-                  sx={{ width: "20px" }} // Adjust the width or other styles here
+                  sx={{ width: "20px" }}
                   {...params}
                   helperText={errors.adjustment_month?.message}
                   error={!!errors.adjustment_month}
@@ -432,11 +523,7 @@ const DropDownComponent = ({
           disabled={!isValid || isLoading || !paramsRef.current.systemName}
           sx={{ alignItems: "center", marginTop: "30px" }}
         >
-          {isLoading ? (
-            <CircularProgress size={24} color="inherit" /> // Show spinner
-          ) : (
-            "Sync"
-          )}
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : "Sync"}
         </Button>
       </form>
     </>

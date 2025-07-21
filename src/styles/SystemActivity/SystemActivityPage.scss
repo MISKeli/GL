@@ -17,6 +17,12 @@
         padding: 11px 0;
         color: $primary-main;
       }
+      &__container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+       
+      }
     
   }
   &__content {

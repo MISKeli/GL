@@ -22,15 +22,17 @@ import useDebounce from "../../components/useDebounce";
 import { useGenerateTrialBalancePerMonthPaginationQuery } from "../../features/api/boaApi";
 import { info } from "../../schemas/info";
 import "../../styles/TrialBalancePage.scss";
+import useSkipFetchingQuery from "../../components/hooks/useSkipFetchingQuery";
 
 const TrialBalancePage = () => {
   const [search, setSearch] = useState("");
   const debounceValue = useDebounce(search);
   const [reportData, setReportData] = useState({
     FromMonth: moment().startOf("month").format("MM-DD-YYYY").toString(),
-
     ToMonth: moment().endOf("month").format("MM-DD-YYYY").toString(),
   });
+
+  const { isSkip, triggerQuery } = useSkipFetchingQuery();
 
   const { exportToExcel } = useExportData();
   const fillParams = {
@@ -52,23 +54,33 @@ const TrialBalancePage = () => {
     data: trialData,
     isLoading: isTrialLoading,
     isFetching: isTrialFetching,
-  } = useGenerateTrialBalancePerMonthPaginationQuery({
-    ...fillParams,
-    Search: debounceValue,
-    PageNumber: params.page + 1,
-    UsePagination: true,
-    PageSize: params.PageSize,
-  });
+  } = useGenerateTrialBalancePerMonthPaginationQuery(
+    {
+      ...fillParams,
+      Search: debounceValue,
+      PageNumber: params.page + 1,
+      UsePagination: true,
+      PageSize: params.PageSize,
+    },
+    {
+      skip: isSkip,
+    }
+  );
 
   //export
   const {
     data: exportData,
     isLoading: isExportLoading,
     isFetching: isExportFetching,
-  } = useGenerateTrialBalancePerMonthPaginationQuery({
-    ...fillParams,
-    UsePagination: false,
-  });
+  } = useGenerateTrialBalancePerMonthPaginationQuery(
+    {
+      ...fillParams,
+      UsePagination: false,
+    },
+    {
+      skip: isSkip,
+    }
+  );
 
   const hasData =
     exportData?.value.trialBalance && exportData.value.trialBalance.length > 0;
@@ -92,6 +104,12 @@ const TrialBalancePage = () => {
       PageNumber: 1, // Reset to page number 1
     }));
   };
+
+  const handleReportDataChange = (newReportData) => {
+    setReportData(newReportData);
+    triggerQuery(); 
+  };
+
   const trailBalanceData = trialData?.value?.trialBalance || [];
 
   const debitTotal = trialData?.value?.lineAmount?.lineAmountDebit || 0;
@@ -154,7 +172,7 @@ const TrialBalancePage = () => {
           {info.trialbalance_title}
         </Typography> */}
         <DateSearchCompoment
-          setReportData={setReportData}
+          setReportData={handleReportDataChange}
           isTrailBalance={true}
         />
       </Box>

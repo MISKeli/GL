@@ -8,16 +8,13 @@ import { info } from "../../../schemas/info";
 import DateSearchCompoment from "../../../components/DateSearchCompoment";
 import moment from "moment";
 import { useRememberQueryParams } from "../../../hooks/useRememberQueryParams";
+import useExportData from "../../../components/hooks/useExportData";
+import { toast } from "sonner";
 
 const SystemActivityPage = () => {
-  const [param, setParam] = useState({
-    page: 0,
-    PageSize: 25,
-    PageNumber: 1,
-  });
-
   const [currentParams, setQueryParams, removeQueryParams] =
     useRememberQueryParams();
+  const [searchQuery, setSearchQuery] = useState(""); // Add search state
 
   const {
     data: monitorData,
@@ -25,9 +22,10 @@ const SystemActivityPage = () => {
     isFetching: isMonitorFetching,
   } = useGenerateImportedSystemsQuery({
     Year: moment(currentParams.toMonth).format("YYYY"),
-    UsePagination: true,
+    UsePagination: false,
   });
 
+  const { commonExport } = useExportData();
 
   const mergedRows = useMemo(() => {
     if (!monitorData?.value) return [];
@@ -35,105 +33,156 @@ const SystemActivityPage = () => {
     const { data: importedData = [], system: allSystems = [] } =
       monitorData.value;
 
-    // Helper function to normalize system names to uppercase
     const normalizeSystemName = (name) => name.toUpperCase().trim();
 
-    // Create default month structure with status 0
-    const createDefaultMonths = () => {
-      const months = {};
-      const monthNames = moment.months().map(m => m.toLowerCase());
-    
-
-      monthNames.forEach((month) => {
-        months[month] = {
-          status: 0,
-          syncDate: null,
-        };
-      });
-
-      return months;
+    const createDefaultMonthlyStatus = () => {
+      return Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        status: 0,
+        syncDate: null,
+      }));
     };
 
-    // Create merged dataset
+    // Helper function to convert monthlyStatus array to month columns
+    const convertMonthlyStatusToColumns = (monthlyStatus) => {
+      const months = [
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+      ];
+
+      const monthColumns = {};
+      months.forEach((month, index) => {
+        const monthData = monthlyStatus[index];
+        if (monthData?.syncDate) {
+          // Format the date nicely
+          monthColumns[month] = new Date(
+            monthData.syncDate
+          ).toLocaleDateString();
+        } else if (monthData?.status === 1) {
+          monthColumns[month] = "Synced";
+        } else {
+          monthColumns[month] = "Not Synced";
+        }
+      });
+
+      return monthColumns;
+    };
+
     const mergedData = [];
 
-    // Process all available systems
     allSystems.forEach((systemConfig) => {
-      // Find all imported entries for this system-book combination (case-insensitive)
       const matchingImportedEntries = importedData.filter(
         (item) =>
           normalizeSystemName(item.system) ===
             normalizeSystemName(systemConfig.system) &&
-          item.bookName.includes(systemConfig.bookName)
+          item.boa === systemConfig.bookName
       );
 
       if (matchingImportedEntries.length > 0) {
-        // Add all matching imported entries with normalized system name and system config
         matchingImportedEntries.forEach((entry) => {
-          mergedData.push({
-            ...entry,
-            system: systemConfig.system, // Use the uppercase system name from config
+          const monthlyStatus =
+            entry.monthlyStatus || createDefaultMonthlyStatus();
+          const monthColumns = convertMonthlyStatusToColumns(monthlyStatus);
+
+          const transformedEntry = {
+            system: systemConfig.system,
+            boa: systemConfig.bookName,
+            status: systemConfig.status ? "Active" : "Inactive",
+            ...monthColumns, // Spread the month columns
             systemStatus: systemConfig.status,
-            closeDate: systemConfig.closeDate,
-            bookValue: systemConfig.bookValue,
-          });
+          };
+          mergedData.push(transformedEntry);
         });
       } else {
-        // Create a default entry for systems without imported data
+        const defaultMonthColumns = convertMonthlyStatusToColumns(
+          createDefaultMonthlyStatus()
+        );
         const defaultEntry = {
-          system: systemConfig.system, // Already uppercase from system config
-          bookName: systemConfig.bookName,
+          system: systemConfig.system,
           boa: systemConfig.bookName,
-          systemStatus: systemConfig.status,
-          closeDate: systemConfig.closeDate,
-          bookValue: systemConfig.bookValue,
-          ...createDefaultMonths(),
+          status: systemConfig.status ? "Active" : "Inactive",
+          ...defaultMonthColumns,
         };
         mergedData.push(defaultEntry);
-      }
-    });
-
-    // Add any imported data that doesn't match system config (with normalized system name)
-    importedData.forEach((item) => {
-      const hasMatchingSystemConfig = allSystems.some(
-        (config) =>
-          normalizeSystemName(config.system) ===
-            normalizeSystemName(item.system) &&
-          item.bookName.includes(config.bookName)
-      );
-
-      if (!hasMatchingSystemConfig) {
-        mergedData.push({
-          ...item,
-          system: normalizeSystemName(item.system), // Normalize to uppercase
-        });
       }
     });
 
     return mergedData;
   }, [monitorData]);
 
+  // Filter the merged rows based on search query
+  const filteredRows = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return mergedRows;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+
+    return mergedRows.filter((row) => {
+      // Search in BOA (Book of Accounts), System, and Status
+      const boa = row.boa?.toLowerCase() || "";
+      const system = row.system?.toLowerCase() || "";
+      const status = row.status?.toLowerCase() || "";
+
+      return (
+        boa.includes(query) || system.includes(query) || status.includes(query)
+      );
+    });
+  }, [mergedRows, searchQuery]);
 
   const header = info.monitoring.tableColumns;
+  const hasData = filteredRows.length > 0;
 
-  // Handle page change
-  const handleChangePage = (newPage) => {
-    setParam((currentValue) => ({
-      ...currentValue,
-      page: newPage,
-      PageNumber: newPage + 1,
-    }));
+  const onExport = () => {
+    if (isMonitorLoading || isMonitorFetching) {
+      return;
+    }
+
+    toast.info("Export started");
+    try {
+      const headers = info.monitoring.tableColumns.map((col) => col.name);
+
+      // Use filtered data for export
+      const mappedData = filteredRows.map((row) => {
+        const mappedRow = {};
+
+        // Map each header to the corresponding data field
+        info.monitoring.tableColumns.forEach((column) => {
+          mappedRow[column.name] = row[column.id];
+        });
+
+        return mappedRow;
+      });
+
+      const exportTitle = searchQuery.trim()
+        ? `${info.monitoring.title} - ${moment(currentParams.toMonth).format(
+            "YYYY"
+          )} - Search: ${searchQuery}`
+        : `${info.monitoring.title} - ${moment(currentParams.toMonth).format(
+            "YYYY"
+          )}`;
+
+      commonExport(headers, mappedData, exportTitle);
+      toast.success("Data exported successfully!");
+    } catch (err) {
+      toast.error(err.message);
+      console.log(err);
+    }
   };
 
-  // Handle rows per page change
-  const handleChangeRowsPerPage = (event) => {
-    const newPageSize = parseInt(event.target.value, 10);
-    setParam((currentValue) => ({
-      ...currentValue,
-      PageSize: newPageSize,
-      page: 0,
-      PageNumber: 1,
-    }));
+  // Handle search from DateSearchComponent
+  const handleSearchChange = (searchValue) => {
+    setSearchQuery(searchValue);
   };
 
   return (
@@ -143,21 +192,31 @@ const SystemActivityPage = () => {
           <Typography variant="h5" className="activity__header--title">
             {info.monitoring.title}
           </Typography>
+          <Box className="activity__header__container">
+            {searchQuery && (
+              <Typography variant="body2" color="textSecondary">
+                Showing {filteredRows.length} of {mergedRows.length} results for
+                "{searchQuery}"
+              </Typography>
+            )}
 
-          <DateSearchCompoment
-            initialDate={currentParams.fromMonth}
-            setReportData={(data) => {
-              setQueryParams(
-                {
-                  fromMonth: data.fromMonth,
-                  toMonth: data.toMonth,
-                },
-                { retain: true }
-              );
-            }}
-            hasDate={false}
-            isYearOnly={true}
-          />
+            <DateSearchCompoment
+              initialDate={currentParams.fromMonth}
+              setReportData={(data) => {
+                setQueryParams(
+                  {
+                    fromMonth: data.fromMonth,
+                    toMonth: data.toMonth,
+                  },
+                  { retain: true }
+                );
+              }}
+              hasDate={false}
+              isYearOnly={true}
+              onSearchChange={handleSearchChange} // Pass search handler
+              searchValue={searchQuery} // Pass current search value
+            />
+          </Box>
         </Box>
         <Box className="activity__content">
           <SystemTable
@@ -166,19 +225,18 @@ const SystemActivityPage = () => {
               ...monitorData,
               value: {
                 ...monitorData?.value,
-                data: mergedRows,
-                totalCount: mergedRows.length,
+                data: filteredRows, // Use filtered data
+                totalCount: filteredRows.length, // Update count
               },
               fromMonth: currentParams.fromMonth,
               toMonth: currentParams.toMonth,
             }}
-            rows={mergedRows}
-            page={param.page}
-            rowsPerPage={param.PageSize}
-            handleChangePage={handleChangePage}
-            handleChangeRowsPerPage={handleChangeRowsPerPage}
+            rows={filteredRows} // Use filtered rows
             isFetching={isMonitorFetching}
             isLoading={isMonitorLoading}
+            onExport={onExport}
+            hasData={hasData}
+            searchQuery={searchQuery} // Pass search query to table if needed
           />
         </Box>
         <Box className="activity__footer"></Box>

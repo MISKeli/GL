@@ -27,11 +27,12 @@ import {
 } from "../../features/api/boaApi";
 import { IosShareRounded } from "@mui/icons-material";
 import { useRememberQueryParams } from "../../hooks/useRememberQueryParams";
+import useSkipFetchingQuery from "../../components/hooks/useSkipFetchingQuery";
 
 const DetailedTrailBalancePage = () => {
   const [currentParams, setQueryParams, removeQueryParams] =
     useRememberQueryParams();
-
+  const { isSkip, triggerQuery } = useSkipFetchingQuery();
   // Get search from URL params
   const searchFromParams = currentParams.search || "";
   const [search, setSearch] = useState(searchFromParams);
@@ -127,6 +128,11 @@ const DetailedTrailBalancePage = () => {
     }
   }, [currentParams.search]);
 
+  const handleReportDateChange = (newReportData) => {
+    setReportData(newReportData);
+    triggerQuery();
+  };
+
   const fillParams = {
     FromMonth: reportData.fromMonth,
     ToMonth: reportData.toMonth,
@@ -137,19 +143,29 @@ const DetailedTrailBalancePage = () => {
     data: detailedData,
     isLoading: isTrialLoading,
     isFetching: isTrialFetching,
-  } = useGenerateDetailedTrialBalanceQuery({
-    ...fillParams,
-    Search: debounceValue,
-    PageNumber: params.page + 1,
-    UsePagination: true,
-    PageSize: params.PageSize,
-  });
+  } = useGenerateDetailedTrialBalanceQuery(
+    {
+      ...fillParams,
+      Search: debounceValue,
+      PageNumber: params.page + 1,
+      UsePagination: true,
+      PageSize: params.PageSize,
+    },
+    {
+      skip: isSkip,
+    }
+  );
 
   //export data
-  const { data: exportData } = useGenerateDetailedTrialBalanceQuery({
-    ...fillParams,
-    UsePagination: false,
-  });
+  const { data: exportData } = useGenerateDetailedTrialBalanceQuery(
+    {
+      ...fillParams,
+      UsePagination: false,
+    },
+    {
+      skip: isSkip,
+    }
+  );
 
   const hasData =
     exportData?.value.trialBalance && exportData.value.trialBalance.length > 0;
@@ -271,7 +287,7 @@ const DetailedTrailBalancePage = () => {
       <Box className="trial">
         <Box className="trial__header">
           <DateSearchCompoment
-            setReportData={setReportData}
+            setReportData={handleReportDateChange}
             hasDetailed={true}
             hasDate={false}
             updateQueryParams={true}

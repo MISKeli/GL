@@ -35,8 +35,11 @@ const DateSearchCompoment = ({
   hasDetailed = false,
   isTrailBalance = false,
   isYearOnly = false,
-  initialDate = null, // New prop for initial date
-  updateQueryParams = false, // Whether to update URL query params
+  initialDate = null,
+  updateQueryParams = false,
+  // New props for search functionality
+  onSearchChange,
+  searchValue = "",
 }) => {
   const currentDate = moment();
   const [currentParams, setQueryParams] = useRememberQueryParams();
@@ -45,17 +48,14 @@ const DateSearchCompoment = ({
   const getInitialFromDate = () => {
     if (initialDate) {
       const date = moment(initialDate);
-
       return date;
     }
-
     return currentDate.clone();
   };
 
   const getInitialToDate = () => {
     if (initialDate) {
       const date = moment(initialDate).endOf("month");
-
       return date;
     }
     return currentDate.clone().endOf("month");
@@ -63,7 +63,7 @@ const DateSearchCompoment = ({
 
   const inputRef = useRef(null);
   const [expanded, setExpanded] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchValue || "");
   const [isHorizontalView, setIsHorizontalView] = useState(false);
   const [fromDate, setFromDate] = useState(() => getInitialFromDate());
   const [toDate, setToDate] = useState(() => getInitialToDate());
@@ -81,7 +81,12 @@ const DateSearchCompoment = ({
     },
   });
 
-  // Update dates when initialDate prop changes - Force update with dependency array
+  // Update search value when prop changes
+  useEffect(() => {
+    setSearch(searchValue || "");
+  }, [searchValue]);
+
+  // Update dates when initialDate prop changes
   useEffect(() => {
     if (initialDate && moment(initialDate).isValid()) {
       const newFromDate = moment(initialDate);
@@ -92,7 +97,18 @@ const DateSearchCompoment = ({
       setYear(newFromDate);
       setImportDate(newFromDate);
     }
-  }, [initialDate?.valueOf()]); // Use valueOf() to detect changes in moment objects
+  }, [initialDate?.valueOf()]);
+
+  // Handle search changes with debouncing
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (onSearchChange) {
+        onSearchChange(search);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [search, onSearchChange]);
 
   const handleDateChange = async () => {
     console.log("triggering");
@@ -131,7 +147,7 @@ const DateSearchCompoment = ({
           fromMonth: fromDate.clone().startOf("month").format("MM/DD/YYYY"),
           toMonth: toDate.clone().endOf("month").format("MM/DD/YYYY"),
         };
-        selectedDate = fromDate; // Use fromDate as the primary date for query params
+        selectedDate = fromDate;
       }
 
       // Update query parameters if enabled
@@ -160,7 +176,6 @@ const DateSearchCompoment = ({
     const newFromDate = moment(selectedDate);
     setFromDate(newFromDate);
 
-    // If toDate is before the new fromDate, update toDate to end of fromDate month
     if (toDate.isBefore(newFromDate, "month")) {
       setToDate(newFromDate.clone().endOf("month"));
     }
@@ -172,7 +187,6 @@ const DateSearchCompoment = ({
 
   const handleDetailedDateChange = (selectedDate) => {
     const selectedMoment = moment(selectedDate);
-    // Set both from and to dates for detailed view
     setFromDate(selectedMoment.clone().startOf("month"));
     setToDate(selectedMoment.clone().endOf("month"));
   };
@@ -181,11 +195,37 @@ const DateSearchCompoment = ({
     setYear(moment(selectedDate));
   };
 
-  // SEARCH
+  // Enhanced search handlers
   const handleSearchClick = () => {
-    setExpanded(true); // Expand the box
-    inputRef.current?.focus(); // Immediately focus the input field
+    setExpanded(true);
+    inputRef.current?.focus();
   };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+  };
+
+  const handleSearchClear = () => {
+    setSearch("");
+    if (onSearchChange) {
+      onSearchChange("");
+    }
+    inputRef.current?.focus();
+  };
+
+  const handleSearchBlur = () => {
+    if (search === "") {
+      setExpanded(false);
+    }
+  };
+
+  // Auto-expand search if there's a search value
+  useEffect(() => {
+    if (search) {
+      setExpanded(true);
+    }
+  }, [search]);
 
   const tooltipTitle = isHorizontalView
     ? "Change Horizontal View"
@@ -246,21 +286,18 @@ const DateSearchCompoment = ({
         >
           <InputBase
             sx={{ ml: 0.5, flex: 1 }}
-            placeholder="Search"
+            placeholder="Search BOA, System, or Status..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             inputRef={inputRef}
-            onBlur={() => search === "" && setExpanded(false)} // Collapse when no input
+            onBlur={handleSearchBlur}
           />
           {search && (
             <IconButton
               color="primary"
               type="button"
               aria-label="clear"
-              onClick={() => {
-                setSearch(""); // Clears the search input
-                inputRef.current.focus(); // Keeps focus on the input after clearing
-              }}
+              onClick={handleSearchClear}
             >
               <ClearRounded />
             </IconButton>
@@ -291,11 +328,10 @@ const DateSearchCompoment = ({
         {hasDate && (
           <>
             <DatePicker
-              key={`from-${fromDate?.valueOf()}`} // Force re-render when value changes
+              key={`from-${fromDate?.valueOf()}`}
               views={["month", "year"]}
               label="From (Month and Year)"
               value={isTrailBalance ? moment("12/01/2024") : fromDate}
-              
               disabled={isTrailBalance}
               slotProps={{
                 textField: {
@@ -310,10 +346,9 @@ const DateSearchCompoment = ({
               _{" "}
             </Typography>
             <DatePicker
-              key={`to-${toDate?.valueOf()}`} // Force re-render when value changes
+              key={`to-${toDate?.valueOf()}`}
               views={["month", "year"]}
               label="To (Month and Year)"
-              
               value={toDate}
               minDate={isTrailBalance ? undefined : fromDate}
               slotProps={{
@@ -331,7 +366,6 @@ const DateSearchCompoment = ({
             views={["month", "year"]}
             label="As of"
             value={fromDate}
-            
             slotProps={{
               textField: {
                 variant: "standard",

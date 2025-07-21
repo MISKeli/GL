@@ -81,7 +81,7 @@ export const importSchema = yup.object().shape({
   subUnit: yup.string().nullable(),
   locationCode: yup.string().nullable(),
   location: yup.string().nullable(),
-  poNumber: yup.number().nullable(),
+  poNumber: yup.string().nullable(),
   referenceNo: yup.string().nullable(),
   itemCode: yup.string().nullable(),
   itemDescription: yup.string().nullable(),

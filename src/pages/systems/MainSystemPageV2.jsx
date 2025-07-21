@@ -1,50 +1,41 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useMemo, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
-import { defaultValue } from "../../schemas/defaultValue";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { importSchema } from "../../schemas/validation";
+import {
+  IosShareRounded,
+  SyncRounded,
+  SystemUpdateAltRounded,
+} from "@mui/icons-material";
 import {
   Box,
   Button,
   CircularProgress,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
-  Stack,
-  IconButton,
+  Paper,
   Tab,
   Tabs,
   Typography,
-  Paper,
-  Container,
 } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import moment from "moment";
+import { useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import "../../styles/CusImport.scss";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import { info } from "../../schemas/info";
 import noRecordsFound from "../../assets/images/noRecordsFound.png";
-import {
-  Close,
-  SyncRounded,
-  SystemUpdateAltRounded,
-  IosShareRounded,
-  Dvr,
-  DvrRounded,
-  ArrowBack,
-} from "@mui/icons-material";
-import { useImportReportsMutation } from "../../features/api/importReportApi";
-import moment from "moment";
-import { useLazyTestConnectQuery } from "../../features/api/testerApi";
-import { DataGrid } from "@mui/x-data-grid";
 import DropDownComponent from "../../components/DropDownComponent";
-import { transformRows } from "../../schemas/importReport";
 import useExportData from "../../components/hooks/useExportData";
-import OnExportButton from "../../components/OnExportButton";
-// import SystemMonitoringComponent from "../../components/SystemMonitoringComponent";
+import { useImportReportsMutation } from "../../features/api/importReportApi";
+import { useLazyTestConnectQuery } from "../../features/api/testerApi";
+import { defaultValue } from "../../schemas/defaultValue";
+import { transformRows } from "../../schemas/importReport";
+import { info } from "../../schemas/info";
+import { importSchema } from "../../schemas/validation";
+import "../../styles/CusImport.scss";
 
 const MainSystemPageV2 = () => {
   const [data, setData] = useState([]); // Holds parsed data
@@ -60,8 +51,8 @@ const MainSystemPageV2 = () => {
     endpoint: null,
     token: null,
     adjustment_month: null,
-    bookName: null, // Add this if not already present
-    systemName: null, // Add this if not already present
+    bookName: null,
+    systemName: null,
   });
 
   const { setValue } = useForm({
@@ -75,6 +66,10 @@ const MainSystemPageV2 = () => {
   const hasImportButtonPermission = sessionStorage
     .getItem("user")
     .includes("IMPORT BUTTON");
+
+  const isSyncImportPermission = sessionStorage
+    .getItem("user")
+    .includes("SYNC IMPORT");
 
   const [importData, { isFetching }] = useImportReportsMutation();
 
@@ -118,7 +113,7 @@ const MainSystemPageV2 = () => {
     return acc + (row.lineAmount || 0);
   }, 0);
 
-  const roundedTotal = Math.round(lineAmountTotal);
+  const roundedTotal = lineAmountTotal; //Math.round(lineAmountTotal);
 
   const { exportSystem, exportViewSystem } = useExportData();
 
@@ -332,9 +327,21 @@ const MainSystemPageV2 = () => {
 
   // Define onHandleSync function
   const onHandleSync = async (data) => {
-    setIsImportButtonDisabled(
-      !moment().date(params?.closeDate).isSame(moment()) || params.isImported
-    );
+    // IMPORT BUTTON DISABLED LOGIC
+    const today = moment(); 
+    const closeDay = Number(params?.closeDate); 
+
+    const selectedMonth = moment(params?.adjustment_month, "YYYY-MM"); 
+    const lastMonth = moment().subtract(1, "month").startOf("month"); 
+
+    const isCorrectMonth = selectedMonth.isSame(lastMonth, "month");
+    const isOnOrAfterCloseDate = today.date() >= closeDay;
+    const notYetImported = !params?.isImported;
+
+    const shouldEnableImport =
+      isCorrectMonth && isOnOrAfterCloseDate && notYetImported;
+
+    setIsImportButtonDisabled(!shouldEnableImport);
 
     try {
       const response = await triggerTestSystem(params).unwrap();
@@ -406,12 +413,14 @@ const MainSystemPageV2 = () => {
               iconPosition="start"
               label="Sync"
             />
-            <Tab
-              sx={{ fontWeight: "900", fontSize: "13px" }}
-              icon={<SystemUpdateAltRounded />}
-              iconPosition="start"
-              label="Import"
-            />
+            {isSyncImportPermission && (
+              <Tab
+                sx={{ fontWeight: "900", fontSize: "13px" }}
+                icon={<SystemUpdateAltRounded />}
+                iconPosition="start"
+                label="Import"
+              />
+            )}
           </Tabs>
         </Box>
       </Paper>
@@ -455,23 +464,30 @@ const MainSystemPageV2 = () => {
               {...getRootProps()}
               className="customimport__dialog__import__content__dropzone"
               sx={{
-                border: '2px dashed',
-                borderColor: 'grey.300',
+                border: "2px dashed",
+                borderColor: "grey.300",
                 borderRadius: 2,
                 p: 4,
-                textAlign: 'center',
-                cursor: 'pointer',
-                '&:hover': {
-                  borderColor: 'primary.main',
-                  bgcolor: 'grey.50'
-                }
+                textAlign: "center",
+                cursor: "pointer",
+                "&:hover": {
+                  borderColor: "primary.main",
+                  bgcolor: "grey.50",
+                },
               }}
             >
               <input {...getInputProps()} disabled={isLoading} />
-              <Typography className="customimport__dialog__import__content__dropzone--title" variant="h6" gutterBottom>
+              <Typography
+                className="customimport__dialog__import__content__dropzone--title"
+                variant="h6"
+                gutterBottom
+              >
                 Drop a CSV/XLSX file here
               </Typography>
-              <Typography className="customimport__dialog__import__content__dropzone--title" gutterBottom>
+              <Typography
+                className="customimport__dialog__import__content__dropzone--title"
+                gutterBottom
+              >
                 or
               </Typography>
               <Button
@@ -483,9 +499,7 @@ const MainSystemPageV2 = () => {
                 className="customimport__dialog__import__content__dropzone--button"
                 startIcon={
                   isLoading ||
-                  (isFetching && (
-                    <CircularProgress size={20} color="inherit" />
-                  ))
+                  (isFetching && <CircularProgress size={20} color="inherit" />)
                 }
               >
                 {isLoading || isFetching ? "Processing..." : "Upload File"}
@@ -499,8 +513,6 @@ const MainSystemPageV2 = () => {
       <Dialog
         className="customimport__content__dialog__viewing"
         maxWidth={false}
-        //fullScreen - removed
-        //fullWidth - removed
         open={isDataGridOpen}
         sx={{
           "& .MuiDialog-paper": {
@@ -650,7 +662,8 @@ const MainSystemPageV2 = () => {
                 disabled={
                   isLoading ||
                   isFetching ||
-                  roundedTotal !== 0 ||
+                  // roundedTotal > 1 ||
+                  // roundedTotal < -1 ||
                   data.length === 0 ||
                   isSubmitDisabled ||
                   isImportButtonDisabled

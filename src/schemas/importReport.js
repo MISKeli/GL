@@ -1,5 +1,23 @@
 import moment from "moment";
 
+// Helper function to detect and convert date format
+const formatDate = (dateValue) => {
+  if (!dateValue) return null;
+
+  // If it's a number, treat it as Excel serial date
+  if (typeof dateValue === "number" && !isNaN(dateValue)) {
+    return moment("1899-12-30").add(dateValue, "days").format("YYYY-MM-DD");
+  }
+
+  // If it's a string or Date object, parse it normally
+  if (typeof dateValue === "string" || dateValue instanceof Date) {
+    const parsedDate = moment(dateValue);
+    return parsedDate.isValid() ? parsedDate.format("YYYY-MM-DD") : null;
+  }
+
+  return null;
+};
+
 export const transformRows = (data) => {
   return data.map((row, index) => ({
     ...row,
@@ -9,9 +27,12 @@ export const transformRows = (data) => {
     mark2: row.mark2 ? row.mark2.toString() : "",
     assetCIP: row.assetCIP ? row.assetCIP.toString() : "",
     accountingTag: row.accountingTag ? row.accountingTag.toString() : "",
-    transactionDate: row.transactionDate
-      ? moment(row.transactionDate).format("YYYY-MM-DD")
-      : null,
+
+    // Smart date formatting
+    transactionDate: formatDate(row.transactionDate),
+    chequeDate: formatDate(row.chequeDate),
+    releasedDate: formatDate(row.releasedDate),
+
     clientSupplier: row.clientSupplier ? row.clientSupplier.toString() : "",
     accountTitleCode: row.accountTitleCode
       ? row.accountTitleCode.toString()
@@ -60,7 +81,7 @@ export const transformRows = (data) => {
       : "",
     unitResponsible: row.unitResponsible ? row.unitResponsible.toString() : "",
     batch: row.batch ? row.batch.toString() : "",
-    lineDescription: row.lineDescription ? row.lineDescription.toString() : "",
+    remarks: row.remarks ? row.remarks.toString() : "",
     payrollPeriod: row.payrollPeriod ? row.payrollPeriod.toString() : "",
     position: row.position ? row.position.toString() : "",
     payrollType: row.payrollType ? row.payrollType.toString() : "",
@@ -77,9 +98,9 @@ export const transformRows = (data) => {
     particulars: row.particulars ? row.particulars.toString() : "",
     month2: row.month2 ? row.month2.toString() : "",
     farmType: row.farmType ? row.farmType.toString() : "",
-    jeanRemarks: row.jeanRemarks ? row.jeanRemarks.toString() : "",
+    adjustment: row.adjustment ? row.adjustment.toString() : "",
     from: row.from ? row.from.toString() : "",
-    changedTo: row.changedTo ? row.changedTo.toString() : "",
+    changeTo: row.changeTo ? row.changeTo.toString() : "",
     reason: row.reason ? row.reason.toString() : "",
     checkingRemarks: row.checkingRemarks ? row.checkingRemarks.toString() : "",
     bankName: row.bankName ? row.bankName.toString() : "",
@@ -88,15 +109,13 @@ export const transformRows = (data) => {
       ? row.chequeVoucherNumber.toString()
       : "",
     boA2: row.boA2 ? row.boA2.toString() : "",
-    chequeDate: row.chequeDate
-      ? moment(row.chequeDate).format("YYYY-MM-DD")
-      : null,
-    releasedDate: row.releasedDate
-      ? moment(row.releasedDate).format("YYYY-MM-DD")
-      : null,
-
     system: row.system ? row.system.toString() : "",
     books: row.books ? row.books.toString() : "",
+    // chargingCode: row.chargingCode ? row.chargingCode.toString() : "",
+    // chargingName: row.chargingName ? row.chargingName.toString() : "",
+    // thirteenthMonthPay: row.thirteenthMonthPay
+    //   ? row.thirteenthMonthPay.toString()
+    //   : "",
     bookName: row.bookName ? row.bookName.toString() : "",
   }));
 };

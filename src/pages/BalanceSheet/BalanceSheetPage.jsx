@@ -14,6 +14,7 @@ import { useReactToPrint } from "react-to-print";
 import { Print } from "@mui/icons-material";
 import PrintableBalanceSheet from "./PrintableBalanceSheet";
 import { toast } from "sonner";
+import useSkipFetchingQuery from "../../components/hooks/useSkipFetchingQuery";
 
 const BalanceSheetPage = () => {
   const [reportData, setReportData] = useState({
@@ -35,16 +36,23 @@ const BalanceSheetPage = () => {
   const liabilities = info.balanceSheet.tableColumns.liabilities;
   const capital = info.balanceSheet.tableColumns.capital;
 
+  const { isSkip, triggerQuery } = useSkipFetchingQuery();
+
   //Balance Sheet
   const {
     data: sheetData,
     isLoading: isSheetLoading,
     isFetching: isSheetFetching,
-  } = useGenerateBalanceSheetQuery({
-    FromMonth: reportData?.fromMonth || "",
-    ToMonth: reportData?.toMonth || "",
-    UsePagination: false,
-  });
+  } = useGenerateBalanceSheetQuery(
+    {
+      FromMonth: reportData?.fromMonth || "",
+      ToMonth: reportData?.toMonth || "",
+      UsePagination: false,
+    },
+    {
+      skip: isSkip,
+    }
+  );
 
   const balanceSheetData = sheetData?.value?.balanceSheet;
 
@@ -665,6 +673,11 @@ const BalanceSheetPage = () => {
     return exportRows;
   };
 
+  const handleReportDataChange = (newReportData) => {
+    setReportData(newReportData);
+    triggerQuery();
+  };
+
   return (
     <>
       <Box className="sheet">
@@ -673,7 +686,7 @@ const BalanceSheetPage = () => {
             {info.balanceSheet.title}
           </Typography>
           <DateSearchCompoment
-            setReportData={setReportData}
+            setReportData={handleReportDataChange}
             isTrailBalance={true}
           />
         </Box>

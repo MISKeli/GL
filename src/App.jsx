@@ -17,7 +17,7 @@ function App() {
       <Provider store={store}>
         <ProvidesTheme>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Toaster position="bottom-right" richColors closeButton />
+            <Toaster position="top-right" richColors closeButton />
             <RouterProvider router={router} />
           </LocalizationProvider>
         </ProvidesTheme>

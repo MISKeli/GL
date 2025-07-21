@@ -34,6 +34,7 @@ export const info = {
     "Users Management",
     "Role Management",
     "User Account",
+    "ALL"
   ],
 
   dashboard: {
@@ -204,9 +205,9 @@ export const info = {
     title: "System Monitoring",
     tableColumns: [
       { id: "system", name: "SYSTEM" },
+      // { id: "bookName", name: "BOA" },
       { id: "boa", name: "BOA" },
       { id: "status", name: "STATUS" },
-      // { id: "bookName", name: "BOOK NAME" },
       { id: "january", name: "JAN" },
       { id: "february", name: "FEB" },
       { id: "march", name: "MAR" },
@@ -332,8 +333,8 @@ export const info = {
     { id: "accountTitle", name: "ACCOUNT TITLE" },
     { id: "companyCode", name: "COMPANY CODE" },
     { id: "company", name: "COMPANY" },
-    { id: "divisionCode", name: "DIVISION CODE" },
-    { id: "division", name: "DIVISION" },
+    { id: "divisionCode", name: "BUSINESS UNIT CODE" },
+    { id: "division", name: "BUSINESS UNIT" },
     { id: "departmentCode", name: "DEPARTMENT CODE" },
     { id: "department", name: "DEPARTMENT" },
     { id: "unitCode", name: "UNIT CODE" },
@@ -391,6 +392,8 @@ export const info = {
     { id: "boA2", name: "BOA 2" },
     { id: "system", name: "SYSTEM" },
     { id: "books", name: "BOOKS" },
+    // { id: "chargingCode", name: "CHARGING CODE" },
+    // { id: "chargingName", name: "CHARGING NAME" },
   ],
 
   // I edited the company, department , and location...
@@ -406,8 +409,8 @@ export const info = {
     "Account Title": "accountTitle",
     "Company Code": "companyCode",
     Company: "company",
-    "Division Code": "divisionCode",
-    Division: "division",
+    "Business Unit Code": "divisionCode",
+    "Business Unit": "division",
     "Department Code": "departmentCode",
     Department: "department",
     "Unit Code": "unitCode",
@@ -466,6 +469,8 @@ export const info = {
     System: "system",
     Books: "books",
     "Book Name": "bookName",
+    // "Charging Code": "chargingCode",
+    // "Charging Name": "chargingName",
   },
 
   requiredField: [

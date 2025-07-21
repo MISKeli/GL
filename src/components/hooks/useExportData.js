@@ -451,11 +451,15 @@ const useExportData = (headers, exportData, reportData) => {
             amountCell.value = item.amount || "";
           }
 
-          // Style total rows differently
-          if (
+          // Style total and variance rows differently
+          const isTotalRow =
             item.accountType === "TOTAL" ||
-            item.accountDetails?.includes("TOTAL")
-          ) {
+            item.accountDetails?.toUpperCase().includes("TOTAL");
+
+          const isVarianceRow =
+            item.accountDetails?.toUpperCase().trim() === "VARIANCE";
+
+          if (isTotalRow || isVarianceRow) {
             const row = mainSheet.getRow(rowNumber);
             row.eachCell((cell) => {
               cell.font = { bold: true };

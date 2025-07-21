@@ -12,7 +12,6 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
   Typography,
   Tooltip,
@@ -30,10 +29,6 @@ const SystemTable = ({
   header,
   data,
   rows,
-  page,
-  rowsPerPage,
-  handleChangePage,
-  handleChangeRowsPerPage,
   hasData,
   isFetching,
   isLoading,
@@ -45,30 +40,40 @@ const SystemTable = ({
   const [currentParams, setQueryParams, removeQueryParams] =
     useRememberQueryParams();
 
+  const totalCount = data?.value?.totalCount || 0;
+
   const renderCellContent = (row, columnId) => {
-    // Check if it's a valid month name using moment
-    const bookName = row?.bookName
-      ?.substring(row?.bookName?.lastIndexOf("-") + 1)
-      .trim();
+    const bookName = row?.boa;
 
-    const isMonth = moment(columnId, "MMMM", true).isValid();
-    const dateSelected = `${columnId}/${moment(currentParams?.fromMonth).format(
-      "YYYY"
-    )}`;
+   
 
-    const fromMonth = moment(dateSelected)
-      .startOf("month")
-      .format(info.dateFormat);
-    const toMonth = moment(dateSelected).endOf("month").format(info.dateFormat);
+    // Map column IDs to month names for comparison
+    const monthColumns = {
+      january: "January",
+      february: "February",
+      march: "March",
+      april: "April",
+      may: "May",
+      june: "June",
+      july: "July",
+      august: "August",
+      september: "September",
+      october: "October",
+      november: "November",
+      december: "December",
+    };
+
+    const isMonth = monthColumns.hasOwnProperty(columnId);
 
     // Handle system status column
-    if (columnId === "systemStatus" || columnId === "status") {
-      const systemStatus =
-        row.systemStatus !== undefined ? row.systemStatus : row.status;
+    if (columnId === "status") {
+      // Use the transformed status value (based on systemConfig.status, not sync data)
+      const statusValue = row.status;
+      const isActive = statusValue === "Active";
       return (
         <Chip
-          label={systemStatus ? "Active" : "Inactive"}
-          color={systemStatus ? "success" : "error"}
+          label={statusValue}
+          color={isActive ? "success" : "error"}
           variant="filled"
           size="small"
         />
@@ -76,26 +81,46 @@ const SystemTable = ({
     }
 
     if (isMonth) {
-      // Get the month data object (contains status and syncDate)
-      const monthData = row[columnId];
-      const status = monthData?.status || 0;
-      const syncDate = monthData?.syncDate;
+      const monthName = monthColumns[columnId];
+      const dateSelected = `${monthName}/${moment(
+        currentParams?.fromMonth
+      ).format("YYYY")}`;
 
-      // Format the sync date for tooltip
-      const formattedSyncDate = syncDate
-        ? moment(syncDate).format("YYYY-MM-DD hh:mm:ss A")
-        : null;
+      const fromMonth = moment(dateSelected)
+        .startOf("month")
+        .format(info.dateFormat);
+      const toMonth = moment(dateSelected)
+        .endOf("month")
+        .format(info.dateFormat);
 
-      // Create tooltip content
-      const tooltipContent =
-        status === 1 && formattedSyncDate
-          ? `Imported on: ${formattedSyncDate}`
-          : status === 1 && !formattedSyncDate
-          ? "Imported (No sync date available)"
-          : "Not imported";
+      // Get the month data from the transformed row data
+      const monthValue = row[columnId];
 
-      // Create navigation URL - always use /system/ path
-      const navigationUrl = `/system/${row.system}?fromMonth=${fromMonth}&toMonth=${toMonth}&book=${bookName}`;
+      // Determine status based on the transformed data
+      let status = 0;
+      let syncDate = null;
+      let tooltipContent = "Not imported";
+
+      if (monthValue && monthValue !== "Not Synced") {
+        status = 1;
+        // Check if it's a date string or just "Synced"
+        if (monthValue !== "Synced") {
+          syncDate = monthValue;
+          const formattedSyncDate = moment(syncDate).format(
+            "YYYY-MM-DD hh:mm:ss A"
+          );
+          tooltipContent = `Imported on: ${formattedSyncDate}`;
+        } else {
+          tooltipContent = "Imported (No sync date available)";
+        }
+      }
+
+      // Create navigation URL
+      const navigationUrl = `/system/${
+        row.system
+      }?fromMonth=${fromMonth}&toMonth=${toMonth}&book=${encodeURIComponent(
+        bookName
+      )}`;
 
       return (
         <Tooltip title={tooltipContent} arrow placement="top">
@@ -103,7 +128,7 @@ const SystemTable = ({
             size="small"
             onClick={() =>
               navigate(navigationUrl, {
-                state: { date: `${columnId}` },
+                state: { date: monthName },
               })
             }
           >
@@ -153,7 +178,10 @@ const SystemTable = ({
               rows?.map((row, index) => (
                 <TableRow key={index}>
                   {header.map((col) => (
-                    <TableCell key={col.id} align="center">
+                    <TableCell
+                      key={col.id}
+                      align={["boa"].includes(col.id) ? "left" : "center"}
+                    >
                       {renderCellContent(row, col.id)}
                     </TableCell>
                   ))}
@@ -181,6 +209,7 @@ const SystemTable = ({
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
+          paddingTop: "8px",
         }}
       >
         <Box>
@@ -202,20 +231,9 @@ const SystemTable = ({
               : info.download.export}
           </Button>
         </Box>
-        <TablePagination
-          component="div"
-          count={data?.value?.totalCount || 0}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[
-            25,
-            50,
-            100,
-            { label: "All", value: data?.value?.totalCount || 0 },
-          ]}
-        />
+        <Typography variant="subtitle1" fontWeight={600}>
+          Total BOA: {totalCount}
+        </Typography>
       </Box>
     </>
   );

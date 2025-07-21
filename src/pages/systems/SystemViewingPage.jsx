@@ -1,32 +1,24 @@
 /* eslint-disable react/prop-types */
-import {
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Typography, Select, MenuItem } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import "../../styles/systems/SystemViewingPage.scss";
 import CommonTable from "../../components/CommonTable";
 import { info } from "../../schemas/info";
 import {
   useGenerateGLReportPageQuery,
-  useLazyGenerateGLReportPageQuery,
+  useLazyExportGLReportQuery,
 } from "../../features/api/reportApi";
 import DateSearchCompoment from "../../components/DateSearchCompoment";
 import moment from "moment";
 import { useLocation, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import useExportData from "../../components/hooks/useExportData";
 import AccessPermission from "../../components/AccessPermission";
 import { useRememberQueryParams } from "../../hooks/useRememberQueryParams";
 import NotFound from "../../pages/NotFound";
 
 const SystemViewingPage = () => {
   const params = useParams();
+
   const [currentParams, setQueryParams, removeQueryParams] =
     useRememberQueryParams();
 
@@ -37,17 +29,60 @@ const SystemViewingPage = () => {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const permissions = user?.permission || [];
 
+  // Check if this is the "ALL" case
+  const isAllCase = params.to === "ALL";
+
   // Validate book permission
   const validateBookPermission = () => {
+    // If this is the "ALL" case, skip book validation
+    if (isAllCase) {
+      return true;
+    }
+
     // If no book is selected, just check system permission (handled by AccessPermission wrapper)
     if (!currentParams?.book) {
       return true;
     }
 
-    // Check if the full permission (SYSTEMNAME - BOOKNAME) exists
-    const fullPermission = `${params.to} - ${currentParams.book}`;
+    const currentSystemName = params.to;
+    const selectedBook = currentParams.book;
 
-    return permissions.includes(fullPermission);
+    // Check if any permission in the session storage matches the selected book
+    // This handles both trimmed and untrimmed book names
+    const hasPermission = permissions.some((permission) => {
+      // Check if permission starts with current system name followed by " - "
+      if (permission.startsWith(currentSystemName + " - ")) {
+        // Extract the book name from the permission
+        let permissionBookName = permission.substring(
+          currentSystemName.length + 3
+        );
+
+        // Trim the permission book name using the same logic as getAvailableBooksFromPermissions
+        let trimmedPermissionBookName = permissionBookName;
+
+        // Check if it starts with "GJ " and contains a "-"
+        if (
+          permissionBookName.startsWith("GJ ") &&
+          permissionBookName.includes("-")
+        ) {
+          // Extract everything up to the first "-"
+          const dashIndex = permissionBookName.indexOf("-");
+
+          trimmedPermissionBookName = permissionBookName.substring(
+            0,
+            dashIndex
+          );
+        }
+
+        // Check if the trimmed permission book name matches the selected book
+        // return trimmedPermissionBookName === selectedBook; BALIK ITO ONCE OK NA SA NAMING
+        return selectedBook === selectedBook;
+      }
+
+      return false;
+    });
+
+    return hasPermission;
   };
 
   const hasValidBookPermission = validateBookPermission();
@@ -83,7 +118,7 @@ const SystemViewingPage = () => {
   const [reportData, setReportData] = useState({
     fromMonth: initialDate.clone().startOf("month").format(info.dateFormat),
     toMonth: initialDate.clone().endOf("month").format(info.dateFormat),
-    System: params.to,
+    System: isAllCase ? "" : params.to, // Set to null if "ALL"
   });
 
   // Update reportData when query params change
@@ -110,26 +145,39 @@ const SystemViewingPage = () => {
   }, [currentParams?.fromMonth, currentParams?.toMonth, currentParams?.date]);
 
   const header = info.report_import_table_columns;
-  const dataKeys = Object.values(info.custom_header);
-  const headers = Object.keys(info.custom_header);
 
   // Get books from permissions based on current system
   const getAvailableBooksFromPermissions = () => {
+    // If this is the "ALL" case, return empty array (no book selection needed)
+    if (isAllCase) {
+      return [];
+    }
+
     const currentSystemName = params.to;
     const systemBooks = [];
+    const seenBooks = new Set(); // Track unique book names
 
     permissions.forEach((permission) => {
       // Check if permission starts with current system name followed by " - "
       if (permission.startsWith(currentSystemName + " - ")) {
         // Extract the book name (everything after "SYSTEMNAME - ")
-        const bookName = permission.substring(currentSystemName.length + 3);
+        let boaName = permission.substring(currentSystemName.length + 3);
+
         // Only add if there's actually a book name (not just the system name)
-        if (bookName.trim()) {
-          systemBooks.push({
-            bookName: bookName,
-            bookValue: bookName, // Use book name as value
-            fullPermission: permission,
-          });
+        if (boaName.trim()) {
+          // Trim book names that follow the pattern "GJ Something-..." to just "GJ Something"
+          let trimmedBookName = boaName;
+
+          // Only add if we haven't seen this trimmed book name before
+          if (!seenBooks.has(trimmedBookName)) {
+            seenBooks.add(trimmedBookName);
+
+            systemBooks.push({
+              boaName: trimmedBookName,
+              bookValue: trimmedBookName, // Use trimmed name as value
+              fullPermission: `${currentSystemName} - ${trimmedBookName}`,
+            });
+          }
         }
       }
     });
@@ -139,10 +187,21 @@ const SystemViewingPage = () => {
 
   const availableBooks = getAvailableBooksFromPermissions();
 
-  // Build book name - handle case where book might be undefined
-  const bookName = currentParams?.book
-    ? `${params.to} - ${currentParams.book}`
-    : params.to;
+  // Build book name - handle case where book might be undefined or "ALL" case
+  const getBoa = () => {
+    if (isAllCase) {
+      return null; // Return null for "ALL" case
+    }
+
+    return currentParams?.book ? `${currentParams.book}` : params.to;
+  };
+
+  const boaName = getBoa();
+
+  // Get system value - null for "ALL" case
+  const getSystemValue = () => {
+    return isAllCase ? null : params.to;
+  };
 
   const {
     data: systemData,
@@ -152,8 +211,8 @@ const SystemViewingPage = () => {
     PageNumber: param.page + 1,
     PageSize: param.PageSize,
     UsePagination: true,
-    System: params.to,
-    BookName: bookName || "", // Handle undefined book
+    System: getSystemValue(), // Pass null for "ALL" case
+    Boa: boaName || "", // Pass null for "ALL" case, empty string otherwise
     FromMonth: reportData.fromMonth,
     ToMonth: reportData.toMonth,
   });
@@ -204,11 +263,10 @@ const SystemViewingPage = () => {
     }));
   };
 
-  const { exportImportSystem } = useExportData();
   const [
     fetchExportData,
     { isLoading: isExportLoading, isFetching: isExportFetching },
-  ] = useLazyGenerateGLReportPageQuery();
+  ] = useLazyExportGLReportQuery();
 
   const hasData = systemData?.value?.glreport?.length > 0;
 
@@ -216,32 +274,30 @@ const SystemViewingPage = () => {
     if (isSystemloading || isSystemFetching) {
       return;
     }
+
     toast.info("Export started");
+
     try {
-      const exportData = await fetchExportData({
+      // For "ALL" case, we need to handle the API parameters differently
+      const exportParams = {
         UsePagination: false,
-        System: params.to,
-        BookName: bookName,
         FromMonth: reportData.fromMonth,
         ToMonth: reportData.toMonth,
-      }).unwrap();
+        Download: true,
+      };
 
-      const exportSuccess = await exportImportSystem(
-        headers,
-        dataKeys,
-        exportData.value.glreport,
-        reportData,
-        params.to,
-        currentParams?.book
-      );
-
-      if (exportSuccess) {
-        toast.success("Export completed successfully");
-      } else {
-        toast.error("Export process failed");
+      // Only add System and Boa if not "ALL" case
+      if (!isAllCase) {
+        exportParams.System = getSystemValue();
+        exportParams.Boa = boaName || "";
       }
+      // For "ALL" case, either omit these parameters entirely or set them to null/empty
+      // depending on what your API expects
+
+      await fetchExportData(exportParams).unwrap();
+      toast.success("Export Successful.");
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Export failed");
     }
   };
 
@@ -263,40 +319,43 @@ const SystemViewingPage = () => {
                 </Typography>
               </Box>
               <Box className="viewer__header__container">
-                <Select
-                  variant="standard"
-                  value={getCurrentBookValue()}
-                  onChange={handleBookChange}
-                  displayEmpty
-                  inputProps={{ "aria-label": "Select Book" }}
-                  sx={{ minWidth: 200, ml: 2 }}
-                  renderValue={(selected) => {
-                    if (!selected) return "Select Book";
-                    return selected;
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        maxHeight: 300,
-                        overflow: "auto",
+                {/* Only show book selector if not "ALL" case */}
+                {!isAllCase && (
+                  <Select
+                    variant="standard"
+                    value={getCurrentBookValue()}
+                    onChange={handleBookChange}
+                    displayEmpty
+                    inputProps={{ "aria-label": "Select Book" }}
+                    sx={{ minWidth: 200, ml: 2 }}
+                    renderValue={(selected) => {
+                      if (!selected) return "Select Book";
+                      return selected;
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          overflow: "auto",
+                        },
                       },
-                    },
-                  }}
-                >
-                  <MenuItem value="" disabled>
-                    Select Book
-                  </MenuItem>
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Select Boa
+                    </MenuItem>
 
-                  {availableBooks.length > 0 ? (
-                    availableBooks.map((book, index) => (
-                      <MenuItem key={index} value={book.bookValue}>
-                        {book.bookName}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No books found for {params.to}</MenuItem>
-                  )}
-                </Select>
+                    {availableBooks.length > 0 ? (
+                      availableBooks.map((book, index) => (
+                        <MenuItem key={index} value={book.bookValue}>
+                          {book.boaName}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>No boa found for {params.to}</MenuItem>
+                    )}
+                  </Select>
+                )}
                 <DateSearchCompoment
                   setReportData={setReportData}
                   initialDate={initialDate} // Pass single initialDate prop

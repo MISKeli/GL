@@ -670,17 +670,22 @@ const getPermissionsFromSchema = (systemData) => {
   );
 
   if (glModuleIndex !== -1) {
-    modulePermissions[glModuleIndex].subCategory.push(...systemPermissions, {
-      name: "IMPORT BUTTON",
-      books: null,
-      subCategory: [],
-    });
+    modulePermissions[glModuleIndex].subCategory.push(
+      ...systemPermissions,
+      {
+        name: "IMPORT BUTTON",
+        books: null,
+        subCategory: [],
+      },
+      { name: "SYNC IMPORT", books: null, subCategory: [] }
+    );
   } else {
     modulePermissions.push({
       name: "General Ledger",
       subCategory: [
         ...systemPermissions,
         { name: "IMPORT BUTTON", books: null, subCategory: [] },
+        { name: "SYNC IMPORT", books: null, subCategory: [] },
       ],
     });
   }
