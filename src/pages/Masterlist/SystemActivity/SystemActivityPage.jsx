@@ -185,6 +185,17 @@ const SystemActivityPage = () => {
     setSearchQuery(searchValue);
   };
 
+  // Handle date/year changes from DateSearchComponent
+  const handleDateChange = (data) => {
+    setQueryParams(
+      {
+        fromMonth: data.fromMonth,
+        toMonth: data.toMonth,
+      },
+      { retain: true }
+    );
+  };
+
   return (
     <>
       <Box className="activity">
@@ -202,19 +213,15 @@ const SystemActivityPage = () => {
 
             <DateSearchCompoment
               initialDate={currentParams.fromMonth}
-              setReportData={(data) => {
-                setQueryParams(
-                  {
-                    fromMonth: data.fromMonth,
-                    toMonth: data.toMonth,
-                  },
-                  { retain: true }
-                );
-              }}
+              setReportData={handleDateChange}
               hasDate={false}
+              hasImport={false}
+              hasDetailed={false}
               isYearOnly={true}
-              onSearchChange={handleSearchChange} // Pass search handler
-              searchValue={searchQuery} // Pass current search value
+              hasViewChange={false}
+              updateQueryParams={false}
+              onSearchChange={handleSearchChange}
+              searchValue={searchQuery}
             />
           </Box>
         </Box>

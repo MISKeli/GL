@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
   Box,
   Button,
@@ -12,130 +13,92 @@ import {
   TablePagination,
   TableRow,
   Typography,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { info } from "../../schemas/info";
 import "../../styles/TrialBalancePage.scss";
-import DateSearchCompoment from "../../components/DateSearchCompoment";
-import moment from "moment";
-import useExportData from "../../components/hooks/useExportData";
 import { toast } from "sonner";
-import useDebounce from "../../components/useDebounce";
+
 import {
   useGenerateDetailedTrialBalanceQuery,
   useLazyGenerateDetailedTrialBalanceQuery,
 } from "../../features/api/boaApi";
-import { IosShareRounded } from "@mui/icons-material";
+import {
+  IosShareRounded,
+  KeyboardArrowDown,
+  FileDownload,
+  Print,
+} from "@mui/icons-material";
 import { useRememberQueryParams } from "../../hooks/useRememberQueryParams";
 import useSkipFetchingQuery from "../../components/hooks/useSkipFetchingQuery";
+import DetailedTrialBalancePrintDialog from "./DetailedTrialBalancePrintDialog";
+import useExportData from "../../components/hooks/useExportData";
 
-const DetailedTrailBalancePage = () => {
+const DetailedTrailBalancePage = ({ reportData, onReportDataChange }) => {
   const [currentParams, setQueryParams, removeQueryParams] =
     useRememberQueryParams();
   const { isSkip, triggerQuery } = useSkipFetchingQuery();
-  // Get search from URL params
-  const searchFromParams = currentParams.search || "";
-  const [search, setSearch] = useState(searchFromParams);
-  const debounceValue = useDebounce(search);
 
-  // Get date from URL params or use default
-  const getDateFromParams = () => {
-    if (currentParams.date) {
-      const parsed = moment(currentParams.date, "MM-DD-YYYY");
-      if (parsed.isValid()) return parsed.format("MM-DD-YYYY");
-    }
-    if (currentParams.fromDate) {
-      const parsed = moment(currentParams.fromDate, "MM-DD-YYYY");
-      if (parsed.isValid()) return parsed.format("MM-DD-YYYY");
-    }
-    return moment().startOf("month").format("MM-DD-YYYY");
-  };
-
-  const [reportData, setReportData] = useState({
-    fromMonth: getDateFromParams(),
-    toMonth: getDateFromParams(),
-  });
+  // Menu state
+  const [anchorEl, setAnchorEl] = useState(null);
+  const menuOpen = Boolean(anchorEl);
 
   // Get page and pageSize from URL params
   const pageFromParams = parseInt(currentParams.page || "0", 10);
   const pageSizeFromParams = parseInt(currentParams.pageSize || "25", 10);
 
   const [params, setParams] = useState({
-    fromMonth: reportData.fromMonth,
-    toMonth: reportData.toMonth,
-    Search: debounceValue,
+    fromMonth: reportData?.fromMonth || reportData?.FromMonth,
+    toMonth: reportData?.toMonth || reportData?.ToMonth,
     page: pageFromParams,
     PageSize: pageSizeFromParams,
     PageNumber: pageFromParams + 1,
   });
 
-  // Update search when debounced value changes
-  useEffect(() => {
-    setParams((prev) => ({
-      ...prev,
-      Search: debounceValue,
-    }));
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
 
-    // Update URL params for search
-    if (debounceValue === "") {
-      const newParams = { ...currentParams };
-      delete newParams.search;
-      setQueryParams(newParams);
-    } else {
+  // Update params when reportData changes
+  useEffect(() => {
+    if (reportData) {
+      setParams((prev) => ({
+        ...prev,
+        fromMonth: reportData.fromMonth || reportData.FromMonth,
+        toMonth: reportData.toMonth || reportData.ToMonth,
+      }));
+    }
+    triggerQuery();
+  }, [reportData]);
+
+  // Update URL params when reportData changes
+  useEffect(() => {
+    if (
+      reportData?.fromMonth &&
+      reportData?.toMonth &&
+      (currentParams.fromMonth !== reportData.fromMonth ||
+        currentParams.toMonth !== reportData.toMonth)
+    ) {
       setQueryParams(
         {
-          search: debounceValue,
-          page: "0", // Reset to first page when searching
+          fromMonth: reportData.fromMonth,
+          toMonth: reportData.toMonth,
         },
         { retain: true }
       );
     }
-  }, [debounceValue]);
-
-  // Update params when reportData changes
-  useEffect(() => {
-    setParams((prev) => ({
-      ...prev,
-      fromMonth: reportData.fromMonth,
-      toMonth: reportData.toMonth,
-    }));
-  }, [reportData]);
-
-  // NEW: Watch for URL param changes and update reportData automatically
-  useEffect(() => {
-    const dateFromUrl = currentParams.date || currentParams.fromDate;
-    if (dateFromUrl) {
-      const parsed = moment(dateFromUrl, "MM-DD-YYYY");
-      if (parsed.isValid()) {
-        const newDate = parsed.format("MM-DD-YYYY");
-
-        // Only update if the date actually changed to avoid infinite loops
-        if (newDate !== reportData.fromMonth) {
-          setReportData({
-            fromMonth: newDate,
-            toMonth: newDate,
-          });
-        }
-      }
-    }
-  }, [currentParams.date, currentParams.fromDate, reportData.fromMonth]);
-
-  // Sync search state with URL params on mount
-  useEffect(() => {
-    const searchFromUrl = currentParams.search || "";
-    if (search !== searchFromUrl) {
-      setSearch(searchFromUrl);
-    }
-  }, [currentParams.search]);
-
-  const handleReportDateChange = (newReportData) => {
-    setReportData(newReportData);
-    triggerQuery();
-  };
+  }, [
+    reportData?.fromMonth,
+    reportData?.toMonth,
+    currentParams,
+    setQueryParams,
+  ]);
 
   const fillParams = {
-    FromMonth: reportData.fromMonth,
-    ToMonth: reportData.toMonth,
+    FromMonth: reportData?.fromMonth || reportData?.FromMonth,
+    ToMonth: reportData?.toMonth || reportData?.ToMonth,
   };
 
   //viewing
@@ -146,7 +109,6 @@ const DetailedTrailBalancePage = () => {
   } = useGenerateDetailedTrialBalanceQuery(
     {
       ...fillParams,
-      Search: debounceValue,
       PageNumber: params.page + 1,
       UsePagination: true,
       PageSize: params.PageSize,
@@ -156,7 +118,7 @@ const DetailedTrailBalancePage = () => {
     }
   );
 
-  //export data
+  //export data (for both export and print - get all data without pagination)
   const { data: exportData } = useGenerateDetailedTrialBalanceQuery(
     {
       ...fillParams,
@@ -226,11 +188,6 @@ const DetailedTrailBalancePage = () => {
     );
   };
 
-  // Handle search change from DateSearchCompoment
-  const handleSearchChange = (newSearch) => {
-    setSearch(newSearch);
-  };
-
   const { detailedTrailBalanceExport } = useExportData();
 
   // Format number as currency with negative values in red
@@ -251,6 +208,7 @@ const DetailedTrailBalancePage = () => {
     if (isExportLoading || isExportFetching) {
       return;
     }
+    setAnchorEl(null); // Close menu
     toast.info("Export started");
     try {
       const exportData = await fetchExportData({
@@ -269,6 +227,24 @@ const DetailedTrailBalancePage = () => {
     }
   };
 
+  const onPrint = () => {
+    setAnchorEl(null); // Close menu
+    setPrintDialogOpen(true);
+  };
+
+  // Menu handlers
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  // Check if any action is loading
+  const isAnyActionLoading =
+    isExportLoading || isExportFetching || isTrialLoading || isTrialFetching;
+
   // Custom styles for sticky headers
   const stickyHeaderStyle = {
     position: "sticky",
@@ -284,20 +260,15 @@ const DetailedTrailBalancePage = () => {
 
   return (
     <>
-      <Box className="trial">
-        <Box className="trial__header">
-          <DateSearchCompoment
-            setReportData={handleReportDateChange}
-            hasDetailed={true}
-            hasDate={false}
-            updateQueryParams={true}
-            onSearchChange={handleSearchChange}
-            searchValue={search}
-            // NEW: Pass current date to sync with the component
-            initialDate={moment(reportData.fromMonth, "MM-DD-YYYY")}
-          />
-        </Box>
+      <DetailedTrialBalancePrintDialog
+        open={printDialogOpen}
+        onClose={() => setPrintDialogOpen(false)}
+        trialBalanceData={exportData?.value?.trialBalance || []}
+        reportData={reportData}
+        totals={totals}
+      />
 
+      <Box className="trial">
         <Box className="trial__content">
           <Box className="trial__content__table">
             <TableContainer
@@ -539,22 +510,73 @@ const DetailedTrailBalancePage = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={onExport}
-              disabled={!hasData || isExportLoading || isExportFetching}
-              startIcon={
-                isExportFetching || isExportLoading ? (
-                  <CircularProgress size={20} />
+              onClick={handleMenuClick}
+              disabled={!hasData || isAnyActionLoading}
+              endIcon={
+                isAnyActionLoading ? (
+                  <CircularProgress size={16} sx={{ color: "primary" }} />
                 ) : (
-                  <IosShareRounded />
+                  <KeyboardArrowDown
+                    sx={{
+                      transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease-in-out",
+                    }}
+                  />
                 )
               }
             >
-              {isExportLoading
-                ? "Loading..."
-                : isExportFetching
-                ? "Exporting..."
-                : "Export"}
+              {isAnyActionLoading ? "Processing..." : "Export"}
             </Button>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={menuOpen}
+              onClose={handleMenuClose}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    "& .MuiMenuItem-root": {
+                      minHeight: "auto",
+                      paddingTop: "6px",
+                      paddingBottom: "6px",
+                    },
+                  },
+                },
+              }}
+            >
+              <MenuItem
+                onClick={onExport}
+                disabled={isExportLoading || isExportFetching}
+                dense
+              >
+                <ListItemIcon sx={{ minWidth: "36px" }}>
+                  {isExportLoading || isExportFetching ? (
+                    <CircularProgress size={18} />
+                  ) : (
+                    <FileDownload fontSize="small" />
+                  )}
+                </ListItemIcon>
+                <ListItemText>
+                  {isExportLoading || isExportFetching
+                    ? "Exporting..."
+                    : "Excel"}
+                </ListItemText>
+              </MenuItem>
+              <MenuItem onClick={onPrint} dense>
+                <ListItemIcon sx={{ minWidth: "36px" }}>
+                  <Print fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Print</ListItemText>
+              </MenuItem>
+            </Menu>
           </Box>
           <TablePagination
             component="div"

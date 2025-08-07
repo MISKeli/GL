@@ -233,6 +233,7 @@ const SystemViewingPage = () => {
     BookName: bookName || "", // Pass null for "ALL" case, empty string otherwise
     FromMonth: reportData.fromMonth,
     ToMonth: reportData.toMonth,
+       
   });
 
   const rows = systemData?.value?.glreport;

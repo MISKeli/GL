@@ -8,6 +8,7 @@ import { Box, Button, Chip, Tooltip, Typography } from "@mui/material";
 import { AllInclusive, CloudSync, PlaylistAddCheckRounded, PlaylistRemoveRounded } from "@mui/icons-material";
 import { toast } from "sonner";
 import useExportData from "../../components/hooks/useExportData";
+import DateSearchCompoment from "../../components/DateSearchCompoment";
 
 const getChipColor = (value) => {
   switch (value) {
@@ -59,7 +60,7 @@ const AccountTitlePage = () => {
     page: 0,
     PageSize: 25,
     PageNumber: 1,
-    Search: debounceValue,
+    Search: "",
   });
 
   const {
@@ -96,6 +97,15 @@ const AccountTitlePage = () => {
         Status: newStatus === "all" ? "" : newStatus,
       };
     });
+  };
+    // Handle search change from DateSearchComponent
+  const handleSearchChange = (searchValue) => {
+    setParams((prev) => ({
+      ...prev,
+      Search: searchValue,
+      page: 0, // Reset to first page when searching
+      PageNumber: 1,
+    }));
   };
 
   // Handle page change
@@ -155,6 +165,19 @@ const AccountTitlePage = () => {
             {info.accountTitle.title}
           </Typography>
           <Box className="accountTitle__header">
+             <DateSearchCompoment
+          // Disable all date-related features
+          hasDate={false}
+          hasImport={false}
+          hasDetailed={false}
+          isYearOnly={false}
+          hasViewChange={false}
+          updateQueryParams={false}
+          onSearchChange={handleSearchChange}
+          searchValue={params.Search}
+          // Provide empty function for setReportData since we're not using dates
+          setReportData={() => {}}
+        />
             <Button
               onClick={handleImport}
               disabled={isLoading || isFetching}

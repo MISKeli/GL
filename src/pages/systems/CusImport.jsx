@@ -115,8 +115,12 @@ const CusImport = ({ open, onClose }) => {
   const lineAmountTotal = rows.reduce((acc, row) => {
     return acc + (row.lineAmount || 0);
   }, 0);
+  console.log("🚀 ~ CusImport ~ lineAmountTotal:", lineAmountTotal)
 
   const roundedTotal = Math.round(lineAmountTotal);
+  console.log("🚀 ~ CusImport ~ roundedTotal:", roundedTotal)
+  
+  
 
   const { exportSystem, exportViewSystem } = useExportData();
 
@@ -638,9 +642,11 @@ const CusImport = ({ open, onClose }) => {
           >
             Line Amount: ₱
             {roundedTotal.toLocaleString("en-PH", {
+            
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }) || "--"}
+            
           </Typography>
 
           <Box>

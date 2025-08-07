@@ -1,36 +1,40 @@
-import { indexApi } from "./indexApi";
 import moment from "moment";
+import { indexApi } from "./indexApi";
 
 const reportApi = indexApi
   .enhanceEndpoints({ addTagTypes: ["report", "exportReport"] })
   .injectEndpoints({
     endpoints: (builder) => ({
       GenerateGLReportPage: builder.query({
-        query: (params) => ({
-          url: `/report/general-ledger-report`,
-          method: "GET",
-          params,
-        }),
+        query: (params) => {
+          return {
+            url: `/report/general-ledger-report`,
+            method: "GET",
+            params,
+          };
+        },
         providesTags: ["report"],
       }),
       ExportGLReport: builder.query({
-        query: (params) => ({
-          url: `/report/general-ledger-report`,
-          method: "GET",
-          params,
-          responseHandler: async (response) => {
-            const blob = await response.blob();
-            const headers = response.headers.get("Content-Disposition");
-            return { blob, headers };
-          },
-        }),
+        query: (params) => {
+          return {
+            url: `/report/general-ledger-report`,
+            method: "GET",
+            params,
+            responseHandler: async (response) => {
+              const blob = await response.blob();
+              const headers = response.headers.get("Content-Disposition");
+              return { blob, headers };
+            },
+          };
+        },
 
         transformResponse: async ({ blob, headers }, meta, arg) => {
-          // Console log the arg parameter
-
-          // Extract system name from arg
-          const systemName = arg.BookName || "ALL SYSTEM";
-
+          // If both System and Boa are missing, use "ALL SYSTEM"
+          const systemName =
+            !arg.System && !arg.Boa
+              ? "ALL SYSTEM"
+              : `${arg.System} - ${arg.Boa}`;
           // Format the date - assuming FromMonth is in the format from your SystemViewingPage
           let dateFormat = "MMYYYY";
           if (arg.FromMonth) {
@@ -57,6 +61,11 @@ const reportApi = indexApi
           url.revokeObjectURL(blobExcel);
 
           return null;
+        },
+
+        // Add error handling to see if there are any errors
+        transformErrorResponse: (response, meta, arg) => {
+          return response;
         },
       }),
     }),

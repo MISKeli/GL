@@ -34,7 +34,7 @@ export const info = {
     "Users Management",
     "Role Management",
     "User Account",
-    "ALL"
+    "ALL",
   ],
 
   dashboard: {
@@ -140,7 +140,7 @@ export const info = {
     button: "Sync",
     tableColumns: [
       //{ id: "id", name: "ID" },
-      { id: "syncId", name: "SYNC ID" },
+      { id: "code", name: "CODE" },
       { id: "name", name: "NAME" },
       { id: "companyCode", name: "COMPANY CODE" },
       { id: "companyName", name: "COMPANY NAME" },
@@ -305,6 +305,11 @@ export const info = {
     sb: ["Sales Journal Book"],
     jb: ["Journal Book"],
     crj: ["Cash Receipt Book"],
+  },
+
+  ai: {
+    title: "General Leadger AI",
+    header: "Ask General Ledger AI",
   },
 
   trialbalance_title: "Trial Balance",
@@ -635,14 +640,15 @@ export const info = {
 
   trial_balance: [
     // { id: "chequeDate", name: "ACCOUNT CODE" },
+    { id: "subGroup", name: "SUB GROUP" },
     { id: "chartOfAccount", name: "ACCOUNT NAME" },
     { id: "debit", name: "DEBIT" },
     { id: "credit", name: "CREDIT" },
-    { id: "debitVariance", name: "BALANCE DEBIT" },
-    { id: "creditVariance", name: "BALANCE CREDIT" },
+    // { id: "debitVariance", name: "BALANCE DEBIT" },
+    // { id: "creditVariance", name: "BALANCE CREDIT" },
   ],
 
-  trial_balance_export: ["ACCOUNT NAME", "DEBIT", "CREDIT", "DEBIT", "CREDIT"],
+  trial_balance_export: ["SUB GROUP", "ACCOUNT NAME", "DEBIT", "CREDIT"],
 
   journal_book: [
     { id: "date", name: "DATE" },

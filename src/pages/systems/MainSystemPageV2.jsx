@@ -328,16 +328,14 @@ const MainSystemPageV2 = () => {
   // Define onHandleSync function
   const onHandleSync = async (data) => {
     // IMPORT BUTTON DISABLED LOGIC
-    const today = moment(); 
-    const closeDay = Number(params?.closeDate); 
-
-    const selectedMonth = moment(params?.adjustment_month, "YYYY-MM"); 
-    const lastMonth = moment().subtract(1, "month").startOf("month"); 
+    const today = moment();
+    const closeDay = Number(params?.closeDate);
+    const selectedMonth = moment(params?.adjustment_month, "YYYY-MM");
+    const lastMonth = moment().subtract(1, "month").startOf("month");
 
     const isCorrectMonth = selectedMonth.isSame(lastMonth, "month");
     const isOnOrAfterCloseDate = today.date() >= closeDay;
     const notYetImported = !params?.isImported;
-
     const shouldEnableImport =
       isCorrectMonth && isOnOrAfterCloseDate && notYetImported;
 
@@ -345,13 +343,11 @@ const MainSystemPageV2 = () => {
 
     try {
       const response = await triggerTestSystem(params).unwrap();
-
       // Add bookName to each row in the response
       const dataWithBookName = response.map((row) => ({
         ...row,
         bookName: `${params.systemName || ""} - ${params.bookName || ""}`, // Combined format
       }));
-
       setData(dataWithBookName); // setData(response)
       setDialogTitle("Review Synced Data");
       setIsDataGridOpen(true); // Open the dialog first

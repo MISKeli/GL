@@ -52,7 +52,9 @@
   //background-color: aqua;
 
   &__container {
-    position: absolute;
+    display: flex;
+    justify-content: space-between;
+   // position: absolute;
   }
 
   &__table {

@@ -561,7 +561,17 @@ const DialogSetupSample = ({
                           flexWrap: "nowrap", // Prevent wrapping to maintain horizontal layout
                         }}
                       >
-                        <Grid item xs={4} sx={{ minWidth: "200px" }}>
+                        <Grid
+                          item
+                          xs={4}
+                          sx={{
+                            minWidth: "200px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          {fieldIndex + 1}.
                           <Controller
                             name={`bookParameter.${fieldIndex}.bookName`}
                             control={control}

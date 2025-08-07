@@ -27,6 +27,7 @@ import MainSystemPageV2 from "../pages/systems/MainSystemPageV2";
 import AccountTitlePage from "../pages/AccountTitle/AccountTitlePage";
 import MasterlistPage from "../pages/Masterlist/MasterlistPage";
 import BalanceSheetPage from "../pages/BalanceSheet/BalanceSheetPage";
+import PromptPage from "../pages/PromptAI/PromptPage";
 
 export const router = createBrowserRouter([
   {
@@ -155,6 +156,10 @@ export const router = createBrowserRouter([
           {
             path: "balance_sheet",
             element: <BalanceSheetPage />,
+          },
+           {
+            path: "promptAI",
+            element: <PromptPage />,
           },
           // {
           //   path: "account_title",

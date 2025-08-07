@@ -29,24 +29,25 @@ const useExportData = (headers, exportData, reportData) => {
 
         const processedData = exportData.map((item) => ({
           id: item.chartOfAccount,
+          subGroup: item.subGroup,
           chartOfAccount: item.chartOfAccount,
           debit: item.debit,
           credit: item.credit,
-          debitVariance: item.debitVariance,
-          creditVariance: item.creditVariance,
+          // debitVariance: item.debitVariance,
+          // creditVariance: item.creditVariance,
         }));
 
         const workbook = new Workbook();
-        const mainSheet = workbook.addWorksheet("sheet1");
+        const mainSheet = workbook.addWorksheet("Trial Balance");
 
         // Add main headers
         mainSheet.getCell("A1").value = "RDF Feed Livestock & Foods Inc.";
         mainSheet.getCell("A2").value = "Trial Balance";
         mainSheet.getCell("A3").value = extraSentence;
-        mainSheet.mergeCells("D6:E6");
-        mainSheet.getCell("D6").value = "BALANCES";
+        mainSheet.mergeCells("C6:D6");
+        mainSheet.getCell("C6").value = "AMOUNT";
 
-        const balances = mainSheet.getCell("D6");
+        const balances = mainSheet.getCell("C6");
         balances.alignment = {
           vertical: "middle",
           horizontal: "center",
@@ -62,7 +63,7 @@ const useExportData = (headers, exportData, reportData) => {
 
         // Style the column headers
         for (let row = 6; row <= 7; row++) {
-          for (let col = 1; col <= 5; col++) {
+          for (let col = 1; col <= 4; col++) {
             const cell = mainSheet.getCell(row, col);
             cell.fill = {
               type: "pattern",
@@ -83,27 +84,28 @@ const useExportData = (headers, exportData, reportData) => {
         headers?.forEach((title, index) => {
           const cell = mainSheet.getCell(7, index + 1);
           cell.value = title;
-          mainSheet.getColumn(index + 1).width = Math.max(10, 20);
+          mainSheet.getColumn(index + 1).width = Math.max(10, 25);
         });
 
         // Add data rows with formatting
         processedData.forEach((item) => {
           const row = mainSheet.addRow([
+            item.subGroup,
             item.chartOfAccount,
             item.debit || 0,
             item.credit || 0,
-            item.debitVariance || 0,
-            item.creditVariance || 0,
+            // item.debitVariance || 0,
+            // item.creditVariance || 0,
           ]);
 
-          const debitCell = row.getCell(2);
-          const creditCell = row.getCell(3);
-          const debitVarianceCell = row.getCell(4);
-          const creditVarianceCell = row.getCell(5);
+          const debitCell = row.getCell(3);
+          const creditCell = row.getCell(4);
+          // const debitVarianceCell = row.getCell(5);
+          // const creditVarianceCell = row.getCell(6);
           debitCell.numFmt = info.numFormat.number;
           creditCell.numFmt = info.numFormat.number;
-          debitVarianceCell.numFmt = info.numFormat.number;
-          creditVarianceCell.numFmt = info.numFormat.number;
+          // debitVarianceCell.numFmt = info.numFormat.number;
+          // creditVarianceCell.numFmt = info.numFormat.number;
 
           if (item.debit < 0) {
             debitCell.font = { color: { argb: "FF0000" } };
@@ -111,12 +113,12 @@ const useExportData = (headers, exportData, reportData) => {
           if (item.credit < 0) {
             creditCell.font = { color: { argb: "FF0000" } };
           }
-          if (item.debitVariance < 0) {
-            debitVarianceCell.font = { color: { argb: "FF0000" } };
-          }
-          if (item.creditVariance < 0) {
-            creditVarianceCell.font = { color: { argb: "FF0000" } };
-          }
+          // if (item.debitVariance < 0) {
+          //   debitVarianceCell.font = { color: { argb: "FF0000" } };
+          // }
+          // if (item.creditVariance < 0) {
+          //   creditVarianceCell.font = { color: { argb: "FF0000" } };
+          // }
         });
 
         // Add totals row with formatting
@@ -128,20 +130,21 @@ const useExportData = (headers, exportData, reportData) => {
           (sum, item) => sum + (item.credit || 0),
           0
         );
-        const totalDebitVariance = processedData.reduce(
-          (sum, item) => sum + (item.debitVariance || 0),
-          0
-        );
-        const totalCreditVariance = processedData.reduce(
-          (sum, item) => sum + (item.creditVariance || 0),
-          0
-        );
+        // const totalDebitVariance = processedData.reduce(
+        //   (sum, item) => sum + (item.debitVariance || 0),
+        //   0
+        // );
+        // const totalCreditVariance = processedData.reduce(
+        //   (sum, item) => sum + (item.creditVariance || 0),
+        //   0
+        // );
         const totalsRow = mainSheet.addRow([
           "Total",
+          "",
           totalDebit,
           totalCredit,
-          totalDebitVariance,
-          totalCreditVariance,
+          // totalDebitVariance,
+          // totalCreditVariance,
         ]);
         totalsRow.font = { bold: true };
         totalsRow.eachCell((cell, colIndex) => {
@@ -153,10 +156,10 @@ const useExportData = (headers, exportData, reportData) => {
             right: { style: "thin" },
           };
           if (
-            (colIndex === 2 && totalDebit < 0) ||
-            (colIndex === 3 && totalCredit < 0) ||
-            (colIndex === 4 && totalDebitVariance < 0) ||
-            (colIndex === 4 && totalCreditVariance < 0)
+            (colIndex === 3 && totalDebit < 0) ||
+            (colIndex === 4 && totalCredit < 0)
+            // (colIndex === 5 && totalDebitVariance < 0) ||
+            // (colIndex === 6 && totalCreditVariance < 0)
           ) {
             cell.font = { color: { argb: "FF0000" }, bold: true };
           }

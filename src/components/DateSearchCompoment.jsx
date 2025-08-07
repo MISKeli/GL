@@ -25,6 +25,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import moment from "moment";
 import { useRememberQueryParams } from "../hooks/useRememberQueryParams";
+import useDebounce from "./useDebounce";
 
 const DateSearchCompoment = ({
   setReportData,
@@ -34,6 +35,7 @@ const DateSearchCompoment = ({
   hasImport = false,
   hasDetailed = false,
   isTrailBalance = false,
+  dateKey = "date",
   isYearOnly = false,
   initialDate = null,
   updateQueryParams = false,
@@ -71,6 +73,9 @@ const DateSearchCompoment = ({
   const [importDate, setImportDate] = useState(() => getInitialFromDate());
   const [loading, setLoading] = useState(false);
 
+  // Use the useDebounce hook for search debouncing
+  const debouncedSearch = useDebounce(search);
+
   const {
     control,
     formState: { errors },
@@ -89,8 +94,9 @@ const DateSearchCompoment = ({
   // Update dates when initialDate prop changes
   useEffect(() => {
     if (initialDate && moment(initialDate).isValid()) {
-      const newFromDate = moment(initialDate);
-      const newToDate = moment(initialDate).endOf("month");
+      const newFromDate = initialDate?.fromMonth ?? moment(initialDate);
+      const newToDate =
+        initialDate?.toMonth ?? moment(initialDate).endOf("month");
 
       setFromDate(newFromDate);
       setToDate(newToDate);
@@ -99,16 +105,12 @@ const DateSearchCompoment = ({
     }
   }, [initialDate?.valueOf()]);
 
-  // Handle search changes with debouncing
+  // Handle debounced search changes
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      if (onSearchChange) {
-        onSearchChange(search);
-      }
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(debounceTimer);
-  }, [search, onSearchChange]);
+    if (onSearchChange) {
+      onSearchChange(debouncedSearch);
+    }
+  }, [debouncedSearch, onSearchChange]);
 
   const handleDateChange = async () => {
     console.log("triggering");
@@ -154,7 +156,7 @@ const DateSearchCompoment = ({
       if (updateQueryParams && selectedDate) {
         setQueryParams(
           {
-            date: selectedDate.format("YYYY-MM-DD"),
+            [dateKey]: selectedDate.format("YYYY-MM-DD"),
           },
           { retain: true }
         );
@@ -208,9 +210,6 @@ const DateSearchCompoment = ({
 
   const handleSearchClear = () => {
     setSearch("");
-    if (onSearchChange) {
-      onSearchChange("");
-    }
     inputRef.current?.focus();
   };
 
@@ -279,23 +278,31 @@ const DateSearchCompoment = ({
           />
         )}
 
-        <Box
+        <form
           className={`filter__search ${expanded ? "expanded" : ""}`}
-          component="form"
           onClick={() => setExpanded(true)}
+          onSubmit={(e) => {
+            e.preventDefault(); // Prevent form submission and page reload
+            // Handle search submission if needed
+          }}
         >
           <InputBase
             sx={{ ml: 0.5, flex: 1 }}
-            placeholder="Search BOA, System, or Status..."
+            placeholder="Search..."
             value={search}
             onChange={handleSearchChange}
             inputRef={inputRef}
             onBlur={handleSearchBlur}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault(); // Extra safety to prevent Enter key issues
+              }
+            }}
           />
           {search && (
             <IconButton
               color="primary"
-              type="button"
+              type="button" // ← Make sure this is "button", not "submit"
               aria-label="clear"
               onClick={handleSearchClear}
             >
@@ -304,13 +311,13 @@ const DateSearchCompoment = ({
           )}
           <IconButton
             color="primary"
-            type="button"
+            type="button" // ← Make sure this is "button", not "submit"
             aria-label="search"
             onClick={handleSearchClick}
           >
             <SearchRounded />
           </IconButton>
-        </Box>
+        </form>
 
         {hasViewChange && (
           <Tooltip title={tooltipTitle} placement="left" arrow>

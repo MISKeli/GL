@@ -106,14 +106,11 @@ const SystemSetupPageSample = () => {
     PageSize: params.PageSize,
     UsePagination: false,
   });
-  
 
   const parameters = systemData?.value?.result.map((system) => ({
     id: system.id,
     bookParameter: system.bookParameter,
   }));
-  console.log("🚀 ~ parameters ~ parameters:", parameters)
-  //console.log("🚀 ~ SystemSetupPageSample ~ parameters:", parameters);
 
   const changeStatus = (data) =>
     setParams((currentValue) => ({
@@ -467,7 +464,6 @@ const SystemSetupPageSample = () => {
                                           }}
                                         >
                                           {parsedParams.map((param, index) => (
-                                            
                                             // Render
                                             <Card
                                               key={index}
@@ -796,7 +792,6 @@ const SystemSetupPageSample = () => {
                   /> */}
                                             </Card>
                                           ))}
-                                        
                                         </Box>
                                       ) : (
                                         <Box

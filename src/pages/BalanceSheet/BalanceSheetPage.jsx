@@ -1,4 +1,13 @@
-import { Box, Button, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Typography,
+} from "@mui/material";
 import React, { useMemo, useRef, useState } from "react";
 import DateSearchCompoment from "../../components/DateSearchCompoment";
 import { info } from "../../schemas/info";
@@ -10,27 +19,39 @@ import OnExportButton from "../../components/OnExportButton";
 import { useGenerateBalanceSheetQuery } from "../../features/api/boaApi";
 import useExportData from "../../components/hooks/useExportData";
 
-import { useReactToPrint } from "react-to-print";
-import { Print } from "@mui/icons-material";
-import PrintableBalanceSheet from "./PrintableBalanceSheet";
 import { toast } from "sonner";
 import useSkipFetchingQuery from "../../components/hooks/useSkipFetchingQuery";
+import { FileDownload, KeyboardArrowDown, Print } from "@mui/icons-material";
+import BalanceSheetPrintDialog from "./BalanceSheetPrintDialog";
 
 const BalanceSheetPage = () => {
   const [reportData, setReportData] = useState({
     FromMonth: moment().startOf("month").format(info.dateFormat).toString(),
     ToMonth: moment().endOf("month").format(info.dateFormat).toString(),
   });
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  // Menu state
+  const [anchorEl, setAnchorEl] = useState(null);
+  const menuOpen = Boolean(anchorEl);
 
-  // Print functionality
-  const printRef = useRef(null);
+  // Add this handler function
+  const onPrint = () => {
+    setAnchorEl(null); // Close menu
+    setPrintDialogOpen(true);
+  };
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: "AwesomeFileName",
-    // onAfterPrint: handleAfterPrint,
-    // onBeforePrint: handleBeforePrint,
-  });
+  // const handleClosePrintDialog = () => {
+  //   setPrintDialogOpen(false);
+  // };
+
+  // Menu handlers
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   const asset = info.balanceSheet.tableColumns.asset;
   const liabilities = info.balanceSheet.tableColumns.liabilities;
@@ -57,6 +78,8 @@ const BalanceSheetPage = () => {
   const balanceSheetData = sheetData?.value?.balanceSheet;
 
   const hasData = balanceSheetData && balanceSheetData.length > 0;
+  // Check if any action is loading
+  const isAnyActionLoading = isSheetLoading || isSheetFetching;
 
   const transformedData = useMemo(() => {
     if (!balanceSheetData) {
@@ -755,44 +778,83 @@ const BalanceSheetPage = () => {
           </Box>
         </Box>
         <Box className="sheet__footer" gap={2}>
-          <OnExportButton
-            onExport={onExport}
-            hasData={hasData}
-            isLoading={isSheetLoading}
-            isFetching={isSheetFetching}
-          />
-
-          {/* <Button
+          <Button
             variant="contained"
             color="primary"
-            startIcon={<Print />}
-            onClick={handlePrint}
-            disabled={!hasData || isSheetLoading || isSheetFetching}
-            sx={{ minWidth: 120 }}
+            onClick={handleMenuClick}
+            disabled={!hasData || isAnyActionLoading}
+            endIcon={
+              isAnyActionLoading ? (
+                <CircularProgress size={16} sx={{ color: "primary" }} />
+              ) : (
+                <KeyboardArrowDown
+                  sx={{
+                    transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease-in-out",
+                  }}
+                />
+              )
+            }
           >
-            Print
-          </Button> */}
+            {isAnyActionLoading ? "Processing..." : "Export"}
+          </Button>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={menuOpen}
+            onClose={handleMenuClose}
+            anchorOrigin={{
+              vertical: "top",
+              horizontal: "left",
+            }}
+            transformOrigin={{
+              vertical: "bottom",
+              horizontal: "left",
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  "& .MuiMenuItem-root": {
+                    minHeight: "auto",
+                    paddingTop: "6px",
+                    paddingBottom: "6px",
+                  },
+                },
+              },
+            }}
+          >
+            <MenuItem
+              onClick={onExport}
+              disabled={isSheetLoading || isSheetFetching}
+              dense
+            >
+              <ListItemIcon sx={{ minWidth: "36px" }}>
+                {isSheetLoading || isSheetFetching ? (
+                  <CircularProgress size={18} />
+                ) : (
+                  <FileDownload fontSize="small" />
+                )}
+              </ListItemIcon>
+              <ListItemText>
+                {isSheetLoading || isSheetFetching ? "Exporting..." : "Excel"}
+              </ListItemText>
+            </MenuItem>
+            <MenuItem onClick={onPrint} dense>
+              <ListItemIcon sx={{ minWidth: "36px" }}>
+                <Print fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Print</ListItemText>
+            </MenuItem>
+          </Menu>
         </Box>
+
+        <BalanceSheetPrintDialog
+          open={printDialogOpen}
+          onClose={() => setPrintDialogOpen(false)}
+          transformedData={transformedData}
+          reportData={reportData}
+        />
       </Box>
-      <div
-        style={{
-          position: "absolute",
-          visibility: "hidden",
-          height: 0,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          ref={printRef}
-          style={{ display: "flex", flexDirection: "column" }}
-        >
-          <PrintableBalanceSheet
-            transformedData={transformedData}
-            reportData={reportData}
-            companyName="RDF" // Optional: customize this
-          />
-        </div>
-      </div>
     </>
   );
 };

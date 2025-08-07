@@ -10,7 +10,7 @@ import {
 } from "../../features/api/reportApi";
 import DateSearchCompoment from "../../components/DateSearchCompoment";
 import moment from "moment";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import AccessPermission from "../../components/AccessPermission";
 import { useRememberQueryParams } from "../../hooks/useRememberQueryParams";
@@ -21,6 +21,7 @@ const SystemViewingPage = () => {
 
   const [currentParams, setQueryParams, removeQueryParams] =
     useRememberQueryParams();
+  console.log("🚀 ~ SystemViewingPage ~ currentParams:", currentParams);
 
   const location = useLocation();
   const { date } = location?.state || {};
@@ -86,9 +87,20 @@ const SystemViewingPage = () => {
   };
 
   const hasValidBookPermission = validateBookPermission();
+  const hasFromAndToMonth = currentParams?.fromMonth && currentParams?.toMonth;
 
   // Get initial date from query params, location state, or current date
   const getInitialDate = () => {
+    if (hasFromAndToMonth) {
+      return {
+        fromMonth: moment(currentParams.fromMonth, info.dateFormat),
+        toMonth: moment(currentParams.toMonth, info.dateFormat),
+      };
+    }
+    if (currentParams?.toMonth) {
+      const parsedDate = moment(currentParams.toMonth, info.dateFormat);
+      return parsedDate.isValid() ? parsedDate : moment();
+    }
     // Use fromMonth from currentParams if available
     if (currentParams?.fromMonth) {
       const parsedDate = moment(currentParams.fromMonth, info.dateFormat);
@@ -116,14 +128,18 @@ const SystemViewingPage = () => {
 
   // Initialize reportData with proper moment formatting
   const [reportData, setReportData] = useState({
-    fromMonth: initialDate.clone().startOf("month").format(info.dateFormat),
-    toMonth: initialDate.clone().endOf("month").format(info.dateFormat),
+    fromMonth: hasFromAndToMonth
+      ? initialDate.fromMonth
+      : initialDate.clone().startOf("month").format(info.dateFormat),
+    toMonth: hasFromAndToMonth
+      ? initialDate.toMonth
+      : initialDate.clone().endOf("month").format(info.dateFormat),
     System: isAllCase ? "" : params.to, // Set to null if "ALL"
   });
 
   // Update reportData when query params change
   useEffect(() => {
-    if (currentParams?.fromMonth && currentParams?.toMonth) {
+    if (hasFromAndToMonth) {
       const newFromDate = moment(currentParams.fromMonth, info.dateFormat);
       const newToDate = moment(currentParams.toMonth, info.dateFormat);
 
@@ -215,6 +231,8 @@ const SystemViewingPage = () => {
     Boa: boaName || "", // Pass null for "ALL" case, empty string otherwise
     FromMonth: reportData.fromMonth,
     ToMonth: reportData.toMonth,
+    DrCr: currentParams?.drCr,
+    AccountTitle: currentParams?.coa,
   });
 
   const rows = systemData?.value?.glreport;
@@ -285,6 +303,7 @@ const SystemViewingPage = () => {
         ToMonth: reportData.toMonth,
         Download: true,
       };
+      console.log("🚀 ~ onExport ~ exportParams BEFORE:", exportParams);
 
       // Only add System and Boa if not "ALL" case
       if (!isAllCase) {
@@ -294,11 +313,77 @@ const SystemViewingPage = () => {
       // For "ALL" case, either omit these parameters entirely or set them to null/empty
       // depending on what your API expects
 
-      await fetchExportData(exportParams).unwrap();
+      console.log("🚀 ~ onExport ~ exportParams FINAL:", exportParams);
+      console.log("🚀 ~ onExport ~ About to call fetchExportData");
+
+      const result = await fetchExportData(exportParams).unwrap();
+      console.log("🚀 ~ onExport ~ fetchExportData result:", result);
       toast.success("Export Successful.");
     } catch (err) {
+      console.log("🚀 ~ onExport ~ Error:", err);
       toast.error(err.message || "Export failed");
     }
+  };
+
+  const DrCrCoaDisplay = ({ coa, drCr }) => {
+    const navigate = useNavigate();
+
+    if (!coa || !drCr) return null;
+
+    return (
+      <Box
+        onClick={() =>
+          navigate(
+            `/trial_balance?fromMonth=${currentParams.fromMonth}&toMonth=${currentParams.toMonth}`
+          )
+        }
+        sx={{
+          cursor: "pointer",
+          width: "fit-content",
+          "&:hover": { opacity: 0.8 },
+        }}
+      >
+        <Typography variant="body2" color="textSecondary">
+          <Typography component="span" fontWeight="bold" color="textPrimary">
+            {coa}
+          </Typography>{" "}
+          —{" "}
+          <Typography component="span" fontWeight="medium" color="primary">
+            {drCr.toUpperCase()}
+          </Typography>
+        </Typography>
+      </Box>
+    );
+  };
+
+  // MODIFIED: Custom setReportData function to update URL query params
+  const handleSetReportData = (data) => {
+    console.log("BK - Report Data:", data);
+    console.log(
+      "BK - Setting fromMonth:",
+      data.fromMonth,
+      "toMonth:",
+      data.toMonth
+    );
+
+    setReportData(data);
+
+    // Use setTimeout to ensure state updates are processed first
+    setTimeout(() => {
+      // Update URL query parameters with fromMonth and toMonth
+      setQueryParams(
+        {
+          fromMonth: data.fromMonth,
+          toMonth: data.toMonth,
+        },
+        { retain: true } // Keep existing query params
+      );
+
+      console.log("BK - Query params updated");
+    }, 0);
+
+    // Remove coa and drCr params as before
+    removeQueryParams(["coa", "drCr"]);
   };
 
   return (
@@ -319,6 +404,10 @@ const SystemViewingPage = () => {
                 </Typography>
               </Box>
               <Box className="viewer__header__container">
+                <DrCrCoaDisplay
+                  coa={currentParams.coa}
+                  drCr={currentParams.drCr}
+                />
                 {/* Only show book selector if not "ALL" case */}
                 {!isAllCase && (
                   <Select
@@ -357,10 +446,10 @@ const SystemViewingPage = () => {
                   </Select>
                 )}
                 <DateSearchCompoment
-                  setReportData={setReportData}
+                  setReportData={handleSetReportData} // Use the modified function
                   initialDate={initialDate} // Pass single initialDate prop
                   hasDate={true}
-                  updateQueryParams={true} // Enable query parameter updates
+                  updateQueryParams={false} // Disable the component's own query param updates since we're handling it manually
                 />
               </Box>
             </Box>

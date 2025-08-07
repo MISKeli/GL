@@ -29,19 +29,18 @@ const DropDownComponent = ({
   setParams,
   onHandleSync,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
+  const [isgenerated, setIsGenerated] = useState(false);
 
   const {
     data: monitorData,
-    isLoading: isMornitorLoading,
-    isFetching: isMornitorFetching,
+    isLoading: isMonitorLoading,
+    isFetching: isMonitorFetching,
   } = useGenerateImportedSystemsQuery({
     Year: moment().format("YYYY"),
     //BookName: null,
     UsePagination: false,
   });
-  
 
   // Get permissions from session storage
   const user = JSON.parse(sessionStorage.getItem("user"));
@@ -86,7 +85,6 @@ const DropDownComponent = ({
 
   const [triggerFetchSystem, { data: systemData, isFetching }] =
     useLazyGetAllSystemsAsyncQuery();
- 
   // Watch the adjustment_month field to get the current selected date
   const watchedDate = watch("adjustment_month");
 
@@ -134,7 +132,6 @@ const DropDownComponent = ({
   const renderImportStatusChip = (systemName, bookName, selectedMonth) => {
     const isImported = isBookImported(systemName, bookName, selectedMonth);
     const syncDate = getSyncDate(systemName, bookName, selectedMonth);
-    
 
     return (
       <Box display="flex" alignItems={"center"} gap={1}>
@@ -196,6 +193,7 @@ const DropDownComponent = ({
           // Add system header
           options.push({
             ...system,
+            bookParameter: "",
             isSystemHeader: true,
             displayText: system.systemName,
           });
@@ -204,6 +202,7 @@ const DropDownComponent = ({
           books.forEach((book, bookIndex) => {
             options.push({
               ...system,
+              bookParameter: "",
               bookName: book.bookName,
               bookValue: book.bookValue,
               closeDate: book.closeDate,
@@ -229,7 +228,7 @@ const DropDownComponent = ({
     };
 
     // Also ensure adjustment_month is set when system changes
-    const defaultDate = calculateDefaultDate();
+    // const defaultDate = calculateDefaultDate();
     setParams((prev) => ({
       ...prev,
       adjustment_month: watch("adjustment_month"),
@@ -240,15 +239,15 @@ const DropDownComponent = ({
     }));
 
     // Update the form validation
-    setValue("adjustment_month", defaultDate, { shouldValidate: true });
+    // setValue("adjustment_month", defaultDate, { shouldValidate: true });
   };
 
   const submitHandler = async (formDate) => {
-    setIsLoading(true);
+    setIsGenerated(true);
     try {
       await onHandleSync({ formDate });
     } finally {
-      setIsLoading(false);
+      setIsGenerated(false);
     }
   };
 
@@ -399,10 +398,11 @@ const DropDownComponent = ({
             if (isImported) {
               setValue("adjustment_month", moment().format("YYYY-MM"));
             } else {
-              setValue(
-                "adjustment_month",
-                moment().subtract(1, "months").format("YYYY-MM")
-              );
+              //balik nya sa current month
+              // setValue(
+              //   "adjustment_month",
+              //   moment().subtract(1, "months").format("YYYY-MM")
+              // );
             }
 
             const fullEndpoint = `${selectedBook.endpoint}/${selectedBook.bookValue}`;
@@ -445,17 +445,18 @@ const DropDownComponent = ({
           // Always disable headers
           if (option.isSystemHeader) return true;
 
-          // Only check books for disabled state
-          if (option.systemName && option.bookName) {
-            const currentSelectedDate = watchedDate || selectedDate;
-            return isBookImported(
-              option.systemName,
-              option.bookName,
-              currentSelectedDate
-            );
-          }
+          // If no permissions, disable all options
 
-          // Default: don't disable
+          // // Only check books for disabled state
+          // if (option.systemName && option.bookName) {
+          //   const currentSelectedDate = watchedDate || selectedDate;
+          //   return isBookImported(
+          //     option.systemName,
+          //     option.bookName,
+          //     currentSelectedDate
+          //   );
+          // }
+
           return false;
         }}
         freeSolo={false}
@@ -520,10 +521,14 @@ const DropDownComponent = ({
           type="submit"
           size="large"
           fullWidth
-          disabled={!isValid || isLoading || !paramsRef.current.systemName}
+          disabled={!isValid || isgenerated || !paramsRef.current.systemName}
           sx={{ alignItems: "center", marginTop: "30px" }}
         >
-          {isLoading ? <CircularProgress size={24} color="inherit" /> : "Sync"}
+          {isgenerated ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            "Generate"
+          )}
         </Button>
       </form>
     </>
